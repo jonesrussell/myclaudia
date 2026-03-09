@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout myclaudia
+        uses: actions/checkout@v4
+        with:
+          path: myclaudia
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Validate composer.json
+        working-directory: myclaudia
+        run: composer validate --no-check-publish
+
+      - name: Check PHP syntax
+        working-directory: myclaudia
+        run: find src -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  test:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout myclaudia
+        uses: actions/checkout@v4
+        with:
+          path: myclaudia
+
+      - name: Checkout waaseyaa framework
+        uses: actions/checkout@v4
+        with:
+          repository: waaseyaa/framework
+          path: waaseyaa
+          token: ${{ secrets.WAASEYAA_PAT }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, mbstring, xml
+          coverage: none
+
+      - name: Rewrite Composer path repositories for CI
+        working-directory: myclaudia
+        run: |
+          php -r "
+            \$c = json_decode(file_get_contents('composer.json'), true);
+            \$c['repositories'] = [['type' => 'path', 'url' => '../waaseyaa/packages/*']];
+            file_put_contents('composer.json', json_encode(\$c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . \"\\n\");
+          "
+
+      - name: Install dependencies
+        working-directory: myclaudia
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run unit tests
+        working-directory: myclaudia
+        run: ./vendor/bin/phpunit
