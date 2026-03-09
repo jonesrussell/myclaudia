@@ -44,7 +44,6 @@ jobs:
         with:
           repository: waaseyaa/framework
           path: waaseyaa
-          token: ${{ secrets.WAASEYAA_PAT }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
