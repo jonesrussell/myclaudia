@@ -14,12 +14,12 @@
     ]
   },
   "mcpServers": {
-    "myclaudia-specs": {
+    "claudriel-specs": {
       "command": "node",
       "args": ["tools/spec-retrieval/server.js"],
       "cwd": "."
     },
-    "myclaudia-memory": {
+    "claudriel-memory": {
       "command": "node",
       "args": ["tools/memory-mcp/server.js"],
       "cwd": ".",

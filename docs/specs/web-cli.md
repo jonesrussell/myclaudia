@@ -5,8 +5,8 @@
 | File | Purpose |
 |------|---------|
 | `src/Controller/DayBriefController.php` | `GET /brief` — returns JSON day brief |
-| `src/Command/BriefCommand.php` | `myclaudia:brief` — prints day brief to terminal |
-| `src/Command/CommitmentsCommand.php` | `myclaudia:commitments` — lists active commitments |
+| `src/Command/BriefCommand.php` | `claudriel:brief` — prints day brief to terminal |
+| `src/Command/CommitmentsCommand.php` | `claudriel:commitments` — lists active commitments |
 | `src/McClaudiaServiceProvider.php` | Registers routes + entity types |
 | `public/index.php` | HTTP entry point (Waaseyaa HttpKernel) |
 | `bin/waaseyaa` | CLI entry point (Waaseyaa ConsoleKernel) |
@@ -17,7 +17,7 @@
 ```php
 // In McClaudiaServiceProvider::routes(WaaseyaaRouter $router)
 $router->addRoute(
-    'myclaudia.brief',
+    'claudriel.brief',
     RouteBuilder::create('/brief')
         ->controller(DayBriefController::class . '::show')
         ->allowAll()
@@ -31,7 +31,7 @@ $router->addRoute(
 Commands use Symfony Console `#[AsCommand]` attribute:
 
 ```php
-#[AsCommand(name: 'myclaudia:brief', description: 'Show your Day Brief')]
+#[AsCommand(name: 'claudriel:brief', description: 'Show your Day Brief')]
 final class BriefCommand extends Command { ... }
 ```
 
@@ -81,10 +81,10 @@ Both kernels resolve service providers from `src/McClaudiaServiceProvider.php` a
 
 1. Create controller in `src/Controller/`
 2. Add `->addRoute(name, RouteBuilder::create('/path')...->build())` in `McClaudiaServiceProvider::routes()`
-3. Name routes as `myclaudia.<name>` for clarity
+3. Name routes as `claudriel.<name>` for clarity
 
 ## Adding New Commands
 
 1. Create in `src/Command/`, extend `Symfony\Component\Console\Command\Command`
-2. Add `#[AsCommand(name: 'myclaudia:foo')]` attribute
+2. Add `#[AsCommand(name: 'claudriel:foo')]` attribute
 3. Verify ConsoleKernel picks it up (see issue #9)

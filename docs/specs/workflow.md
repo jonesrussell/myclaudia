@@ -2,7 +2,7 @@
 
 ## Repository
 
-`jonesrussell/myclaudia` — MyClaudia, AI personal operations system
+`jonesrussell/claudriel` — Claudriel, AI personal operations system
 
 ## Versioning Model
 

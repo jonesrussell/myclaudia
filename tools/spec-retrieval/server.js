@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * MyClaudia spec retrieval MCP server.
+ * Claudriel spec retrieval MCP server.
  * Exposes docs/specs/ as searchable cold memory for AI sessions.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -48,13 +48,13 @@ function searchSpecs(query, maxResults = 10) {
 }
 
 const server = new McpServer({
-  name: 'myclaudia-specs',
+  name: 'claudriel-specs',
   version: '1.0.0',
 });
 
 server.tool(
-  'myclaudia_list_specs',
-  'List all MyClaudia subsystem specification documents. Use this to discover which specs are available before retrieving one.',
+  'claudriel_list_specs',
+  'List all Claudriel subsystem specification documents. Use this to discover which specs are available before retrieving one.',
   {},
   async () => {
     const specs = listSpecs();
@@ -62,15 +62,15 @@ server.tool(
     return {
       content: [{
         type: 'text',
-        text: `# Available MyClaudia Specs\n\n| Name | Path |\n|------|------|\n${rows}`,
+        text: `# Available Claudriel Specs\n\n| Name | Path |\n|------|------|\n${rows}`,
       }],
     };
   },
 );
 
 server.tool(
-  'myclaudia_get_spec',
-  'Retrieve the full content of a MyClaudia subsystem spec. Use when you need deep implementation details for a subsystem.',
+  'claudriel_get_spec',
+  'Retrieve the full content of a Claudriel subsystem spec. Use when you need deep implementation details for a subsystem.',
   { name: z.string().describe("Spec name without .md extension, e.g. 'entity', 'ingestion', 'day-brief', 'pipeline', 'web-cli', 'workflow'") },
   async ({ name }) => {
     const content = readSpec(name);
@@ -89,8 +89,8 @@ server.tool(
 );
 
 server.tool(
-  'myclaudia_search_specs',
-  'Search all MyClaudia specs for a keyword or phrase. Use when you need to find which spec covers a specific class, method, or concept.',
+  'claudriel_search_specs',
+  'Search all Claudriel specs for a keyword or phrase. Use when you need to find which spec covers a specific class, method, or concept.',
   {
     query: z.string().describe('Search term, e.g. class name, method name, or concept like "confidence threshold"'),
     max_results: z.number().optional().describe('Max matches per spec (default 10)'),

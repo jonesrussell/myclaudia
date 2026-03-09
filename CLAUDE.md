@@ -1,6 +1,6 @@
-# MyClaudia — Codified Context
+# Claudriel — Codified Context
 
-MyClaudia is an **AI personal operations system** built on the Waaseyaa PHP framework.
+Claudriel is an **AI personal operations system** built on the Waaseyaa PHP framework.
 It ingests events (e.g. Gmail messages), extracts commitments via AI, and presents a daily brief.
 
 ## Architecture
@@ -15,8 +15,8 @@ DayBriefAssembler → { recent_events, pending_commitments, drifting_commitments
 DriftDetector     → active Commitments with updated_at < 48h ago
 
 GET /brief           → DayBriefController → JSON
-myclaudia:brief      → BriefCommand → CLI
-myclaudia:commitments → CommitmentsCommand → CLI
+claudriel:brief      → BriefCommand → CLI
+claudriel:commitments → CommitmentsCommand → CLI
 ```
 
 ## Layers
@@ -63,7 +63,7 @@ Rule: higher layers import lower layers only. Never import from src/Command insi
 3. Register step in pipeline configuration
 
 **Add a CLI command:**
-1. Create `src/Command/FooCommand.php` with `#[AsCommand(name: 'myclaudia:foo')]`
+1. Create `src/Command/FooCommand.php` with `#[AsCommand(name: 'claudriel:foo')]`
 2. Wire dependencies in service container
 3. Confirm ConsoleKernel discovers it (see issue #9)
 

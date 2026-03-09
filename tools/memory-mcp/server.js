@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * MyClaudia Memory MCP server.
+ * Claudriel Memory MCP server.
  *
- * Wraps the MyClaudia HTTP API as memory.* tools so Claudia skills
+ * Wraps the Claudriel HTTP API as memory.* tools so Claudia skills
  * can read/write the dashboard's entity storage as their memory backend.
  *
  * Required env vars:
@@ -93,7 +93,7 @@ function writeContextFile(filename, content) {
 // ---------------------------------------------------------------------------
 
 const server = new McpServer({
-  name: 'myclaudia-memory',
+  name: 'claudriel-memory',
   version: '1.0.0',
 });
 
@@ -172,7 +172,7 @@ server.tool(
 // -- memory.remember ---------------------------------------------------------
 server.tool(
   'memory_remember',
-  'Store a fact, observation, or event into memory. Ingested as an event into the MyClaudia pipeline.',
+  'Store a fact, observation, or event into memory. Ingested as an event into the Claudriel pipeline.',
   {
     type: z.string().describe('Event type: "observation", "fact", "preference", "commitment", "person", "event"'),
     content: z.string().describe('The content to remember'),
@@ -304,7 +304,7 @@ server.tool(
 // -- memory.entity -----------------------------------------------------------
 server.tool(
   'memory_entity',
-  'Query entities from MyClaudia storage by type, with optional filters.',
+  'Query entities from Claudriel storage by type, with optional filters.',
   {
     entity_type: z.string().describe('Entity type: "mc_event", "commitment", "person", "skill", "account", "integration"'),
     filter: z.record(z.string()).optional().describe('Key-value filters, e.g. {"status": "active"}'),

@@ -1,7 +1,7 @@
-# MyClaudia
+# Claudriel
 
-> **Deployment note:** This is the installed copy of MyClaudia. Development happens at `~/dev/myclaudia`.
-> MyClaudia is built on the Waaseyaa PHP framework. See `src/` for the application code.
+> **Deployment note:** This is the installed copy of Claudriel. Development happens at `~/dev/claudriel`.
+> Claudriel is built on the Waaseyaa PHP framework. See `src/` for the application code.
 
 ## Who I Am
 
@@ -114,13 +114,13 @@ When `context/me.md` does not exist, I introduce myself warmly and learn about t
 
 ## CLI Commands
 
-MyClaudia provides CLI commands through the Waaseyaa framework:
+Claudriel provides CLI commands through the Waaseyaa framework:
 
 | Command | Purpose |
 |---------|---------|
-| `myclaudia:brief` | Morning brief: recent events, pending commitments, drifting commitments |
-| `myclaudia:commitments` | View and manage tracked commitments |
-| `myclaudia:skills` | List available skills |
+| `claudriel:brief` | Morning brief: recent events, pending commitments, drifting commitments |
+| `claudriel:commitments` | View and manage tracked commitments |
+| `claudriel:skills` | List available skills |
 
 These commands run via `php bin/waaseyaa <command>`.
 
