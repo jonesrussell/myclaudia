@@ -50,8 +50,8 @@
             margin: 0.75rem 0 0.4rem;
             text-transform: capitalize;
         }
-        ul { list-style: none; padding: 0; }
-        li {
+        main ul { list-style: none; padding: 0; }
+        main li {
             padding: 0.5rem 0.75rem;
             margin-bottom: 0.35rem;
             background: #fff;
@@ -59,7 +59,7 @@
             border-left: 3px solid #ccc;
             font-size: 0.9rem;
         }
-        li .meta {
+        main li .meta {
             display: block;
             font-size: 0.78rem;
             color: #888;
@@ -145,6 +145,7 @@
         </div>
     </nav>
 
+    <main>
     <h1>
         Day Brief
         <small>Generated {{ "now"|date("Y-m-d H:i T") }}</small>
@@ -229,5 +230,6 @@
             <p class="empty">No drifting commitments — all on track.</p>
         {% endif %}
     </section>
+    </main>
 </body>
 </html>
