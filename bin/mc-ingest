@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# mc-ingest: Send an event to MyClaudia ingestion API
+# Usage: mc-ingest <type> <json-payload>
+# Example: mc-ingest commitment.detected '{"title":"Send proposal","confidence":0.85}'
+#
+# Environment:
+#   MYCLAUDIA_API_URL  — API base URL (default: http://localhost:8088)
+#   MYCLAUDIA_API_KEY  — Bearer token (required, or read from .env)
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Load config
+MC_API_URL="${MYCLAUDIA_API_URL:-http://localhost:8088}"
+
+# Try env var first, then .env file
+if [ -z "${MYCLAUDIA_API_KEY:-}" ] && [ -f "$REPO_DIR/.env" ]; then
+    MYCLAUDIA_API_KEY="$(grep -E '^MYCLAUDIA_API_KEY=' "$REPO_DIR/.env" 2>/dev/null | cut -d= -f2- | tr -d "'\"")"
+fi
+
+if [ -z "${MYCLAUDIA_API_KEY:-}" ]; then
+    echo "Error: MYCLAUDIA_API_KEY not set. Add it to .env or export it." >&2
+    exit 1
+fi
+
+EVENT_TYPE="${1:?Usage: mc-ingest <type> <json-payload>}"
+PAYLOAD="${2:?Usage: mc-ingest <type> <json-payload>}"
+
+RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$MC_API_URL/api/ingest" \
+  -H "Authorization: Bearer $MYCLAUDIA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "$(printf '{"source":"claudia","type":"%s","occurred":"%s","payload":%s}' \
+    "$EVENT_TYPE" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "$PAYLOAD"
+  )" 2>&1)
+
+HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+BODY=$(echo "$RESPONSE" | sed '$d')
+
+if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+    echo "$BODY"
+else
+    echo "Error: HTTP $HTTP_CODE" >&2
+    echo "$BODY" >&2
+    exit 1
+fi
