@@ -3,9 +3,9 @@ set -euo pipefail
 
 # Setup: clone repo and configure as installed copy
 # Usage: bin/setup-install [target-dir]
-# Default target: ~/myclaudia
+# Default target: ~/claudriel
 
-TARGET="${1:-$HOME/myclaudia}"
+TARGET="${1:-$HOME/claudriel}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
@@ -14,7 +14,7 @@ if [ -d "$TARGET" ]; then
     exit 1
 fi
 
-echo "Setting up MyClaudia at $TARGET..."
+echo "Setting up Claudriel at $TARGET..."
 
 # Clone and checkout release
 git clone "$REPO_DIR" "$TARGET"
@@ -39,7 +39,7 @@ else
 fi
 
 echo ""
-echo "✓ MyClaudia installed at $TARGET"
+echo "✓ Claudriel installed at $TARGET"
 echo ""
 echo "Next steps:"
 echo "  1. Copy user data from old installation:"

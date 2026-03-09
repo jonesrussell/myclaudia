@@ -39,4 +39,4 @@ git checkout main
 echo "✓ Back on main"
 echo ""
 echo "To update installed copy:"
-echo "  cd ~/myclaudia && git pull"
+echo "  cd ~/claudriel && git pull"
