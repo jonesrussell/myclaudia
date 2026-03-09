@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia;
+namespace MyClaudia\Support;
 
 use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;

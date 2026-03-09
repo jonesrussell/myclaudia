@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\DayBrief;
+namespace MyClaudia\Domain\DayBrief\Service;
 
 final class BriefSessionStore
 {

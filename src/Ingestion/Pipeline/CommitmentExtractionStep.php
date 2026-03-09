@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace MyClaudia\Pipeline;
+namespace MyClaudia\Ingestion\Pipeline;
 use Waaseyaa\AI\Pipeline\PipelineContext;
 use Waaseyaa\AI\Pipeline\PipelineStepInterface;
 use Waaseyaa\AI\Pipeline\StepResult;

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace MyClaudia\Tests\Unit\Command;
 
 use MyClaudia\Command\BriefCommand;
-use MyClaudia\DayBrief\BriefSessionStore;
-use MyClaudia\DayBrief\DayBriefAssembler;
-use MyClaudia\DriftDetector;
+use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
+use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
+use MyClaudia\Support\DriftDetector;
 use MyClaudia\Entity\Commitment;
 use MyClaudia\Entity\McEvent;
 use Waaseyaa\Entity\EntityType;

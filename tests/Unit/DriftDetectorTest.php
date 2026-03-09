@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyClaudia\Tests\Unit;
 
-use MyClaudia\DriftDetector;
+use MyClaudia\Support\DriftDetector;
 use MyClaudia\Entity\Commitment;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;

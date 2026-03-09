@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace MyClaudia\Tests\Unit\Pipeline;
-use MyClaudia\Pipeline\CommitmentExtractionStep;
+use MyClaudia\Ingestion\Pipeline\CommitmentExtractionStep;
 use Waaseyaa\AI\Pipeline\PipelineContext;
 use PHPUnit\Framework\TestCase;
 

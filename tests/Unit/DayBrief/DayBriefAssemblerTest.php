@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MyClaudia\Tests\Unit\DayBrief;
 
-use MyClaudia\DayBrief\DayBriefAssembler;
-use MyClaudia\DriftDetector;
+use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
+use MyClaudia\Support\DriftDetector;
 use MyClaudia\Entity\Commitment;
 use MyClaudia\Entity\McEvent;
 use Waaseyaa\Entity\EntityType;

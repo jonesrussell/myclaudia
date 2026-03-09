@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MyClaudia\Command;
 
-use MyClaudia\DayBrief\BriefSessionStore;
-use MyClaudia\DayBrief\DayBriefAssembler;
+use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
+use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

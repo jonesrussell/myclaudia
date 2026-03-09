@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia;
+namespace MyClaudia\Provider;
 
 use MyClaudia\Command\BriefCommand;
 use MyClaudia\Command\CommitmentUpdateCommand;
@@ -10,9 +10,9 @@ use MyClaudia\Command\CommitmentsCommand;
 use MyClaudia\Command\SkillsCommand;
 use MyClaudia\Controller\CommitmentUpdateController;
 use MyClaudia\Controller\DayBriefController;
-use MyClaudia\DayBrief\BriefSessionStore;
-use MyClaudia\DayBrief\DayBriefAssembler;
-use MyClaudia\DriftDetector;
+use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
+use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
+use MyClaudia\Support\DriftDetector;
 use MyClaudia\Entity\Account;
 use MyClaudia\Entity\Commitment;
 use MyClaudia\Entity\Integration;
