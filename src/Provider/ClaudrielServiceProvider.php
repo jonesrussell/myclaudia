@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Provider;
+namespace Claudriel\Provider;
 
-use MyClaudia\Command\BriefCommand;
-use MyClaudia\Command\CommitmentUpdateCommand;
-use MyClaudia\Command\CommitmentsCommand;
-use MyClaudia\Command\SkillsCommand;
-use MyClaudia\Controller\ChatController;
-use MyClaudia\Controller\CommitmentUpdateController;
-use MyClaudia\Controller\ContextController;
-use MyClaudia\Controller\DayBriefController;
-use MyClaudia\Controller\IngestController;
-use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
-use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
-use MyClaudia\Support\DriftDetector;
-use MyClaudia\Entity\Account;
-use MyClaudia\Entity\ChatMessage;
-use MyClaudia\Entity\ChatSession;
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\Integration;
-use MyClaudia\Entity\McEvent;
-use MyClaudia\Entity\Person;
-use MyClaudia\Entity\Skill;
+use Claudriel\Command\BriefCommand;
+use Claudriel\Command\CommitmentUpdateCommand;
+use Claudriel\Command\CommitmentsCommand;
+use Claudriel\Command\SkillsCommand;
+use Claudriel\Controller\ChatController;
+use Claudriel\Controller\CommitmentUpdateController;
+use Claudriel\Controller\ContextController;
+use Claudriel\Controller\DayBriefController;
+use Claudriel\Controller\IngestController;
+use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
+use Claudriel\Support\DriftDetector;
+use Claudriel\Entity\Account;
+use Claudriel\Entity\ChatMessage;
+use Claudriel\Entity\ChatSession;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\Integration;
+use Claudriel\Entity\McEvent;
+use Claudriel\Entity\Person;
+use Claudriel\Entity\Skill;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
@@ -35,7 +35,7 @@ use Waaseyaa\Routing\RouteBuilder;
 use Waaseyaa\Routing\WaaseyaaRouter;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-final class McClaudiaServiceProvider extends ServiceProvider
+final class ClaudrielServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

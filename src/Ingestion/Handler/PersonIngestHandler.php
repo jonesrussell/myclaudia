@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Ingestion\Handler;
+namespace Claudriel\Ingestion\Handler;
 
-use MyClaudia\Entity\Person;
-use MyClaudia\Ingestion\IngestHandlerInterface;
+use Claudriel\Entity\Person;
+use Claudriel\Ingestion\IngestHandlerInterface;
 use Waaseyaa\Entity\EntityTypeManagerInterface;
 
 /**

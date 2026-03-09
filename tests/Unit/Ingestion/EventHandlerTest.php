@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion;
+namespace Claudriel\Tests\Unit\Ingestion;
 
-use MyClaudia\Entity\McEvent;
-use MyClaudia\Entity\Person;
-use MyClaudia\Ingestion\EventHandler;
+use Claudriel\Entity\McEvent;
+use Claudriel\Entity\Person;
+use Claudriel\Ingestion\EventHandler;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

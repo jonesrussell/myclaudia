@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion;
+namespace Claudriel\Tests\Unit\Ingestion;
 
-use MyClaudia\Ingestion\GmailMessageNormalizer;
+use Claudriel\Ingestion\GmailMessageNormalizer;
 use PHPUnit\Framework\TestCase;
 
 final class GmailMessageNormalizerTest extends TestCase

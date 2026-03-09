@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Domain\Chat;
+namespace Claudriel\Tests\Unit\Domain\Chat;
 
-use MyClaudia\Domain\Chat\ChatSystemPromptBuilder;
-use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
-use MyClaudia\Support\DriftDetector;
+use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
+use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Support\DriftDetector;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Waaseyaa\Entity\EntityInterface;
@@ -31,7 +31,7 @@ final class ChatSystemPromptBuilderTest extends TestCase
         $prompt = $builder->build();
 
         $this->assertStringContainsString('You are Claudia', $prompt);
-        $this->assertStringContainsString('MyClaudia web dashboard', $prompt);
+        $this->assertStringContainsString('Claudriel web dashboard', $prompt);
     }
 
     #[Test]

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Domain\Chat;
+namespace Claudriel\Domain\Chat;
 
 final class AnthropicChatClient
 {

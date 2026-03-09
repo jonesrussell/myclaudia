@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Entity;
+namespace Claudriel\Tests\Unit\Entity;
 
-use MyClaudia\Entity\Skill;
+use Claudriel\Entity\Skill;
 use PHPUnit\Framework\TestCase;
 
 final class SkillTest extends TestCase

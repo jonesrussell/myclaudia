@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Command;
+namespace Claudriel\Tests\Unit\Command;
 
-use MyClaudia\Command\CommitmentsCommand;
-use MyClaudia\Entity\Commitment;
+use Claudriel\Command\CommitmentsCommand;
+use Claudriel\Entity\Commitment;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

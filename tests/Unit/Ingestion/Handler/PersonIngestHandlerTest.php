@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion\Handler;
+namespace Claudriel\Tests\Unit\Ingestion\Handler;
 
-use MyClaudia\Entity\Person;
-use MyClaudia\Ingestion\Handler\PersonIngestHandler;
+use Claudriel\Entity\Person;
+use Claudriel\Ingestion\Handler\PersonIngestHandler;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;

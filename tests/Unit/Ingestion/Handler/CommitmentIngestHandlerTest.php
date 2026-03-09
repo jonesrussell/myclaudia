@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion\Handler;
+namespace Claudriel\Tests\Unit\Ingestion\Handler;
 
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\Person;
-use MyClaudia\Ingestion\Handler\CommitmentIngestHandler;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\Person;
+use Claudriel\Ingestion\Handler\CommitmentIngestHandler;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Ingestion;
+namespace Claudriel\Ingestion;
 
-use MyClaudia\Entity\Skill;
+use Claudriel\Entity\Skill;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class SkillFileIngester

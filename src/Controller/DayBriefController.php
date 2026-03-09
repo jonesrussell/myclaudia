@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Controller;
+namespace Claudriel\Controller;
 
-use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
+use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 

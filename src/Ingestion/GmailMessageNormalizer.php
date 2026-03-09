@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Ingestion;
+namespace Claudriel\Ingestion;
 
 use Waaseyaa\Foundation\Ingestion\Envelope;
 

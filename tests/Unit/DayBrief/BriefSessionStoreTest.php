@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\DayBrief;
+namespace Claudriel\Tests\Unit\DayBrief;
 
-use MyClaudia\Domain\DayBrief\Service\BriefSessionStore;
+use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use PHPUnit\Framework\TestCase;
 
 final class BriefSessionStoreTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Domain\DayBrief\Assembler;
+namespace Claudriel\Domain\DayBrief\Assembler;
 
-use MyClaudia\Support\DriftDetector;
+use Claudriel\Support\DriftDetector;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class DayBriefAssembler

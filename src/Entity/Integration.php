@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Entity;
+namespace Claudriel\Entity;
 
 use Waaseyaa\Entity\ContentEntityBase;
 

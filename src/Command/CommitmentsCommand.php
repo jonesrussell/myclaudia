@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Command;
+namespace Claudriel\Command;
 
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 use Symfony\Component\Console\Attribute\AsCommand;

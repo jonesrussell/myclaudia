@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Command;
+namespace Claudriel\Tests\Unit\Command;
 
-use MyClaudia\Command\SkillsCommand;
-use MyClaudia\Entity\Skill;
+use Claudriel\Command\SkillsCommand;
+use Claudriel\Entity\Skill;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

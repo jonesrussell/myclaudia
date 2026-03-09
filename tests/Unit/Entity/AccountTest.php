@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Entity;
+namespace Claudriel\Tests\Unit\Entity;
 
-use MyClaudia\Entity\Account;
+use Claudriel\Entity\Account;
 use PHPUnit\Framework\TestCase;
 
 final class AccountTest extends TestCase

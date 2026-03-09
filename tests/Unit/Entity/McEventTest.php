@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Entity;
+namespace Claudriel\Tests\Unit\Entity;
 
-use MyClaudia\Entity\McEvent;
+use Claudriel\Entity\McEvent;
 use PHPUnit\Framework\TestCase;
 
 final class McEventTest extends TestCase

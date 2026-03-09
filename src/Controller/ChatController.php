@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Controller;
+namespace Claudriel\Controller;
 
-use MyClaudia\Domain\Chat\AnthropicChatClient;
-use MyClaudia\Domain\Chat\ChatSystemPromptBuilder;
-use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
-use MyClaudia\Entity\ChatMessage;
-use MyClaudia\Entity\ChatSession;
-use MyClaudia\Support\DriftDetector;
+use Claudriel\Domain\Chat\AnthropicChatClient;
+use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
+use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Entity\ChatMessage;
+use Claudriel\Entity\ChatSession;
+use Claudriel\Support\DriftDetector;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion;
+namespace Claudriel\Tests\Unit\Ingestion;
 
-use MyClaudia\Ingestion\IngestHandlerInterface;
-use MyClaudia\Ingestion\IngestHandlerRegistry;
+use Claudriel\Ingestion\IngestHandlerInterface;
+use Claudriel\Ingestion\IngestHandlerRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class IngestHandlerRegistryTest extends TestCase

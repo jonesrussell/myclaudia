@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Controller;
+namespace Claudriel\Controller;
 
-use MyClaudia\Ingestion\Handler\CommitmentIngestHandler;
-use MyClaudia\Ingestion\Handler\GenericEventHandler;
-use MyClaudia\Ingestion\Handler\PersonIngestHandler;
-use MyClaudia\Ingestion\IngestHandlerRegistry;
+use Claudriel\Ingestion\Handler\CommitmentIngestHandler;
+use Claudriel\Ingestion\Handler\GenericEventHandler;
+use Claudriel\Ingestion\Handler\PersonIngestHandler;
+use Claudriel\Ingestion\IngestHandlerRegistry;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Entity\EntityTypeManager;

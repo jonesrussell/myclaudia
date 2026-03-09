@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Controller;
+namespace Claudriel\Tests\Unit\Controller;
 
-use MyClaudia\Controller\DayBriefController;
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\McEvent;
+use Claudriel\Controller\DayBriefController;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\McEvent;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\EntityStorage\SqlEntityStorage;

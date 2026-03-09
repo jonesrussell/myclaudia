@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Domain\Chat;
+namespace Claudriel\Domain\Chat;
 
-use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 
 final class ChatSystemPromptBuilder
 {
@@ -34,7 +34,7 @@ final class ChatSystemPromptBuilder
         $parts[] = $this->formatBriefContext($brief);
 
         // Chat instructions
-        $parts[] = "# Instructions\n\nYou are Claudia, an AI personal operations assistant. You are responding via the MyClaudia web dashboard. Be warm, concise, and proactive. You have access to the user's commitments, events, and personal context shown above. Help them stay on track.";
+        $parts[] = "# Instructions\n\nYou are Claudia, an AI personal operations assistant. You are responding via the Claudriel web dashboard. Be warm, concise, and proactive. You have access to the user's commitments, events, and personal context shown above. Help them stay on track.";
 
         return implode("\n\n---\n\n", array_filter($parts));
     }

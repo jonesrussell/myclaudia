@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion;
+namespace Claudriel\Tests\Unit\Ingestion;
 
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\McEvent;
-use MyClaudia\Ingestion\CommitmentHandler;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\McEvent;
+use Claudriel\Ingestion\CommitmentHandler;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

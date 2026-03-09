@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Controller;
+namespace Claudriel\Tests\Unit\Controller;
 
-use MyClaudia\Controller\CommitmentUpdateController;
-use MyClaudia\Entity\Commitment;
+use Claudriel\Controller\CommitmentUpdateController;
+use Claudriel\Entity\Commitment;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;

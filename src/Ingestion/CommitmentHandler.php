@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Ingestion;
+namespace Claudriel\Ingestion;
 
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\McEvent;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\McEvent;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class CommitmentHandler

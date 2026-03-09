@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Controller;
+namespace Claudriel\Tests\Unit\Controller;
 
-use MyClaudia\Controller\IngestController;
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\McEvent;
-use MyClaudia\Entity\Person;
+use Claudriel\Controller\IngestController;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\McEvent;
+use Claudriel\Entity\Person;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;

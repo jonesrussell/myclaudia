@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit;
+namespace Claudriel\Tests\Unit;
 
-use MyClaudia\Support\DriftDetector;
-use MyClaudia\Entity\Commitment;
+use Claudriel\Support\DriftDetector;
+use Claudriel\Entity\Commitment;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

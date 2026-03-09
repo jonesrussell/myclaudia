@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Ingestion;
+namespace Claudriel\Tests\Unit\Ingestion;
 
-use MyClaudia\Entity\Skill;
-use MyClaudia\Ingestion\SkillFileIngester;
+use Claudriel\Entity\Skill;
+use Claudriel\Ingestion\SkillFileIngester;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

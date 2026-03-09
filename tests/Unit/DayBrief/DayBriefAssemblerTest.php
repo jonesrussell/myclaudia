@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\DayBrief;
+namespace Claudriel\Tests\Unit\DayBrief;
 
-use MyClaudia\Domain\DayBrief\Assembler\DayBriefAssembler;
-use MyClaudia\Support\DriftDetector;
-use MyClaudia\Entity\Commitment;
-use MyClaudia\Entity\McEvent;
+use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Support\DriftDetector;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\McEvent;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\EntityStorage\Driver\InMemoryStorageDriver;
 use Waaseyaa\EntityStorage\EntityRepository;

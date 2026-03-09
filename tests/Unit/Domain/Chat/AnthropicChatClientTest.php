@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Domain\Chat;
+namespace Claudriel\Tests\Unit\Domain\Chat;
 
-use MyClaudia\Domain\Chat\AnthropicChatClient;
+use Claudriel\Domain\Chat\AnthropicChatClient;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Ingestion;
+namespace Claudriel\Ingestion;
 
-use MyClaudia\Entity\McEvent;
-use MyClaudia\Entity\Person;
+use Claudriel\Entity\McEvent;
+use Claudriel\Entity\Person;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 use Waaseyaa\Foundation\Ingestion\Envelope;
 

@@ -1,6 +1,6 @@
 {
-    "name": "jonesrussell/myclaudia",
-    "description": "MyClaudia — AI personal operations system",
+    "name": "jonesrussell/claudriel",
+    "description": "Claudriel — AI personal operations system",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "repositories": [
@@ -25,10 +25,10 @@
         "symfony/event-dispatcher": "^7.0"
     },
     "autoload": {
-        "psr-4": { "MyClaudia\\": "src/" }
+        "psr-4": { "Claudriel\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "MyClaudia\\Tests\\": "tests/" }
+        "psr-4": { "Claudriel\\Tests\\": "tests/" }
     },
     "config": {
         "optimize-autoloader": true,
@@ -37,7 +37,7 @@
     "extra": {
         "waaseyaa": {
             "providers": [
-                "MyClaudia\\Provider\\McClaudiaServiceProvider"
+                "Claudriel\\Provider\\ClaudrielServiceProvider"
             ]
         }
     },

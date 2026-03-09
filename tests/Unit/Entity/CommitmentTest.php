@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyClaudia\Tests\Unit\Entity;
+namespace Claudriel\Tests\Unit\Entity;
 
-use MyClaudia\Entity\Commitment;
+use Claudriel\Entity\Commitment;
 use PHPUnit\Framework\TestCase;
 
 final class CommitmentTest extends TestCase
