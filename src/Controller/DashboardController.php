@@ -7,6 +7,7 @@ namespace Claudriel\Controller;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Claudriel\Support\DriftDetector;
+use Twig\Environment;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -14,7 +15,7 @@ final class DashboardController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        private readonly ?Environment $twig = null,
     ) {}
 
     public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse

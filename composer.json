@@ -4,7 +4,7 @@
     "type": "project",
     "license": "GPL-2.0-or-later",
     "repositories": [
-        { "type": "path", "url": "/home/jones/dev/waaseyaa/packages/*" }
+        { "type": "path", "url": "/home/fsd42/dev/waaseyaa/packages/*" }
     ],
     "require": {
         "php": ">=8.3",
