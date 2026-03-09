@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "63225408b60b9f2d78bccae1232627b6",
+    "content-hash": "f013e390fda022c42272efa133a1b620",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -2805,7 +2805,7 @@
             "dist": {
                 "type": "path",
                 "url": "/home/jones/dev/waaseyaa/packages/foundation",
-                "reference": "ea8ec95262de9b5bee024588c443293bdb317e16"
+                "reference": "8451dd9b73d12f0861bbbdf75bdca2b2ae114334"
             },
             "require": {
                 "doctrine/dbal": "^4.0",
@@ -2815,6 +2815,7 @@
                 "symfony/http-foundation": "^7.0",
                 "symfony/messenger": "^7.0",
                 "symfony/uid": "^7.0",
+                "waaseyaa/path": "@dev",
                 "waaseyaa/queue": "@dev"
             },
             "require-dev": {
@@ -2868,6 +2869,47 @@
                 "GPL-2.0-or-later"
             ],
             "description": "Internationalization foundation: Language, LanguageManager, LanguageContext, FallbackChain",
+            "transport-options": {
+                "relative": false
+            }
+        },
+        {
+            "name": "waaseyaa/path",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "/home/jones/dev/waaseyaa/packages/path",
+                "reference": "1fc78ba33b33c002ba1d3ac757dfec53130f5293"
+            },
+            "require": {
+                "php": ">=8.3",
+                "waaseyaa/entity": "@dev"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "waaseyaa": {
+                    "providers": [
+                        "Waaseyaa\\Path\\PathServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Waaseyaa\\Path\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Waaseyaa\\Path\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "URL path aliases and routing integration for Waaseyaa",
             "transport-options": {
                 "relative": false
             }
@@ -4826,6 +4868,7 @@
         "waaseyaa/entity": 20,
         "waaseyaa/entity-storage": 20,
         "waaseyaa/foundation": 20,
+        "waaseyaa/path": 20,
         "waaseyaa/routing": 20,
         "waaseyaa/ssr": 20
     },

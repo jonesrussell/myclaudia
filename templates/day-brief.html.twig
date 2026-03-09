@@ -79,6 +79,45 @@
             color: #2e7d32;
         }
         .confidence.low { background: #fff3e0; color: #e65100; }
+        .site-nav {
+            background: #1a1a2e;
+            margin: -2rem calc(-50vw + 50%) 2rem;
+            padding: 0 1rem;
+        }
+        .site-nav-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 3rem;
+        }
+        .site-nav .brand {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+        .site-nav .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 1.25rem;
+            padding: 0;
+            margin: 0;
+        }
+        .site-nav .nav-links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding-bottom: 0.15rem;
+        }
+        .site-nav .nav-links a:hover {
+            color: #fff;
+        }
+        .site-nav .nav-links a.active {
+            color: #fff;
+            border-bottom: 2px solid #fff;
+        }
         .empty {
             color: #999;
             font-style: italic;
@@ -97,6 +136,15 @@
     </style>
 </head>
 <body>
+    <nav class="site-nav">
+        <div class="site-nav-inner">
+            <a href="/" class="brand">MyClaudia</a>
+            <ul class="nav-links">
+                <li><a href="/" class="active">Brief</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <h1>
         Day Brief
         <small>Generated {{ "now"|date("Y-m-d H:i T") }}</small>
@@ -164,20 +212,22 @@
     </section>
 
     {# ── Drifting Commitments ── #}
-    {% if drifting_commitments|length > 0 %}
     <section>
         <h2 class="drifting-heading">Drifting — No Activity 48h+ <span class="count">{{ drifting_commitments|length }}</span></h2>
-        <ul>
-        {% for c in drifting_commitments %}
-            <li class="drifting">
-                {{ c.title|default('(untitled)') }}
-                {% if c.updated_at %}
-                    <span class="meta">Last activity: {{ c.updated_at }}</span>
-                {% endif %}
-            </li>
-        {% endfor %}
-        </ul>
+        {% if drifting_commitments|length > 0 %}
+            <ul>
+            {% for c in drifting_commitments %}
+                <li class="drifting">
+                    {{ c.title|default('(untitled)') }}
+                    {% if c.updated_at %}
+                        <span class="meta">Last activity: {{ c.updated_at }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">No drifting commitments — all on track.</p>
+        {% endif %}
     </section>
-    {% endif %}
 </body>
 </html>

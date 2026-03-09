@@ -21,7 +21,7 @@ final class DayBriefController
         private readonly mixed $twig = null,
     ) {}
 
-    public function show(): SsrResponse
+    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
     {
         $storageDir   = getenv('MYCLAUDIA_STORAGE') ?: sys_get_temp_dir() . '/myclaudia';
         $sessionStore = new BriefSessionStore($storageDir . '/brief-session.txt');
@@ -59,8 +59,15 @@ final class DayBriefController
 
         $sessionStore->recordBriefAt(new \DateTimeImmutable());
 
-        // Render HTML via Twig when available, otherwise fall back to JSON.
-        if ($this->twig !== null) {
+        // Check Accept header: if the client wants JSON, skip Twig rendering.
+        $wantsJson = false;
+        if ($httpRequest !== null && isset($httpRequest->headers)) {
+            $accept = $httpRequest->headers->get('Accept', '');
+            $wantsJson = str_contains($accept, 'application/json');
+        }
+
+        // Render HTML via Twig when available and client does not prefer JSON.
+        if ($this->twig !== null && !$wantsJson) {
             // Pre-process events for Twig: decode payload JSON so the template
             // doesn't need a json_decode filter.
             $twigEventsBySource = [];

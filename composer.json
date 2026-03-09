@@ -16,6 +16,7 @@
         "waaseyaa/entity": "@dev",
         "waaseyaa/entity-storage": "@dev",
         "waaseyaa/foundation": "@dev",
+        "waaseyaa/path": "@dev",
         "waaseyaa/routing": "@dev",
         "waaseyaa/ssr": "dev-main"
     },
