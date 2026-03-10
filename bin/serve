@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# Start the Claudriel dashboard on localhost
+# Start the Claudriel dashboard via Docker (Caddy + PHP-FPM)
 set -euo pipefail
 
-PORT="${1:-8089}"
+PORT="${1:-9889}"
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-export APP_ENV=dev
+# Ensure data files exist (Docker won't create them)
+mkdir -p "${DIR}/storage"
+[[ -f "${DIR}/waaseyaa.sqlite" ]] || touch "${DIR}/waaseyaa.sqlite"
+[[ -f "${DIR}/.env" ]] || { cp "${DIR}/.env.example" "${DIR}/.env" 2>/dev/null && echo "Created .env from .env.example — edit with your ANTHROPIC_API_KEY"; }
 
 echo "Claudriel dashboard → http://localhost:${PORT}"
-exec php -S "localhost:${PORT}" -t "${DIR}/public"
+PORT="${PORT}" exec docker compose -f "${DIR}/docker-compose.yml" up --build

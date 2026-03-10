@@ -1,0 +1,30 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "${PORT:-9889}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./public:/srv/public:ro
+      - ./src:/srv/src:ro
+      - ./templates:/srv/templates:ro
+      - ./config:/srv/config:ro
+      - ./vendor:/srv/vendor:ro
+      - ./storage:/srv/storage
+      - ./waaseyaa.sqlite:/srv/waaseyaa.sqlite
+    depends_on:
+      - php
+
+  php:
+    build: docker/php
+    volumes:
+      - ./public:/srv/public:ro
+      - ./src:/srv/src:ro
+      - ./templates:/srv/templates:ro
+      - ./config:/srv/config:ro
+      - ./vendor:/srv/vendor:ro
+      - ./storage:/srv/storage
+      - ./waaseyaa.sqlite:/srv/waaseyaa.sqlite
+      - ./.env:/srv/.env:ro
+    environment:
+      - APP_ENV=dev

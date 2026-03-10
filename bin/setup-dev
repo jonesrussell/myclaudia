@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# One-time setup: symlink code from dev repo into ~/claudriel
+set -euo pipefail
+
+DEV_DIR="/home/jones/dev/claudriel"
+LIVE_DIR="/home/jones/claudriel"
+
+if [[ ! -d "${DEV_DIR}" ]]; then
+    echo "Error: dev repo not found at ${DEV_DIR}"
+    exit 1
+fi
+
+echo "Setting up ${LIVE_DIR} with symlinks to ${DEV_DIR}..."
+
+# Back up any existing data files
+for data_item in waaseyaa.sqlite .env; do
+    if [[ -f "${LIVE_DIR}/${data_item}" ]] && [[ ! -L "${LIVE_DIR}/${data_item}" ]]; then
+        echo "  Preserving ${data_item}"
+        cp "${LIVE_DIR}/${data_item}" "/tmp/claudriel-backup-${data_item}"
+    fi
+done
+
+if [[ -d "${LIVE_DIR}/storage" ]] && [[ ! -L "${LIVE_DIR}/storage" ]]; then
+    echo "  Preserving storage/"
+    cp -r "${LIVE_DIR}/storage" "/tmp/claudriel-backup-storage"
+fi
+
+# Symlink code directories and files
+for item in src templates bin config public vendor tests docs tools skills \
+            .github .claude composer.json composer.lock phpunit.xml.dist \
+            .gitignore CLAUDE.md docker Caddyfile docker-compose.yml \
+            .env.example; do
+    if [[ -e "${DEV_DIR}/${item}" ]]; then
+        rm -rf "${LIVE_DIR}/${item}"
+        ln -s "${DEV_DIR}/${item}" "${LIVE_DIR}/${item}"
+        echo "  Linked ${item}"
+    fi
+done
+
+# Ensure data directories exist
+mkdir -p "${LIVE_DIR}/storage"
+
+# Restore backed-up data
+for data_item in waaseyaa.sqlite .env; do
+    if [[ -f "/tmp/claudriel-backup-${data_item}" ]]; then
+        mv "/tmp/claudriel-backup-${data_item}" "${LIVE_DIR}/${data_item}"
+    fi
+done
+
+if [[ -d "/tmp/claudriel-backup-storage" ]]; then
+    cp -rn /tmp/claudriel-backup-storage/* "${LIVE_DIR}/storage/" 2>/dev/null || true
+    rm -rf /tmp/claudriel-backup-storage
+fi
+
+# Create .env if missing
+if [[ ! -f "${LIVE_DIR}/.env" ]]; then
+    cp "${DEV_DIR}/.env.example" "${LIVE_DIR}/.env"
+    echo "  Created .env from .env.example — edit with your ANTHROPIC_API_KEY"
+fi
+
+echo "Done. Run 'bin/serve' to start the dashboard."

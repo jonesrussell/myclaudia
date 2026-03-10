@@ -32,3 +32,6 @@ tools/memory-mcp/package-lock.json
 
 # Signal files
 storage/brief-signal.txt
+
+# Docker
+docker-compose.override.yml
