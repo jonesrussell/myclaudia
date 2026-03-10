@@ -9,7 +9,6 @@ use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Support\DriftDetector;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Waaseyaa\Entity\EntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class ChatSystemPromptBuilderTest extends TestCase
@@ -30,7 +29,7 @@ final class ChatSystemPromptBuilderTest extends TestCase
         $builder = new ChatSystemPromptBuilder($this->createAssembler(), sys_get_temp_dir());
         $prompt = $builder->build();
 
-        $this->assertStringContainsString('You are Claudia', $prompt);
+        $this->assertStringContainsString('You are Claudriel', $prompt);
         $this->assertStringContainsString('Claudriel web dashboard', $prompt);
     }
 

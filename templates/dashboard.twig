@@ -493,30 +493,104 @@
 
         // Poll brief updates (PHP's built-in dev server is single-threaded,
         // so persistent SSE connections block all other requests including chat).
+        function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+        function renderEvents(el, events, eventsBySource) {
+            if (!el) return;
+            var count = (events || []).length;
+            var html = '<h2>Events <span class="count">' + count + '</span></h2>';
+            if (eventsBySource && Object.keys(eventsBySource).length > 0) {
+                for (var source in eventsBySource) {
+                    html += '<h3>' + esc(source) + '</h3><ul>';
+                    eventsBySource[source].forEach(function(ev) {
+                        var payload = {};
+                        try { payload = JSON.parse(ev.payload || '{}'); } catch(e) {}
+                        var subject = payload.subject || ev.type || '';
+                        var type = ev.type || '';
+                        var fromName = payload.from_name || '';
+                        var occurred = ev.occurred || '';
+                        html += '<li class="source-' + esc(source) + '">' + esc(subject);
+                        html += '<span class="meta">' + esc(type);
+                        if (fromName) html += ' — ' + esc(fromName);
+                        if (occurred) html += ' — ' + esc(occurred);
+                        html += '</span></li>';
+                    });
+                    html += '</ul>';
+                }
+            } else {
+                html += '<p class="empty">No recent events.</p>';
+            }
+            el.innerHTML = html;
+        }
+
+        function renderPeople(el, people) {
+            if (!el) return;
+            var entries = people ? Object.entries(people) : [];
+            var html = '<h2>People <span class="count">' + entries.length + '</span></h2>';
+            if (entries.length > 0) {
+                html += '<ul class="people-grid">';
+                entries.forEach(function(pair) {
+                    html += '<li><span class="person-name">' + esc(pair[1]) + '</span>';
+                    html += '<span class="person-email">' + esc(pair[0]) + '</span></li>';
+                });
+                html += '</ul>';
+            } else {
+                html += '<p class="empty">No people seen recently.</p>';
+            }
+            el.innerHTML = html;
+        }
+
+        function renderCommitments(el, commitments) {
+            if (!el) return;
+            var items = commitments || [];
+            var html = '<h2>Pending Commitments <span class="count">' + items.length + '</span></h2>';
+            if (items.length > 0) {
+                html += '<ul>';
+                items.forEach(function(c) {
+                    var title = c.title || '(untitled)';
+                    var conf = c.confidence != null ? c.confidence : 1.0;
+                    var dueDate = c.due_date || '';
+                    var confClass = conf < 0.8 ? ' low' : '';
+                    html += '<li class="pending">' + esc(title);
+                    html += '<span class="confidence' + confClass + '">' + Math.round(conf * 100) + '%</span>';
+                    if (dueDate) html += '<span class="meta">Due: ' + esc(dueDate) + '</span>';
+                    html += '</li>';
+                });
+                html += '</ul>';
+            } else {
+                html += '<p class="empty">No pending commitments.</p>';
+            }
+            el.innerHTML = html;
+        }
+
+        function renderDrifting(el, commitments) {
+            if (!el) return;
+            var items = commitments || [];
+            var html = '<h2 class="drifting-heading">Drifting — No Activity 48h+ <span class="count">' + items.length + '</span></h2>';
+            if (items.length > 0) {
+                html += '<ul>';
+                items.forEach(function(c) {
+                    var title = c.title || '(untitled)';
+                    var updatedAt = c.updated_at || '';
+                    html += '<li class="drifting">' + esc(title);
+                    if (updatedAt) html += '<span class="meta">Last activity: ' + esc(updatedAt) + '</span>';
+                    html += '</li>';
+                });
+                html += '</ul>';
+            } else {
+                html += '<p class="empty">No drifting commitments — all on track.</p>';
+            }
+            el.innerHTML = html;
+        }
+
         function pollBrief() {
-            fetch('/brief')
+            fetch('/brief', { headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    var eventsEl = document.getElementById('briefEvents');
-                    var peopleEl = document.getElementById('briefPeople');
-                    var commitmentsEl = document.getElementById('briefCommitments');
-                    var driftingEl = document.getElementById('briefDrifting');
-                    if (eventsEl) {
-                        var h = eventsEl.querySelector('h2 span');
-                        if (h) h.textContent = (data.recent_events || []).length;
-                    }
-                    if (peopleEl) {
-                        var h = peopleEl.querySelector('h2 span');
-                        if (h) h.textContent = (data.people || []).length;
-                    }
-                    if (commitmentsEl) {
-                        var h = commitmentsEl.querySelector('h2 span');
-                        if (h) h.textContent = (data.pending_commitments || []).length;
-                    }
-                    if (driftingEl) {
-                        var h = driftingEl.querySelector('h2 span');
-                        if (h) h.textContent = (data.drifting_commitments || []).length;
-                    }
+                    renderEvents(document.getElementById('briefEvents'), data.recent_events, data.events_by_source);
+                    renderPeople(document.getElementById('briefPeople'), data.people);
+                    renderCommitments(document.getElementById('briefCommitments'), data.pending_commitments);
+                    renderDrifting(document.getElementById('briefDrifting'), data.drifting_commitments);
                 })
                 .catch(function() { /* retry next interval */ });
         }
