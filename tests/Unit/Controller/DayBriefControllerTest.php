@@ -14,6 +14,7 @@ use Waaseyaa\EntityStorage\SqlSchemaHandler;
 use Waaseyaa\Database\PdoDatabase;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 
@@ -82,6 +83,26 @@ final class DayBriefControllerTest extends TestCase
         self::assertSame('text/html; charset=UTF-8', $response->headers['Content-Type']);
         self::assertStringContainsString('<html>', $response->content);
         self::assertStringContainsString('0 events', $response->content);
+    }
+
+    public function testShowReturnsJsonWhenAcceptHeaderPrefersJson(): void
+    {
+        $loader = new ArrayLoader([
+            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+        ]);
+        $twig = new Environment($loader);
+
+        $controller = new DayBriefController($this->entityTypeManager, $twig);
+        $request = Request::create('/brief', 'GET', [], [], [], [
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+        $response = $controller->show([], [], null, $request);
+
+        self::assertSame(200, $response->statusCode);
+        self::assertSame('application/json', $response->headers['Content-Type']);
+
+        $body = json_decode($response->content, true);
+        self::assertIsArray($body);
     }
 
     public function testShowIncludesRecentEventsInHtml(): void

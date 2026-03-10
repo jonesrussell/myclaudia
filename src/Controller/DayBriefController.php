@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
+use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -21,7 +22,7 @@ final class DayBriefController
         private readonly mixed $twig = null,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function show(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $storageDir   = getenv('CLAUDRIEL_STORAGE') ?: dirname(__DIR__, 2) . '/storage';
         $sessionStore = new BriefSessionStore($storageDir . '/brief-session.txt');
@@ -62,9 +63,11 @@ final class DayBriefController
 
         // Check Accept header: if the client wants JSON, skip Twig rendering.
         $wantsJson = false;
-        if ($httpRequest !== null && isset($httpRequest->headers)) {
+        if ($httpRequest instanceof Request) {
             $accept = $httpRequest->headers->get('Accept', '');
-            $wantsJson = str_contains($accept, 'application/json');
+            $wantsJson = $httpRequest->getRequestFormat('') === 'json'
+                || str_contains($accept, 'application/json')
+                || str_contains($accept, 'application/vnd.api+json');
         }
 
         // Only advance the session cursor for full page loads, not JSON poll requests.
