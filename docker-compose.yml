@@ -23,6 +23,7 @@ services:
       - APP_ENV=dev
       - SIDECAR_URL=http://sidecar:8100
       - CLAUDRIEL_SIDECAR_KEY=${CLAUDRIEL_SIDECAR_KEY}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
     depends_on:
       sidecar:
         condition: service_healthy
@@ -33,7 +34,7 @@ services:
     environment:
       - CLAUDRIEL_SIDECAR_KEY=${CLAUDRIEL_SIDECAR_KEY}
       - SESSION_TIMEOUT_MINUTES=15
-      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
+      - CLAUDE_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
     volumes:
       - ${HOME}/.claude:/root/.claude:ro
       - ${HOME}/.claude.json:/root/.claude.json:ro
