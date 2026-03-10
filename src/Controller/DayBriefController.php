@@ -65,11 +65,9 @@ final class DayBriefController
         $wantsJson = false;
         if ($httpRequest instanceof Request) {
             $accept = $httpRequest->headers->get('Accept', '');
-            $wantsJson = $httpRequest->isXmlHttpRequest()
-                || $httpRequest->getRequestFormat('') === 'json'
+            $wantsJson = $httpRequest->getRequestFormat('') === 'json'
                 || str_contains($accept, 'application/json')
-                || str_contains($accept, 'application/vnd.api+json')
-                || in_array('application/json', $httpRequest->getAcceptableContentTypes(), true);
+                || str_contains($accept, 'application/vnd.api+json');
         }
 
         // Only advance the session cursor for full page loads, not JSON poll requests.
