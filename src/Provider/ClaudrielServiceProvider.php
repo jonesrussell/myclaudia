@@ -16,6 +16,7 @@ use Claudriel\Controller\ContextController;
 use Claudriel\Controller\DashboardController;
 use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\IngestController;
+use Claudriel\Controller\NotFoundController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Claudriel\Support\DriftDetector;
@@ -189,6 +190,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->allowAll()
                 ->methods('POST')
                 ->render()
+                ->build(),
+        );
+
+        // Catch-all: renders 404 for any unmatched path, preventing the
+        // foundation render pipeline from failing on PathAliasResolver.
+        // @see https://github.com/jonesrussell/claudriel/issues/21
+        $router->addRoute(
+            'claudriel.not_found',
+            RouteBuilder::create('/{path}')
+                ->controller(NotFoundController::class . '::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->requirement('path', '.+')
                 ->build(),
         );
     }

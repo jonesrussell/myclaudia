@@ -105,6 +105,65 @@ final class DayBriefControllerTest extends TestCase
         self::assertIsArray($body);
     }
 
+    public function testShowReturnsJsonWhenAcceptHeaderIsVndApiJson(): void
+    {
+        $loader = new ArrayLoader([
+            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+        ]);
+        $twig = new Environment($loader);
+
+        $controller = new DayBriefController($this->entityTypeManager, $twig);
+        $request = Request::create('/brief', 'GET', [], [], [], [
+            'HTTP_ACCEPT' => 'application/vnd.api+json',
+        ]);
+        $response = $controller->show([], [], null, $request);
+
+        self::assertSame(200, $response->statusCode);
+        self::assertSame('application/json', $response->headers['Content-Type']);
+
+        $body = json_decode($response->content, true);
+        self::assertIsArray($body);
+        self::assertArrayHasKey('recent_events', $body);
+    }
+
+    public function testShowReturnsHtmlWhenAcceptHeaderIsTextHtml(): void
+    {
+        $loader = new ArrayLoader([
+            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+        ]);
+        $twig = new Environment($loader);
+
+        $controller = new DayBriefController($this->entityTypeManager, $twig);
+        $request = Request::create('/brief', 'GET', [], [], [], [
+            'HTTP_ACCEPT' => 'text/html',
+        ]);
+        $response = $controller->show([], [], null, $request);
+
+        self::assertSame(200, $response->statusCode);
+        self::assertSame('text/html; charset=UTF-8', $response->headers['Content-Type']);
+        self::assertStringContainsString('<html>', $response->content);
+    }
+
+    public function testShowReturnsJsonWhenFormatQueryParamIsJson(): void
+    {
+        $loader = new ArrayLoader([
+            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+        ]);
+        $twig = new Environment($loader);
+
+        $controller = new DayBriefController($this->entityTypeManager, $twig);
+        $request = Request::create('/brief', 'GET');
+        $request->setRequestFormat('json');
+        $response = $controller->show([], [], null, $request);
+
+        self::assertSame(200, $response->statusCode);
+        self::assertSame('application/json', $response->headers['Content-Type']);
+
+        $body = json_decode($response->content, true);
+        self::assertIsArray($body);
+        self::assertArrayHasKey('recent_events', $body);
+    }
+
     public function testShowIncludesRecentEventsInHtml(): void
     {
         $event = new McEvent([
