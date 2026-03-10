@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="/favicon.ico">
-    <title>Chat — Claudriel</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+{% extends "base.html.twig" %}
+{% set active_nav = 'chat' %}
+
+{% block title %}Chat — Claudriel{% endblock %}
+
+{% block styles %}
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             max-width: 720px;
@@ -20,43 +17,10 @@
             min-height: calc(100vh - 4rem);
         }
         .site-nav {
-            background: #1a1a2e;
             margin: -2rem calc(-50vw + 50%) 2rem;
-            padding: 0 1rem;
         }
         .site-nav-inner {
             max-width: 720px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 3rem;
-        }
-        .site-nav .brand {
-            color: #fff;
-            font-weight: 700;
-            font-size: 1rem;
-            text-decoration: none;
-        }
-        .site-nav .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.25rem;
-            padding: 0;
-            margin: 0;
-        }
-        .site-nav .nav-links a {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            padding-bottom: 0.15rem;
-        }
-        .site-nav .nav-links a:hover {
-            color: #fff;
-        }
-        .site-nav .nav-links a.active {
-            color: #fff;
-            border-bottom: 2px solid #fff;
         }
 
         h1 {
@@ -159,283 +123,112 @@
         }
 
         .input-area button:hover {
-            background: #2a2a4e;
+            background: #2e2e5b;
         }
 
         .input-area button:disabled {
-            background: #999;
+            background: #ccc;
             cursor: not-allowed;
         }
 
-        .loading {
-            display: none;
-            padding: 0.75rem 1rem;
-            color: #888;
-            font-style: italic;
-            font-size: 0.85rem;
-        }
-
-        .loading.visible {
-            display: block;
-        }
-
-        .not-configured {
-            background: #fff3e0;
-            border: 1px solid #f0ad4e;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: #8a6d3b;
-        }
-
         .empty-state {
-            color: #999;
-            font-style: italic;
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem;
+            color: #777;
+            font-style: italic;
         }
 
-        .sessions-sidebar {
-            margin-bottom: 1rem;
-        }
-
-        .sessions-sidebar summary {
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-
-        .session-list {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-        }
-
-        .session-list li {
-            font-size: 0.8rem;
-        }
-
-        .session-list a {
-            color: #1a1a2e;
-            text-decoration: none;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            background: #e8e8f0;
-        }
-
-        .session-list a:hover {
-            background: #d0d0e0;
-        }
-
-        .new-chat-btn {
-            display: inline-block;
-            font-size: 0.8rem;
-            color: #1a1a2e;
-            text-decoration: none;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            background: #d4edda;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .new-chat-btn:hover {
-            background: #c3e6cb;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+        .error {
+            color: #c0392b;
+            background: #fdecea;
             padding: 0.5rem 0.75rem;
             border-radius: 6px;
+            margin-bottom: 1rem;
             font-size: 0.85rem;
-            margin-bottom: 0.5rem;
         }
-    </style>
-</head>
-<body>
-    <nav class="site-nav">
-        <div class="site-nav-inner">
-            <a href="/" class="brand">Claudriel</a>
-            <ul class="nav-links">
-                <li><a href="/">Brief</a></li>
-                <li><a href="/chat" class="active">Chat</a></li>
-            </ul>
-        </div>
-    </nav>
+{% endblock %}
 
+{% block content %}
     <h1>Chat</h1>
 
     {% if not api_configured %}
-    <div class="not-configured">
-        Chat is not configured. Set <code>ANTHROPIC_API_KEY</code> in your environment to enable it.
-    </div>
-    {% endif %}
-
-    {% if sessions|length > 0 %}
-    <details class="sessions-sidebar">
-        <summary>Recent sessions ({{ sessions|length }})</summary>
-        <ul class="session-list">
-            {% for s in sessions %}
-            <li><a href="#" data-session="{{ s.uuid }}">{{ s.title }}</a></li>
-            {% endfor %}
-        </ul>
-    </details>
+        <div class="error">
+            Chat is not configured. Set <code>ANTHROPIC_API_KEY</code> in your environment to enable it.
+        </div>
     {% endif %}
 
     <div class="chat-container">
-        <div class="messages" id="messages">
-            <div class="empty-state" id="emptyState">
-                Start a conversation with Claudia.
-            </div>
+        <div class="messages" id="chatMessages">
+            <div class="empty-state">Start a conversation to see messages here.</div>
         </div>
 
-        <div class="loading" id="loading">Claudia is thinking...</div>
-
-        <div class="input-area">
-            <textarea
-                id="messageInput"
-                placeholder="Type a message..."
-                rows="1"
-                {% if not api_configured %}disabled{% endif %}
-            ></textarea>
-            <button id="sendBtn" {% if not api_configured %}disabled{% endif %}>Send</button>
-        </div>
+        <form class="input-area" id="chatForm">
+            <textarea name="message" placeholder="Ask Claudriel…" required></textarea>
+            <button type="submit">Send</button>
+        </form>
     </div>
 
     <script>
-    (function() {
-        const messagesEl = document.getElementById('messages');
-        const inputEl = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const loadingEl = document.getElementById('loading');
-        const emptyState = document.getElementById('emptyState');
+        const form = document.getElementById('chatForm');
+        const messagesEl = document.getElementById('chatMessages');
+        const textarea = form.querySelector('textarea');
 
-        let sessionId = null;
-        let sending = false;
-
-        function appendMessage(role, content) {
+        function addMessage(content, role) {
+            const emptyState = messagesEl.querySelector('.empty-state');
             if (emptyState) {
-                emptyState.style.display = 'none';
+                emptyState.remove();
             }
 
-            const div = document.createElement('div');
-            div.className = 'message ' + role;
+            const msg = document.createElement('div');
+            msg.className = `message ${role}`;
 
             const label = document.createElement('div');
             label.className = 'message-label';
-            label.textContent = role === 'user' ? 'You' : 'Claudia';
-            div.appendChild(label);
+            label.textContent = role === 'user' ? 'You' : 'Claudriel';
 
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = content;
-            div.appendChild(contentDiv);
+            const body = document.createElement('div');
+            body.className = 'message-content';
+            body.textContent = content;
 
-            messagesEl.appendChild(div);
+            msg.appendChild(label);
+            msg.appendChild(body);
+            messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
-        function showError(text) {
-            const div = document.createElement('div');
-            div.className = 'error-message';
-            div.textContent = text;
-            messagesEl.appendChild(div);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-        }
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = textarea.value.trim();
+            if (!text) return;
 
-        async function sendMessage() {
-            const message = inputEl.value.trim();
-            if (!message || sending) return;
-
-            sending = true;
-            sendBtn.disabled = true;
-            inputEl.value = '';
-            inputEl.style.height = 'auto';
-
-            appendMessage('user', message);
-            loadingEl.classList.add('visible');
+            addMessage(text, 'user');
+            textarea.value = '';
+            textarea.disabled = true;
+            form.querySelector('button').disabled = true;
 
             try {
-                const payload = { message: message };
-                if (sessionId) {
-                    payload.session_id = sessionId;
-                }
-
-                const resp = await fetch('/api/chat/send', {
+                const res = await fetch('/api/chat/send', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: text }),
                 });
 
-                const data = await resp.json();
-
-                if (!resp.ok) {
-                    showError(data.error || 'Something went wrong.');
-                } else {
-                    sessionId = data.session_id;
-                    appendMessage('assistant', data.response);
+                if (!res.ok) {
+                    addMessage(`Error: ${res.status} ${res.statusText}`, 'assistant');
+                    return;
                 }
+
+                const data = await res.json();
+                addMessage(data.reply || 'No response', 'assistant');
             } catch (err) {
-                showError('Network error: could not reach the server.');
+                addMessage('Network error. Please try again.', 'assistant');
             } finally {
-                loadingEl.classList.remove('visible');
-                sending = false;
-                sendBtn.disabled = false;
-                inputEl.focus();
-            }
-        }
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        inputEl.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+                textarea.disabled = false;
+                form.querySelector('button').disabled = false;
+                textarea.focus();
             }
         });
-
-        // Auto-resize textarea
-        inputEl.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
-
-        // Session links
-        document.querySelectorAll('[data-session]').forEach(function(link) {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                sessionId = this.getAttribute('data-session');
-                messagesEl.innerHTML = '';
-                if (emptyState) {
-                    const fresh = document.createElement('div');
-                    fresh.className = 'empty-state';
-                    fresh.textContent = 'Loading session...';
-                    messagesEl.appendChild(fresh);
-                }
-                // For v1, we just set the session ID. History reload could be added later.
-            });
-        });
-
-        // New chat button
-        document.querySelectorAll('.new-chat-btn').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                sessionId = null;
-                messagesEl.innerHTML = '';
-                const fresh = document.createElement('div');
-                fresh.className = 'empty-state';
-                fresh.id = 'emptyState';
-                fresh.textContent = 'Start a conversation with Claudia.';
-                messagesEl.appendChild(fresh);
-            });
-        });
-    })();
     </script>
-</body>
-</html>
+{% endblock %}
