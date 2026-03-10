@@ -13,54 +13,109 @@ final class DayBriefAssembler
         private readonly EntityRepositoryInterface $eventRepo,
         private readonly EntityRepositoryInterface $commitmentRepo,
         private readonly DriftDetector $driftDetector,
+        private readonly ?EntityRepositoryInterface $personRepo = null,
         private readonly ?EntityRepositoryInterface $skillRepo = null,
     ) {}
 
-    /** @return array{recent_events: array, events_by_source: array<string,array>, people: array<string,string>, pending_commitments: array, drifting_commitments: array, matched_skills: array} */
+    /** @return array{schedule: array, job_hunt: array, people: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array}, counts: array{job_alerts: int, messages: int, due_today: int, drifting: int}, generated_at: string, matched_skills: array} */
     public function assemble(string $tenantId, \DateTimeImmutable $since): array
     {
-        // Load all events and filter in memory to support both SQL and in-memory drivers.
-        // tenant_id and occurred are stored in the _data JSON blob, not as schema columns.
         $recentEvents = array_values(array_filter(
             $this->eventRepo->findBy([]),
             fn ($e) => new \DateTimeImmutable($e->get('occurred') ?? 'now') >= $since,
         ));
 
-        $eventsBySource = [];
-        $people = [];
+        $peopleByEmail = $this->indexPeopleByEmail();
+
+        $schedule = [];
+        $jobHunt = [];
+        $peopleEvents = [];
+        $creators = [];
+        $notifications = [];
+
         foreach ($recentEvents as $event) {
-            $source = $event->get('source') ?? 'unknown';
-            $eventsBySource[$source][] = $event;
+            $category = $event->get('category') ?? 'notification';
             $payload = json_decode($event->get('payload') ?? '{}', true) ?? [];
-            $email = $payload['from_email'] ?? null;
-            $name  = $payload['from_name'] ?? null;
-            if (is_string($email) && $email !== '') {
-                $people[$email] = $name ?? $email;
-            }
+
+            match ($category) {
+                'schedule' => $schedule[] = [
+                    'title' => $payload['title'] ?? $payload['subject'] ?? $event->get('type'),
+                    'start_time' => $payload['start_time'] ?? $event->get('occurred'),
+                    'end_time' => $payload['end_time'] ?? '',
+                    'source' => $event->get('source'),
+                ],
+                'job_hunt' => $jobHunt[] = [
+                    'title' => $payload['subject'] ?? $payload['title'] ?? '',
+                    'source_name' => $payload['from_name'] ?? $event->get('source'),
+                    'details' => $payload['snippet'] ?? $payload['body'] ?? '',
+                ],
+                'people' => $peopleEvents[] = [
+                    'person_name' => $payload['from_name'] ?? $payload['from_email'] ?? '',
+                    'person_email' => $payload['from_email'] ?? '',
+                    'summary' => $payload['subject'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'creator' => $creators[] = [
+                    'person_name' => $payload['from_name'] ?? $payload['from_email'] ?? '',
+                    'person_email' => $payload['from_email'] ?? '',
+                    'summary' => $payload['subject'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                default => $notifications[] = [
+                    'title' => $payload['subject'] ?? $event->get('type'),
+                    'source' => $event->get('source'),
+                    'occurred' => $event->get('occurred'),
+                ],
+            };
         }
 
         $allCommitments = $this->commitmentRepo->findBy([]);
-        $pendingCommitments = array_values(array_filter($allCommitments, fn ($c) => $c->get('status') === 'pending'));
-        $driftingCommitments = $this->driftDetector->findDrifting($tenantId);
+        $pending = array_values(array_filter(
+            $allCommitments,
+            fn ($c) => $c->get('status') === 'pending',
+        ));
+        $drifting = $this->driftDetector->findDrifting($tenantId);
 
-        $matchedSkills = $this->matchSkillsToEvents($recentEvents);
+        $today = (new \DateTimeImmutable())->format('Y-m-d');
+        $dueToday = count(array_filter($pending, fn ($c) => ($c->get('due_date') ?? '') === $today));
 
         return [
-            'recent_events'        => $recentEvents,
-            'events_by_source'     => $eventsBySource,
-            'people'               => $people,
-            'pending_commitments'  => $pendingCommitments,
-            'drifting_commitments' => $driftingCommitments,
-            'matched_skills'       => $matchedSkills,
+            'schedule'      => $schedule,
+            'job_hunt'      => $jobHunt,
+            'people'        => $peopleEvents,
+            'creators'      => $creators,
+            'notifications' => $notifications,
+            'commitments'   => [
+                'pending'  => $pending,
+                'drifting' => $drifting,
+            ],
+            'counts' => [
+                'job_alerts' => count($jobHunt),
+                'messages'   => count($peopleEvents),
+                'due_today'  => $dueToday,
+                'drifting'   => count($drifting),
+            ],
+            'generated_at'  => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'matched_skills' => $this->matchSkillsToEvents($recentEvents),
         ];
     }
 
-    /**
-     * Match skills to recent events by checking trigger keywords against event text.
-     *
-     * @param array $recentEvents
-     * @return array Skill entities whose trigger_keywords match event content.
-     */
+    /** @return array<string, mixed> */
+    private function indexPeopleByEmail(): array
+    {
+        if ($this->personRepo === null) {
+            return [];
+        }
+        $index = [];
+        foreach ($this->personRepo->findBy([]) as $person) {
+            $email = $person->get('email');
+            if ($email) {
+                $index[$email] = $person;
+            }
+        }
+        return $index;
+    }
+
     private function matchSkillsToEvents(array $recentEvents): array
     {
         if ($this->skillRepo === null || empty($recentEvents)) {
@@ -72,7 +127,6 @@ final class DayBriefAssembler
             return [];
         }
 
-        // Build a combined text corpus from event metadata for keyword matching.
         $eventText = '';
         foreach ($recentEvents as $event) {
             $eventText .= ' ' . strtolower($event->get('source') ?? '');

@@ -115,18 +115,20 @@ final class BriefStreamController
         $skillRepo = new StorageRepositoryAdapter($skillStorage);
         $driftDetector = new DriftDetector($commitmentRepo);
 
-        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $skillRepo);
+        $personRepo = null;
+        try {
+            $personRepo = new StorageRepositoryAdapter($this->entityTypeManager->getStorage('person'));
+        } catch (\Throwable) {
+        }
+
+        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $personRepo, $skillRepo);
         $brief = $assembler->assemble('default', new \DateTimeImmutable('-24 hours'));
 
-        return json_encode([
-            'recent_events' => array_map(fn ($e) => $e->toArray(), $brief['recent_events']),
-            'events_by_source' => array_map(
-                fn (array $events) => array_map(fn ($e) => $e->toArray(), $events),
-                $brief['events_by_source'],
-            ),
-            'people' => $brief['people'],
-            'pending_commitments' => array_map(fn ($c) => $c->toArray(), $brief['pending_commitments']),
-            'drifting_commitments' => array_map(fn ($c) => $c->toArray(), $brief['drifting_commitments']),
-        ], JSON_THROW_ON_ERROR);
+        $jsonBrief = $brief;
+        $jsonBrief['commitments']['pending'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['pending']);
+        $jsonBrief['commitments']['drifting'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['drifting']);
+        $jsonBrief['matched_skills'] = array_map(fn ($s) => $s->toArray(), $brief['matched_skills']);
+
+        return json_encode($jsonBrief, JSON_THROW_ON_ERROR);
     }
 }

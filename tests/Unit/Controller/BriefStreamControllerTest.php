@@ -58,7 +58,7 @@ final class BriefStreamControllerTest extends TestCase
         $combined = implode('', $output);
         self::assertStringContainsString('retry:', $combined);
         self::assertStringContainsString('event: brief-update', $combined);
-        self::assertStringContainsString('"recent_events"', $combined);
+        self::assertStringContainsString('"schedule"', $combined);
 
         // Cleanup
         if (file_exists($signalFile)) {

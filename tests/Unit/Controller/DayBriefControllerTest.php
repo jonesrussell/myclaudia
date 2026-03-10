@@ -7,6 +7,7 @@ namespace Claudriel\Tests\Unit\Controller;
 use Claudriel\Controller\DayBriefController;
 use Claudriel\Entity\Commitment;
 use Claudriel\Entity\McEvent;
+use Claudriel\Entity\Person;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\EntityStorage\SqlEntityStorage;
@@ -35,24 +36,21 @@ final class DayBriefControllerTest extends TestCase
             },
         );
 
-        $eventType = new EntityType(
-            id: 'mc_event',
-            label: 'Event',
-            class: McEvent::class,
-            keys: ['id' => 'eid', 'uuid' => 'uuid'],
-        );
-        $this->entityTypeManager->registerEntityType($eventType);
-
-        $commitmentType = new EntityType(
-            id: 'commitment',
-            label: 'Commitment',
-            class: Commitment::class,
+        $this->entityTypeManager->registerEntityType(new EntityType(
+            id: 'mc_event', label: 'Event', class: McEvent::class,
+            keys: ['id' => 'eid', 'uuid' => 'uuid', 'content_hash' => 'content_hash'],
+        ));
+        $this->entityTypeManager->registerEntityType(new EntityType(
+            id: 'commitment', label: 'Commitment', class: Commitment::class,
             keys: ['id' => 'cid', 'uuid' => 'uuid', 'label' => 'title'],
-        );
-        $this->entityTypeManager->registerEntityType($commitmentType);
+        ));
+        $this->entityTypeManager->registerEntityType(new EntityType(
+            id: 'person', label: 'Person', class: Person::class,
+            keys: ['id' => 'pid', 'uuid' => 'uuid', 'label' => 'name'],
+        ));
     }
 
-    public function testShowReturnsJsonWhenTwigIsNull(): void
+    public function test_json_response_has_categorized_shape(): void
     {
         $controller = new DayBriefController($this->entityTypeManager, null);
         $response   = $controller->show();
@@ -62,17 +60,20 @@ final class DayBriefControllerTest extends TestCase
 
         $body = json_decode($response->content, true);
         self::assertIsArray($body);
-        self::assertArrayHasKey('recent_events', $body);
-        self::assertArrayHasKey('events_by_source', $body);
+        self::assertArrayHasKey('schedule', $body);
+        self::assertArrayHasKey('job_hunt', $body);
         self::assertArrayHasKey('people', $body);
-        self::assertArrayHasKey('pending_commitments', $body);
-        self::assertArrayHasKey('drifting_commitments', $body);
+        self::assertArrayHasKey('creators', $body);
+        self::assertArrayHasKey('notifications', $body);
+        self::assertArrayHasKey('commitments', $body);
+        self::assertArrayHasKey('counts', $body);
+        self::assertArrayHasKey('generated_at', $body);
     }
 
-    public function testShowReturnsHtmlWhenTwigIsProvided(): void
+    public function test_html_response_when_twig_provided(): void
     {
         $loader = new ArrayLoader([
-            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+            'day-brief.html.twig' => '<html><body>Schedule: {{ schedule|length }}</body></html>',
         ]);
         $twig = new Environment($loader);
 
@@ -82,13 +83,12 @@ final class DayBriefControllerTest extends TestCase
         self::assertSame(200, $response->statusCode);
         self::assertSame('text/html; charset=UTF-8', $response->headers['Content-Type']);
         self::assertStringContainsString('<html>', $response->content);
-        self::assertStringContainsString('0 events', $response->content);
     }
 
-    public function testShowReturnsJsonWhenAcceptHeaderPrefersJson(): void
+    public function test_json_when_accept_header_prefers_json(): void
     {
         $loader = new ArrayLoader([
-            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+            'day-brief.html.twig' => '<html><body>Brief</body></html>',
         ]);
         $twig = new Environment($loader);
 
@@ -100,15 +100,12 @@ final class DayBriefControllerTest extends TestCase
 
         self::assertSame(200, $response->statusCode);
         self::assertSame('application/json', $response->headers['Content-Type']);
-
-        $body = json_decode($response->content, true);
-        self::assertIsArray($body);
     }
 
-    public function testShowReturnsJsonWhenAcceptHeaderIsVndApiJson(): void
+    public function test_json_when_accept_header_is_vnd_api_json(): void
     {
         $loader = new ArrayLoader([
-            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+            'day-brief.html.twig' => '<html><body>Brief</body></html>',
         ]);
         $twig = new Environment($loader);
 
@@ -122,14 +119,13 @@ final class DayBriefControllerTest extends TestCase
         self::assertSame('application/json', $response->headers['Content-Type']);
 
         $body = json_decode($response->content, true);
-        self::assertIsArray($body);
-        self::assertArrayHasKey('recent_events', $body);
+        self::assertArrayHasKey('schedule', $body);
     }
 
-    public function testShowReturnsHtmlWhenAcceptHeaderIsTextHtml(): void
+    public function test_html_when_accept_header_is_text_html(): void
     {
         $loader = new ArrayLoader([
-            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+            'day-brief.html.twig' => '<html><body>Brief</body></html>',
         ]);
         $twig = new Environment($loader);
 
@@ -141,13 +137,12 @@ final class DayBriefControllerTest extends TestCase
 
         self::assertSame(200, $response->statusCode);
         self::assertSame('text/html; charset=UTF-8', $response->headers['Content-Type']);
-        self::assertStringContainsString('<html>', $response->content);
     }
 
-    public function testShowReturnsJsonWhenFormatQueryParamIsJson(): void
+    public function test_json_when_format_query_param_is_json(): void
     {
         $loader = new ArrayLoader([
-            'day-brief.html.twig' => '<html><body>Brief: {{ recent_events|length }} events</body></html>',
+            'day-brief.html.twig' => '<html><body>Brief</body></html>',
         ]);
         $twig = new Environment($loader);
 
@@ -160,16 +155,16 @@ final class DayBriefControllerTest extends TestCase
         self::assertSame('application/json', $response->headers['Content-Type']);
 
         $body = json_decode($response->content, true);
-        self::assertIsArray($body);
-        self::assertArrayHasKey('recent_events', $body);
+        self::assertArrayHasKey('schedule', $body);
     }
 
-    public function testShowIncludesRecentEventsInHtml(): void
+    public function test_json_includes_event_data(): void
     {
         $event = new McEvent([
             'uuid'     => 'eeee0001-0001-0001-0001-eeeeeeeeeeee',
-            'type'     => 'email_received',
+            'type'     => 'message.received',
             'source'   => 'gmail',
+            'category' => 'people',
             'occurred' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
             'payload'  => json_encode([
                 'subject'    => 'Test Subject Line',
@@ -179,15 +174,11 @@ final class DayBriefControllerTest extends TestCase
         ]);
         $this->entityTypeManager->getStorage('mc_event')->save($event);
 
-        $loader = new ArrayLoader([
-            'day-brief.html.twig' => '{% for source, events in events_by_source %}{% for e in events %}{{ e.type }}{% endfor %}{% endfor %}',
-        ]);
-        $twig = new Environment($loader);
-
-        $controller = new DayBriefController($this->entityTypeManager, $twig);
+        $controller = new DayBriefController($this->entityTypeManager, null);
         $response   = $controller->show();
 
-        self::assertSame(200, $response->statusCode);
-        self::assertStringContainsString('email_received', $response->content);
+        $body = json_decode($response->content, true);
+        self::assertCount(1, $body['people']);
+        self::assertSame('Alice', $body['people'][0]['person_name']);
     }
 }

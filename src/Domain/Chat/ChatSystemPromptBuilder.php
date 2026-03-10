@@ -161,26 +161,40 @@ INSTRUCTIONS;
     {
         $lines = ["# Current Context (last 24h)"];
 
-        $eventCount = count($brief['recent_events']);
-        $lines[] = "\nRecent events: {$eventCount}";
-
-        if (!empty($brief['people'])) {
-            $names = array_values($brief['people']);
-            $lines[] = "People seen: " . implode(', ', array_slice($names, 0, 10));
+        if (!empty($brief['schedule'])) {
+            $count = count($brief['schedule']);
+            $lines[] = "\nSchedule ({$count}):";
+            foreach (array_slice($brief['schedule'], 0, 5) as $item) {
+                $lines[] = "  - {$item['title']} ({$item['start_time']})";
+            }
         }
 
-        $pendingCount = count($brief['pending_commitments']);
-        $lines[] = "Pending commitments: {$pendingCount}";
+        if (!empty($brief['job_hunt'])) {
+            $count = count($brief['job_hunt']);
+            $lines[] = "\nJob Hunt ({$count}):";
+            foreach (array_slice($brief['job_hunt'], 0, 5) as $item) {
+                $lines[] = "  - {$item['title']} — {$item['source_name']}";
+            }
+        }
 
+        if (!empty($brief['people'])) {
+            $count = count($brief['people']);
+            $names = array_map(fn ($p) => $p['person_name'], array_slice($brief['people'], 0, 10));
+            $lines[] = "\nPeople ({$count}): " . implode(', ', $names);
+        }
+
+        $pending = $brief['commitments']['pending'] ?? [];
+        $pendingCount = count($pending);
+        $lines[] = "\nPending commitments: {$pendingCount}";
         if ($pendingCount > 0) {
-            foreach (array_slice($brief['pending_commitments'], 0, 5) as $c) {
+            foreach (array_slice($pending, 0, 5) as $c) {
                 $title = $c->get('title') ?? '(untitled)';
                 $due = $c->get('due_date') ?? 'no due date';
                 $lines[] = "  - {$title} (due: {$due})";
             }
         }
 
-        $driftingCount = count($brief['drifting_commitments']);
+        $driftingCount = $brief['counts']['drifting'] ?? 0;
         if ($driftingCount > 0) {
             $lines[] = "Drifting commitments (no activity 48h+): {$driftingCount}";
         }

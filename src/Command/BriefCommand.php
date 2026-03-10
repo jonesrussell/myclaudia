@@ -29,35 +29,51 @@ final class BriefCommand extends Command
         $output->writeln('<info>Day Brief</info>');
         $output->writeln('');
 
-        $output->writeln(sprintf('<comment>Recent events (%d)</comment>', count($brief['recent_events'])));
-        foreach ($brief['events_by_source'] as $source => $events) {
-            $output->writeln(sprintf('  [%s]', $source));
-            foreach ($events as $event) {
-                $payload = json_decode($event->get('payload') ?? '{}', true) ?? [];
-                $subject = $payload['subject'] ?? $event->get('type');
-                $output->writeln(sprintf('    • %s', $subject));
+        if (!empty($brief['schedule'])) {
+            $output->writeln(sprintf('<comment>Schedule (%d)</comment>', count($brief['schedule'])));
+            foreach ($brief['schedule'] as $item) {
+                $time = $item['start_time'] ?? '';
+                $output->writeln(sprintf('  • %s (%s)', $item['title'], $time));
             }
+            $output->writeln('');
+        }
+
+        if (!empty($brief['job_hunt'])) {
+            $output->writeln(sprintf('<comment>Job Hunt (%d)</comment>', count($brief['job_hunt'])));
+            foreach ($brief['job_hunt'] as $item) {
+                $output->writeln(sprintf('  • %s — %s', $item['title'], $item['source_name']));
+            }
+            $output->writeln('');
         }
 
         if (!empty($brief['people'])) {
-            $output->writeln('');
-            $output->writeln('<comment>People</comment>');
-            foreach ($brief['people'] as $email => $name) {
-                $output->writeln(sprintf('  %s <%s>', $name, $email));
+            $output->writeln(sprintf('<comment>People (%d)</comment>', count($brief['people'])));
+            foreach ($brief['people'] as $item) {
+                $output->writeln(sprintf('  • %s: %s', $item['person_name'], $item['summary']));
             }
+            $output->writeln('');
         }
 
-        $output->writeln('');
-        $output->writeln(sprintf('<comment>Pending commitments (%d)</comment>', count($brief['pending_commitments'])));
-        foreach ($brief['pending_commitments'] as $c) {
+        $pending = $brief['commitments']['pending'] ?? [];
+        $output->writeln(sprintf('<comment>Pending commitments (%d)</comment>', count($pending)));
+        foreach ($pending as $c) {
             $output->writeln(sprintf('  • %s (%.0f%% confidence)', $c->get('title'), $c->get('confidence') * 100));
         }
 
-        if (!empty($brief['drifting_commitments'])) {
+        $drifting = $brief['commitments']['drifting'] ?? [];
+        if (!empty($drifting)) {
             $output->writeln('');
             $output->writeln('<error>Drifting (no activity 48h+)</error>');
-            foreach ($brief['drifting_commitments'] as $c) {
+            foreach ($drifting as $c) {
                 $output->writeln(sprintf('  ! %s', $c->get('title')));
+            }
+        }
+
+        if (!empty($brief['notifications'])) {
+            $output->writeln('');
+            $output->writeln(sprintf('<comment>Notifications (%d)</comment>', count($brief['notifications'])));
+            foreach ($brief['notifications'] as $item) {
+                $output->writeln(sprintf('  • %s', $item['title']));
             }
         }
 

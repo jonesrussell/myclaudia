@@ -260,7 +260,19 @@ final class ClaudrielServiceProvider extends ServiceProvider
             $dispatcher,
         );
 
-        $assembler    = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $skillRepo);
+        $personType = new EntityType(
+            id: 'person',
+            label: 'Person',
+            class: Person::class,
+            keys: ['id' => 'pid', 'uuid' => 'uuid', 'label' => 'name'],
+        );
+        $personRepo = new EntityRepository(
+            $personType,
+            new SqlStorageDriver($resolver, 'pid'),
+            $dispatcher,
+        );
+
+        $assembler    = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $personRepo, $skillRepo);
         $sessionStore = new BriefSessionStore($this->projectRoot . '/storage/brief-session.txt');
 
         return [

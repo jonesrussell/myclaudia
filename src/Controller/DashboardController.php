@@ -38,7 +38,13 @@ final class DashboardController
         $skillRepo = new StorageRepositoryAdapter($skillStorage);
         $driftDetector = new DriftDetector($commitmentRepo);
 
-        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $skillRepo);
+        $personRepo = null;
+        try {
+            $personRepo = new StorageRepositoryAdapter($this->entityTypeManager->getStorage('person'));
+        } catch (\Throwable) {
+        }
+
+        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $personRepo, $skillRepo);
         $brief = $assembler->assemble('default', $since);
 
         $sessionStore->recordBriefAt(new \DateTimeImmutable());
@@ -60,44 +66,27 @@ final class DashboardController
         $apiConfigured = is_string($apiKey) && $apiKey !== '';
         $model = $_ENV['CLAUDE_MODEL'] ?? getenv('CLAUDE_MODEL') ?: 'claude-sonnet-4-6';
 
+        $twigCommitments = array_map(fn ($c) => [
+            'title' => $c->get('title'),
+            'confidence' => $c->get('confidence') ?? 1.0,
+            'due_date' => $c->get('due_date'),
+        ], $brief['commitments']['pending']);
+
+        $twigDrifting = array_map(fn ($c) => [
+            'title' => $c->get('title'),
+            'updated_at' => $c->get('updated_at'),
+        ], $brief['commitments']['drifting']);
+
         // Twig rendering
         if ($this->twig !== null) {
-            $twigEventsBySource = [];
-            foreach ($brief['events_by_source'] as $source => $events) {
-                foreach ($events as $event) {
-                    $payload = json_decode($event->get('payload') ?? '{}', true) ?? [];
-                    $twigEventsBySource[$source][] = [
-                        'type' => $event->get('type'),
-                        'source' => $event->get('source'),
-                        'occurred' => $event->get('occurred'),
-                        'subject' => $payload['subject'] ?? $event->get('type'),
-                        'from_name' => $payload['from_name'] ?? null,
-                    ];
-                }
-            }
-
-            $twigCommitments = array_map(fn ($c) => [
-                'title' => $c->get('title'),
-                'confidence' => $c->get('confidence') ?? 1.0,
-                'due_date' => $c->get('due_date'),
-            ], $brief['pending_commitments']);
-
-            $twigDrifting = array_map(fn ($c) => [
-                'title' => $c->get('title'),
-                'updated_at' => $c->get('updated_at'),
-            ], $brief['drifting_commitments']);
-
-            $html = $this->twig->render('dashboard.twig', [
-                'recent_events' => $brief['recent_events'],
-                'events_by_source' => $twigEventsBySource,
-                'people' => $brief['people'],
+            $html = $this->twig->render('dashboard.twig', array_merge($brief, [
                 'pending_commitments' => $twigCommitments,
                 'drifting_commitments' => $twigDrifting,
                 'sessions' => $twigSessions,
                 'api_configured' => $apiConfigured,
                 'csrf_token' => CsrfMiddleware::token(),
                 'model' => $model,
-            ]);
+            ]));
 
             return new SsrResponse(
                 content: $html,
@@ -107,18 +96,14 @@ final class DashboardController
         }
 
         // JSON fallback
+        $jsonBrief = $brief;
+        $jsonBrief['commitments']['pending'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['pending']);
+        $jsonBrief['commitments']['drifting'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['drifting']);
+        $jsonBrief['matched_skills'] = array_map(fn ($s) => $s->toArray(), $brief['matched_skills']);
+
         return new SsrResponse(
             content: json_encode([
-                'brief' => [
-                    'recent_events' => array_map(fn ($e) => $e->toArray(), $brief['recent_events']),
-                    'events_by_source' => array_map(
-                        fn (array $events) => array_map(fn ($e) => $e->toArray(), $events),
-                        $brief['events_by_source'],
-                    ),
-                    'people' => $brief['people'],
-                    'pending_commitments' => array_map(fn ($c) => $c->toArray(), $brief['pending_commitments']),
-                    'drifting_commitments' => array_map(fn ($c) => $c->toArray(), $brief['drifting_commitments']),
-                ],
+                'brief' => $jsonBrief,
                 'sessions' => $twigSessions,
                 'api_configured' => $apiConfigured,
             ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),

@@ -39,7 +39,6 @@ final class ChatSystemPromptBuilderTest extends TestCase
         $builder = new ChatSystemPromptBuilder($this->createAssembler(), sys_get_temp_dir());
         $prompt = $builder->build();
 
-        $this->assertStringContainsString('Recent events: 0', $prompt);
         $this->assertStringContainsString('Pending commitments: 0', $prompt);
     }
 

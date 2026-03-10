@@ -43,6 +43,6 @@ final class BriefCommandTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertStringContainsString('Day Brief', $tester->getDisplay());
-        self::assertStringContainsString('Recent events (0)', $tester->getDisplay());
+        self::assertStringContainsString('Pending commitments (0)', $tester->getDisplay());
     }
 }
