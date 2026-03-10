@@ -9,7 +9,8 @@
 
 {% block styles %}
         .site-nav-inner {
-            max-width: 1400px;
+            max-width: 100%;
+            padding: 0 1rem;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -19,155 +20,264 @@
             color: #1a1a2e;
             background: #f8f9fa;
             line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* ── Layout ── */
         .dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 3rem);
+            transition: grid-template-columns 0.25s ease;
+        }
+        .dashboard.panel-collapsed {
+            grid-template-columns: 0px 1fr;
         }
 
-        /* Brief panel */
-        .brief-panel h2 {
-            font-size: 1.1rem;
-            color: #444;
-            margin-bottom: 0.75rem;
+        /* ── Context Panel ── */
+        .context-panel {
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1rem;
+            transition: opacity 0.25s ease, padding 0.25s ease;
+        }
+        .panel-collapsed .context-panel {
+            opacity: 0;
+            padding: 0;
+            pointer-events: none;
+            width: 0;
+            overflow: hidden;
+        }
+        .panel-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #1a1a2e;
         }
-        .brief-panel h2 .count {
+        .panel-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .panel-toggle {
+            position: fixed;
+            top: 3.5rem;
+            left: 0;
+            z-index: 100;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: left 0.25s ease;
+        }
+        .dashboard:not(.panel-collapsed) .panel-toggle {
+            left: 300px;
+        }
+        .panel-section {
+            margin-bottom: 1.25rem;
+        }
+        .panel-section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .panel-section-title .badge {
             background: #e0e0e0;
             color: #333;
-            font-size: 0.8rem;
-            padding: 0.1rem 0.5rem;
-            border-radius: 10px;
+            font-size: 0.7rem;
+            padding: 0.05rem 0.4rem;
+            border-radius: 8px;
+            font-weight: 500;
         }
-        .brief-panel h3 {
-            font-size: 0.95rem;
-            color: #555;
-            margin: 0.75rem 0 0.4rem;
-            text-transform: capitalize;
-        }
-        .brief-panel section { margin-bottom: 2rem; }
-        .brief-panel ul { list-style: none; padding: 0; }
-        .brief-panel li {
-            padding: 0.5rem 0.75rem;
-            margin-bottom: 0.35rem;
-            background: #fff;
-            border-radius: 6px;
+        .panel-item {
+            padding: 0.4rem 0.6rem;
+            margin-bottom: 0.3rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 0.82rem;
             border-left: 3px solid #ccc;
-            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        .brief-panel li .meta {
+        .panel-item:hover {
+            background: #eef0f4;
+        }
+        .panel-item .item-meta {
             display: block;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             color: #888;
-            margin-top: 0.15rem;
+            margin-top: 0.1rem;
         }
-        .source-gmail { border-left-color: #d93025; }
-        .source-unknown { border-left-color: #999; }
-        .pending { border-left-color: #f0ad4e; }
-        .drifting { border-left-color: #c0392b; }
-        .drifting-heading { color: #c0392b; }
-        .confidence {
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            background: #e8f5e9;
-            color: #2e7d32;
+        .panel-item.schedule { border-left-color: #3b82f6; }
+        .panel-item.job_hunt { border-left-color: #10b981; }
+        .panel-item.people { border-left-color: #f59e0b; }
+        .panel-item.commitment { border-left-color: #ef4444; }
+        .panel-item.notification { border-left-color: #6b7280; }
+
+        /* At-a-glance counters */
+        .counter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
         }
-        .confidence.low { background: #fff3e0; color: #e65100; }
-        .empty {
+        .counter-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 0.5rem 0.6rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .counter-card:hover { background: #eef0f4; }
+        .counter-card .counter-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .counter-card .counter-label {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .counter-card.job_hunt .counter-value { color: #10b981; }
+        .counter-card.messages .counter-value { color: #f59e0b; }
+        .counter-card.due_today .counter-value { color: #ef4444; }
+        .counter-card.drifting .counter-value { color: #c0392b; }
+
+        .panel-empty {
             color: #999;
             font-style: italic;
-            padding: 0.5rem 0;
-        }
-        .people-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 0.5rem;
-        }
-        .people-grid li {
-            border-left-color: #5c6bc0;
-        }
-        .people-grid .person-name { font-weight: 600; }
-        .people-grid .person-email { font-size: 0.78rem; color: #888; }
-        .brief-panel-title {
-            font-size: 1.75rem;
-            border-bottom: 3px solid #1a1a2e;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .brief-panel-title small {
-            font-weight: 400;
-            font-size: 0.85rem;
-            color: #666;
-            display: block;
-            margin-top: 0.25rem;
+            font-size: 0.82rem;
+            padding: 0.25rem 0;
         }
 
-        /* Chat panel */
-        .chat-panel {
+        /* ── Chat Area ── */
+        .chat-area {
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - 8rem);
+            height: 100%;
+            overflow: hidden;
         }
-        .chat-panel-title {
-            font-size: 1.75rem;
-            border-bottom: 3px solid #1a1a2e;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
+        .chat-header {
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .chat-header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
         }
         .chat-model-badge {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 500;
             color: #666;
             background: #eee;
-            padding: 0.15rem 0.5rem;
+            padding: 0.1rem 0.4rem;
             border-radius: 0.25rem;
-            margin-left: 0.5rem;
-            vertical-align: middle;
+            margin-left: 0.4rem;
         }
-        .chat-panel .messages {
+        .chat-header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .sessions-dropdown {
+            position: relative;
+        }
+        .sessions-dropdown summary {
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+            list-style: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: #f0f0f0;
+        }
+        .sessions-dropdown summary::-webkit-details-marker { display: none; }
+        .sessions-dropdown summary:hover { background: #e0e0e0; }
+        .session-list {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            list-style: none;
+            padding: 0.35rem 0;
+            z-index: 50;
+            min-width: 180px;
+        }
+        .session-list li a {
+            display: block;
+            padding: 0.35rem 0.75rem;
+            color: #333;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        .session-list li a:hover { background: #f0f0f0; }
+        .new-chat-btn {
+            font-size: 0.8rem;
+            color: #1a1a2e;
+            text-decoration: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: #d4edda;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .new-chat-btn:hover { background: #c3e6cb; }
+
+        .messages {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem 0;
-            min-height: 300px;
-            max-height: calc(100vh - 350px);
+            padding: 1rem 1.25rem;
         }
-        .chat-panel .message {
+        .message {
             margin-bottom: 1rem;
             padding: 0.75rem 1rem;
             border-radius: 8px;
             font-size: 0.9rem;
             max-width: 85%;
         }
-        .chat-panel .message.user {
+        .message.user {
             background: #1a1a2e;
             color: #fff;
             margin-left: auto;
             border-bottom-right-radius: 2px;
         }
-        .chat-panel .message.assistant {
+        .message.assistant {
             background: #fff;
             border: 1px solid #e0e0e0;
             border-bottom-left-radius: 2px;
         }
-        .chat-panel .message.assistant .message-content {
+        .message.assistant .message-content {
             white-space: pre-wrap;
             word-wrap: break-word;
         }
-        .chat-panel .message.assistant .message-content p {
-            margin-bottom: 0.5rem;
-        }
-        .chat-panel .message.assistant .message-content p:last-child {
-            margin-bottom: 0;
-        }
+        .message.assistant .message-content p { margin-bottom: 0.5rem; }
+        .message.assistant .message-content p:last-child { margin-bottom: 0; }
         .message-label {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -175,21 +285,80 @@
             margin-bottom: 0.25rem;
             opacity: 0.7;
         }
+
+        /* Rich cards in chat */
+        .chat-card {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #ccc;
+            background: #fafafa;
+        }
+        .chat-card-header {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.35rem;
+        }
+        .chat-card-body { font-size: 0.85rem; }
+        .chat-card-body ul { padding-left: 1.2rem; margin: 0.25rem 0; }
+        .chat-card-body li { margin-bottom: 0.2rem; }
+        .chat-card--schedule { border-left-color: #3b82f6; background: #eff6ff; }
+        .chat-card--job-hunt { border-left-color: #10b981; background: #ecfdf5; }
+        .chat-card--people { border-left-color: #f59e0b; background: #fffbeb; }
+        .chat-card--commitment { border-left-color: #ef4444; background: #fef2f2; }
+        .chat-card--creator { border-left-color: #8b5cf6; background: #f5f3ff; }
+        .chat-card--notification { border-left-color: #6b7280; background: #f9fafb; }
+
+        .loading {
+            display: none;
+            padding: 0.5rem 1.25rem;
+            color: #888;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+        .loading.visible { display: block; }
+        .not-configured {
+            background: #fff3e0;
+            border: 1px solid #f0ad4e;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 1.25rem;
+            font-size: 0.9rem;
+            color: #8a6d3b;
+        }
+        .empty-state {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
         .input-area {
-            padding: 1rem 0;
+            padding: 0.75rem 1.25rem;
             border-top: 1px solid #e0e0e0;
             display: flex;
             gap: 0.5rem;
+            background: #fff;
+            flex-shrink: 0;
         }
         .input-area textarea {
             flex: 1;
-            padding: 0.75rem;
+            padding: 0.65rem 0.75rem;
             border: 1px solid #ccc;
             border-radius: 8px;
             font-family: inherit;
             font-size: 0.9rem;
             resize: none;
-            min-height: 44px;
+            min-height: 42px;
             max-height: 120px;
             line-height: 1.4;
         }
@@ -207,214 +376,142 @@
             cursor: pointer;
             white-space: nowrap;
         }
-        .input-area button:hover {
-            background: #2a2a4e;
-        }
-        .input-area button:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
-        .loading {
-            display: none;
-            padding: 0.75rem 1rem;
-            color: #888;
-            font-style: italic;
-            font-size: 0.85rem;
-        }
-        .loading.visible {
-            display: block;
-        }
-        .not-configured {
-            background: #fff3e0;
-            border: 1px solid #f0ad4e;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: #8a6d3b;
-        }
-        .empty-state {
-            color: #999;
-            font-style: italic;
-            text-align: center;
-            padding: 3rem 1rem;
-        }
-        .sessions-sidebar {
-            margin-bottom: 1rem;
-        }
-        .sessions-sidebar summary {
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-        }
-        .session-list {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-        }
-        .session-list li {
-            font-size: 0.8rem;
-        }
-        .session-list a {
-            color: #1a1a2e;
-            text-decoration: none;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            background: #e8e8f0;
-        }
-        .session-list a:hover {
-            background: #d0d0e0;
-        }
-        .new-chat-btn {
-            display: inline-block;
-            font-size: 0.8rem;
-            color: #1a1a2e;
-            text-decoration: none;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            background: #d4edda;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .new-chat-btn:hover {
-            background: #c3e6cb;
-        }
-        .error-message {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
+        .input-area button:hover { background: #2a2a4e; }
+        .input-area button:disabled { background: #999; cursor: not-allowed; }
 
-        @media (max-width: 900px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            .brief-panel-mobile {
-                margin-bottom: 1rem;
-            }
+        @media (max-width: 1024px) {
+            .dashboard { grid-template-columns: 0px 1fr; }
+            .dashboard .context-panel { opacity: 0; padding: 0; pointer-events: none; width: 0; overflow: hidden; }
+            .dashboard:not(.panel-collapsed) .panel-toggle { left: 0; }
+            .dashboard.panel-open { grid-template-columns: 280px 1fr; }
+            .dashboard.panel-open .context-panel { opacity: 1; padding: 1rem; pointer-events: auto; width: auto; overflow-y: auto; }
+            .dashboard.panel-open .panel-toggle { left: 280px; }
         }
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard">
-        {# ── Left Column: Brief Panel ── #}
-        <div class="brief-panel">
-            <div class="hide-desktop brief-panel-mobile">
-                <details open>
-                    <summary class="brief-panel-title">
-                        Day Brief
-                        <small id="briefTimestamp">Generated <time datetime="{{ "now"|date("c") }}"></time></small>
-                    </summary>
+    <div class="dashboard" id="dashboard">
+        <button class="panel-toggle" id="panelToggle" title="Toggle context panel">&laquo;</button>
 
-                    {# Events by Source #}
-                    <section id="briefEvents">
-                        <h2>Events <span class="count">{{ recent_events|length }}</span></h2>
-                        {% if events_by_source|length > 0 %}
-                            {% for source, events in events_by_source %}
-                                <h3>{{ source }}</h3>
-                                <ul>
-                                {% for event in events %}
-                                    <li class="source-{{ source }}">
-                                        {{ event.subject }}
-                                        <span class="meta">
-                                            {{ event.type }}
-                                            {% if event.from_name %} — {{ event.from_name }}{% endif %}
-                                            {% if event.occurred %} — {{ event.occurred }}{% endif %}
-                                        </span>
-                                    </li>
-                                {% endfor %}
-                                </ul>
-                            {% endfor %}
-                        {% else %}
-                            <p class="empty">No recent events.</p>
-                        {% endif %}
-                    </section>
-
-                    {# People #}
-                    <section id="briefPeople">
-                        <h2>People <span class="count">{{ people|length }}</span></h2>
-                        {% if people|length > 0 %}
-                            <ul class="people-grid">
-                            {% for email, name in people %}
-                                <li>
-                                    <span class="person-name">{{ name }}</span>
-                                    <span class="person-email">{{ email }}</span>
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="empty">No people seen recently.</p>
-                        {% endif %}
-                    </section>
-
-                    {# Pending Commitments #}
-                    <section id="briefCommitments">
-                        <h2>Pending Commitments <span class="count">{{ pending_commitments|length }}</span></h2>
-                        {% if pending_commitments|length > 0 %}
-                            <ul>
-                            {% for c in pending_commitments %}
-                                <li class="pending">
-                                    {{ c.title|default('(untitled)') }}
-                                    <span class="confidence{{ c.confidence < 0.8 ? ' low' : '' }}">{{ (c.confidence * 100)|round }}%</span>
-                                    {% if c.due_date %}
-                                        <span class="meta">Due: {{ c.due_date }}</span>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="empty">No pending commitments.</p>
-                        {% endif %}
-                    </section>
-
-                    {# Drifting Commitments #}
-                    <section id="briefDrifting">
-                        <h2 class="drifting-heading">Drifting — No Activity 48h+ <span class="count">{{ drifting_commitments|length }}</span></h2>
-                        {% if drifting_commitments|length > 0 %}
-                            <ul>
-                            {% for c in drifting_commitments %}
-                                <li class="drifting">
-                                    {{ c.title|default('(untitled)') }}
-                                    {% if c.updated_at %}
-                                        <span class="meta">Last activity: {{ c.updated_at }}</span>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="empty">No drifting commitments — all on track.</p>
-                        {% endif %}
-                    </section>
-                </details>
+        {# ── Context Panel ── #}
+        <aside class="context-panel" id="contextPanel">
+            <div class="panel-header">
+                <h2>Context</h2>
             </div>
-        </div>
 
-        {# ── Right Column: Chat Panel ── #}
-        <div class="chat-panel">
-            <h1 class="chat-panel-title">Chat{% if model %}<span class="chat-model-badge">{{ model }}</span>{% endif %}</h1>
+            {# At-a-glance counters #}
+            <div class="panel-section" id="panelCounters">
+                <div class="panel-section-title">At a Glance</div>
+                <div class="counter-grid">
+                    <div class="counter-card job_hunt" data-chat="Show me today's job listings">
+                        <div class="counter-value" id="countJobs">{{ counts.job_alerts|default(0) }}</div>
+                        <div class="counter-label">Job Alerts</div>
+                    </div>
+                    <div class="counter-card messages" data-chat="What messages did I get today?">
+                        <div class="counter-value" id="countMessages">{{ counts.messages|default(0) }}</div>
+                        <div class="counter-label">Messages</div>
+                    </div>
+                    <div class="counter-card due_today" data-chat="What's due today?">
+                        <div class="counter-value" id="countDueToday">{{ counts.due_today|default(0) }}</div>
+                        <div class="counter-label">Due Today</div>
+                    </div>
+                    <div class="counter-card drifting" data-chat="Which commitments are drifting?">
+                        <div class="counter-value" id="countDrifting">{{ counts.drifting|default(0) }}</div>
+                        <div class="counter-label">Drifting</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Schedule #}
+            <div class="panel-section" id="panelSchedule">
+                <div class="panel-section-title">Schedule <span class="badge" id="scheduleCount">{{ schedule|length }}</span></div>
+                <div id="scheduleItems">
+                    {% if schedule|length > 0 %}
+                        {% for item in schedule %}
+                            <div class="panel-item schedule" data-chat="Tell me about {{ item.title }}">
+                                {{ item.title }}
+                                <span class="item-meta">{{ item.start_time }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="panel-empty">No schedule items.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Commitments #}
+            <div class="panel-section" id="panelCommitments">
+                <div class="panel-section-title">Commitments <span class="badge" id="commitmentCount">{{ pending_commitments|length }}</span></div>
+                <div id="commitmentItems">
+                    {% if pending_commitments|length > 0 %}
+                        {% for c in pending_commitments %}
+                            <div class="panel-item commitment" data-chat="Update me on {{ c.title }}">
+                                {{ c.title|default('(untitled)') }}
+                                {% if c.due_date %}<span class="item-meta">Due: {{ c.due_date }}</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="panel-empty">No pending commitments.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Drifting #}
+            {% if drifting_commitments|length > 0 %}
+            <div class="panel-section" id="panelDrifting">
+                <div class="panel-section-title" style="color: #c0392b;">Drifting <span class="badge" style="background:#fde8e8;color:#c0392b;">{{ drifting_commitments|length }}</span></div>
+                <div id="driftingItems">
+                    {% for c in drifting_commitments %}
+                        <div class="panel-item commitment" style="border-left-color:#c0392b;" data-chat="What happened with {{ c.title }}?">
+                            {{ c.title|default('(untitled)') }}
+                            {% if c.updated_at %}<span class="item-meta">Last: {{ c.updated_at }}</span>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# People #}
+            <div class="panel-section" id="panelPeople">
+                <div class="panel-section-title">People <span class="badge" id="peopleCount">{{ people|length }}</span></div>
+                <div id="peopleItems">
+                    {% if people|length > 0 %}
+                        {% for item in people %}
+                            <div class="panel-item people" data-chat="What did {{ item.person_name }} say?">
+                                {{ item.person_name }}
+                                <span class="item-meta">{{ item.summary }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="panel-empty">No messages from people.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+
+        {# ── Chat Area ── #}
+        <main class="chat-area">
+            <div class="chat-header">
+                <h1>Claudriel{% if model %}<span class="chat-model-badge">{{ model }}</span>{% endif %}</h1>
+                <div class="chat-header-actions">
+                    {% if sessions|length > 0 %}
+                    <details class="sessions-dropdown">
+                        <summary>Sessions ({{ sessions|length }})</summary>
+                        <ul class="session-list">
+                            {% for s in sessions %}
+                            <li><a href="#" data-session="{{ s.uuid }}">{{ s.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                    {% endif %}
+                    <button class="new-chat-btn" id="newChatBtn">New Chat</button>
+                </div>
+            </div>
 
             {% if not api_configured %}
             <div class="not-configured">
                 Chat is not configured. Set <code>ANTHROPIC_API_KEY</code> in your environment to enable it.
             </div>
-            {% endif %}
-
-            {% if sessions|length > 0 %}
-            <details class="sessions-sidebar">
-                <summary>Recent sessions ({{ sessions|length }})</summary>
-                <ul class="session-list">
-                    {% for s in sessions %}
-                    <li><a href="#" data-session="{{ s.uuid }}">{{ s.title }}</a></li>
-                    {% endfor %}
-                </ul>
-            </details>
             {% endif %}
 
             <div class="messages" id="messages">
@@ -434,17 +531,13 @@
                 ></textarea>
                 <button id="sendBtn" {% if not api_configured %}disabled{% endif %}>Send</button>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
     (function() {
-        var timeEl = document.querySelector('#briefTimestamp time');
-        if (timeEl) {
-            var d = new Date(timeEl.getAttribute('datetime'));
-            timeEl.textContent = d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-        }
-
+        var dashboard = document.getElementById('dashboard');
+        var panelToggle = document.getElementById('panelToggle');
         var messagesEl = document.getElementById('messages');
         var inputEl = document.getElementById('messageInput');
         var sendBtn = document.getElementById('sendBtn');
@@ -455,115 +548,130 @@
         var sending = false;
         var chatSource = null;
 
-        // Poll brief updates (PHP's built-in dev server is single-threaded,
-        // so persistent SSE connections block all other requests including chat).
+        // ── Panel Toggle ──
+        var panelKey = 'claudriel_panel_collapsed';
+        var isCollapsed = localStorage.getItem(panelKey) === 'true';
+        if (window.innerWidth <= 1024) isCollapsed = true;
+
+        function updatePanel() {
+            if (isCollapsed) {
+                dashboard.classList.add('panel-collapsed');
+                panelToggle.innerHTML = '&raquo;';
+                panelToggle.title = 'Show context panel';
+            } else {
+                dashboard.classList.remove('panel-collapsed');
+                panelToggle.innerHTML = '&laquo;';
+                panelToggle.title = 'Hide context panel';
+            }
+        }
+        updatePanel();
+
+        panelToggle.addEventListener('click', function() {
+            isCollapsed = !isCollapsed;
+            localStorage.setItem(panelKey, isCollapsed ? 'true' : 'false');
+            updatePanel();
+        });
+
+        // ── Panel Click-to-Chat ──
+        document.querySelectorAll('[data-chat]').forEach(function(el) {
+            el.addEventListener('click', function() {
+                var prompt = this.getAttribute('data-chat');
+                if (prompt && inputEl && !inputEl.disabled) {
+                    inputEl.value = prompt;
+                    inputEl.focus();
+                    inputEl.dispatchEvent(new Event('input'));
+                }
+            });
+        });
+
+        // ── Escape helper ──
         function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
-        function renderEvents(el, events, eventsBySource) {
-            if (!el) return;
-            var count = (events || []).length;
-            var html = '<h2>Events <span class="count">' + count + '</span></h2>';
-            if (eventsBySource && Object.keys(eventsBySource).length > 0) {
-                for (var source in eventsBySource) {
-                    html += '<h3>' + esc(source) + '</h3><ul>';
-                    eventsBySource[source].forEach(function(ev) {
-                        var payload = {};
-                        try { payload = JSON.parse(ev.payload || '{}'); } catch(e) {}
-                        var subject = payload.subject || ev.type || '';
-                        var type = ev.type || '';
-                        var fromName = payload.from_name || '';
-                        var occurred = ev.occurred || '';
-                        html += '<li class="source-' + esc(source) + '">' + esc(subject);
-                        html += '<span class="meta">' + esc(type);
-                        if (fromName) html += ' — ' + esc(fromName);
-                        if (occurred) html += ' — ' + esc(occurred);
-                        html += '</span></li>';
-                    });
-                    html += '</ul>';
+        // ── Rich Card Rendering ──
+        var cardPatterns = [
+            { pattern: /Schedule/i, type: 'schedule' },
+            { pattern: /Job Hunt|Job Alerts|Job Listings/i, type: 'job-hunt' },
+            { pattern: /People|Messages/i, type: 'people' },
+            { pattern: /Commitment|Action Items|Due/i, type: 'commitment' },
+            { pattern: /Creator/i, type: 'creator' },
+            { pattern: /Notification/i, type: 'notification' },
+        ];
+
+        function wrapCardsInContent(contentEl) {
+            var text = contentEl.textContent || '';
+            var lines = text.split('\n');
+            var sections = [];
+            var current = null;
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                var isHeader = /^#{1,3}\s/.test(line.trim()) || /^[^\w\s]/.test(line.trim());
+                var matchedType = null;
+
+                if (isHeader) {
+                    for (var j = 0; j < cardPatterns.length; j++) {
+                        if (cardPatterns[j].pattern.test(line)) {
+                            matchedType = cardPatterns[j].type;
+                            break;
+                        }
+                    }
                 }
-            } else {
-                html += '<p class="empty">No recent events.</p>';
+
+                if (matchedType) {
+                    if (current) sections.push(current);
+                    current = { type: matchedType, header: line.trim().replace(/^#+\s*/, ''), lines: [] };
+                } else if (current) {
+                    current.lines.push(line);
+                } else {
+                    sections.push({ type: null, header: null, lines: [line] });
+                }
             }
-            el.innerHTML = html;
+            if (current) sections.push(current);
+
+            if (sections.length <= 1 || !sections.some(function(s) { return s.type; })) return;
+
+            var html = '';
+            sections.forEach(function(section) {
+                if (section.type) {
+                    html += '<div class="chat-card chat-card--' + section.type + '">';
+                    html += '<div class="chat-card-header">' + esc(section.header) + '</div>';
+                    html += '<div class="chat-card-body">' + esc(section.lines.join('\n')) + '</div>';
+                    html += '</div>';
+                } else {
+                    var text = section.lines.join('\n').trim();
+                    if (text) html += '<p>' + esc(text) + '</p>';
+                }
+            });
+
+            contentEl.innerHTML = html;
         }
 
-        function renderPeople(el, people) {
-            if (!el) return;
-            var entries = people ? Object.entries(people) : [];
-            var html = '<h2>People <span class="count">' + entries.length + '</span></h2>';
-            if (entries.length > 0) {
-                html += '<ul class="people-grid">';
-                entries.forEach(function(pair) {
-                    html += '<li><span class="person-name">' + esc(pair[1]) + '</span>';
-                    html += '<span class="person-email">' + esc(pair[0]) + '</span></li>';
-                });
-                html += '</ul>';
-            } else {
-                html += '<p class="empty">No people seen recently.</p>';
-            }
-            el.innerHTML = html;
-        }
-
-        function renderCommitments(el, commitments) {
-            if (!el) return;
-            var items = commitments || [];
-            var html = '<h2>Pending Commitments <span class="count">' + items.length + '</span></h2>';
-            if (items.length > 0) {
-                html += '<ul>';
-                items.forEach(function(c) {
-                    var title = c.title || '(untitled)';
-                    var conf = c.confidence != null ? c.confidence : 1.0;
-                    var dueDate = c.due_date || '';
-                    var confClass = conf < 0.8 ? ' low' : '';
-                    html += '<li class="pending">' + esc(title);
-                    html += '<span class="confidence' + confClass + '">' + Math.round(conf * 100) + '%</span>';
-                    if (dueDate) html += '<span class="meta">Due: ' + esc(dueDate) + '</span>';
-                    html += '</li>';
-                });
-                html += '</ul>';
-            } else {
-                html += '<p class="empty">No pending commitments.</p>';
-            }
-            el.innerHTML = html;
-        }
-
-        function renderDrifting(el, commitments) {
-            if (!el) return;
-            var items = commitments || [];
-            var html = '<h2 class="drifting-heading">Drifting — No Activity 48h+ <span class="count">' + items.length + '</span></h2>';
-            if (items.length > 0) {
-                html += '<ul>';
-                items.forEach(function(c) {
-                    var title = c.title || '(untitled)';
-                    var updatedAt = c.updated_at || '';
-                    html += '<li class="drifting">' + esc(title);
-                    if (updatedAt) html += '<span class="meta">Last activity: ' + esc(updatedAt) + '</span>';
-                    html += '</li>';
-                });
-                html += '</ul>';
-            } else {
-                html += '<p class="empty">No drifting commitments — all on track.</p>';
-            }
-            el.innerHTML = html;
+        // ── Poll Brief Updates ──
+        function updatePanelCounters(counts) {
+            var el;
+            el = document.getElementById('countJobs');
+            if (el) el.textContent = counts.job_alerts || 0;
+            el = document.getElementById('countMessages');
+            if (el) el.textContent = counts.messages || 0;
+            el = document.getElementById('countDueToday');
+            if (el) el.textContent = counts.due_today || 0;
+            el = document.getElementById('countDrifting');
+            if (el) el.textContent = counts.drifting || 0;
         }
 
         function pollBrief() {
             fetch('/brief', { headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    renderEvents(document.getElementById('briefEvents'), data.recent_events, data.events_by_source);
-                    renderPeople(document.getElementById('briefPeople'), data.people);
-                    renderCommitments(document.getElementById('briefCommitments'), data.pending_commitments);
-                    renderDrifting(document.getElementById('briefDrifting'), data.drifting_commitments);
+                    if (data.counts) updatePanelCounters(data.counts);
                 })
-                .catch(function() { /* retry next interval */ });
+                .catch(function() {});
         }
         setInterval(pollBrief, 60000);
 
+        // ── Chat Functions ──
         function appendMessage(role, content) {
-            if (emptyState) {
-                emptyState.style.display = 'none';
-            }
+            if (emptyState) emptyState.style.display = 'none';
 
             var div = document.createElement('div');
             div.className = 'message ' + role;
@@ -591,22 +699,20 @@
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
-        function sendMessage() {
-            var message = inputEl.value.trim();
+        function sendMessage(messageOverride) {
+            var message = messageOverride || inputEl.value.trim();
             if (!message || sending) return;
 
             sending = true;
             sendBtn.disabled = true;
-            inputEl.value = '';
+            if (!messageOverride) inputEl.value = '';
             inputEl.style.height = 'auto';
 
             appendMessage('user', message);
             loadingEl.classList.add('visible');
 
             var payload = { message: message };
-            if (sessionId) {
-                payload.session_id = sessionId;
-            }
+            if (sessionId) payload.session_id = sessionId;
 
             fetch('/api/chat/send', {
                 method: 'POST',
@@ -617,9 +723,7 @@
                 body: JSON.stringify(payload),
             })
             .then(function(resp) {
-                return resp.json().then(function(data) {
-                    return { ok: resp.ok, data: data };
-                });
+                return resp.json().then(function(data) { return { ok: resp.ok, data: data }; });
             })
             .then(function(result) {
                 if (!result.ok) {
@@ -635,7 +739,6 @@
                 var messageId = result.data.message_id;
 
                 if (messageId) {
-                    // Open SSE stream for token streaming
                     var assistantContent = appendMessage('assistant', '');
                     loadingEl.classList.remove('visible');
 
@@ -646,17 +749,17 @@
                             var tokenData = JSON.parse(e.data);
                             assistantContent.textContent += tokenData.token || '';
                             messagesEl.scrollTop = messagesEl.scrollHeight;
-                        } catch (err) {
-                            // Ignore
-                        }
+                        } catch (err) {}
                     });
 
                     chatSource.addEventListener('chat-done', function() {
                         chatSource.close();
                         chatSource = null;
+                        wrapCardsInContent(assistantContent);
                         sending = false;
                         sendBtn.disabled = false;
                         inputEl.focus();
+                        pollBrief();
                     });
 
                     chatSource.addEventListener('chat-error', function(e) {
@@ -681,9 +784,9 @@
                         inputEl.focus();
                     };
                 } else {
-                    // Non-streaming fallback
                     loadingEl.classList.remove('visible');
-                    appendMessage('assistant', result.data.response);
+                    var contentEl = appendMessage('assistant', result.data.response);
+                    wrapCardsInContent(contentEl);
                     sending = false;
                     sendBtn.disabled = false;
                     inputEl.focus();
@@ -698,7 +801,7 @@
             });
         }
 
-        sendBtn.addEventListener('click', sendMessage);
+        sendBtn.addEventListener('click', function() { sendMessage(); });
 
         inputEl.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -707,13 +810,12 @@
             }
         });
 
-        // Auto-resize textarea
         inputEl.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        // Session links
+        // ── Session links ──
         document.querySelectorAll('[data-session]').forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -726,19 +828,28 @@
             });
         });
 
-        // New chat button
-        document.querySelectorAll('.new-chat-btn').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                sessionId = null;
-                messagesEl.innerHTML = '';
-                var fresh = document.createElement('div');
-                fresh.className = 'empty-state';
-                fresh.id = 'emptyState';
-                fresh.textContent = 'Start a conversation with Claudriel.';
-                messagesEl.appendChild(fresh);
-            });
+        document.getElementById('newChatBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionId = null;
+            messagesEl.innerHTML = '';
+            emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.id = 'emptyState';
+            emptyState.textContent = 'Start a conversation with Claudriel.';
+            messagesEl.appendChild(emptyState);
         });
+
+        // ── Auto-trigger Morning Brief ──
+        var briefKey = 'claudriel_brief_date';
+        var today = new Date().toISOString().slice(0, 10);
+        var lastBriefDate = localStorage.getItem(briefKey);
+
+        if (lastBriefDate !== today && !inputEl.disabled) {
+            setTimeout(function() {
+                sendMessage('Good morning! Give me my daily brief.');
+                localStorage.setItem(briefKey, today);
+            }, 500);
+        }
     })();
     </script>
 {% endblock %}
