@@ -55,7 +55,7 @@ final class DashboardController
 
         $apiKey = getenv('ANTHROPIC_API_KEY');
         $apiConfigured = is_string($apiKey) && $apiKey !== '';
-        $model = $_ENV['ANTHROPIC_MODEL'] ?? getenv('ANTHROPIC_MODEL') ?: 'claude-sonnet-4-20250514';
+        $model = $_ENV['CLAUDE_MODEL'] ?? getenv('CLAUDE_MODEL') ?: 'claude-sonnet-4-6';
 
         // Twig rendering
         if ($this->twig !== null) {
