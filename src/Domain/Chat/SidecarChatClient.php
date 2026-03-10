@@ -32,6 +32,8 @@ class SidecarChatClient
             'messages' => $messages,
         ]);
 
+        error_log("[Sidecar] Starting curl to {$this->sidecarUrl}/chat, session=$sessionId");
+
         $ch = curl_init($this->sidecarUrl . '/chat');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -43,6 +45,7 @@ class SidecarChatClient
             CURLOPT_RETURNTRANSFER => false,
             CURLOPT_TIMEOUT => 300,
             CURLOPT_WRITEFUNCTION => function ($curlHandle, $data) use ($onToken, $onDone, $onError) {
+                error_log("[Sidecar] WRITEFUNCTION received " . strlen($data) . " bytes");
                 $this->handleSseChunk($data, $onToken, $onDone, $onError);
                 return strlen($data);
             },
@@ -52,6 +55,8 @@ class SidecarChatClient
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
         curl_close($ch);
+
+        error_log("[Sidecar] curl_exec done: result=" . var_export($result, true) . ", http=$httpCode, error=$curlError");
 
         if ($result === false || $httpCode >= 400) {
             $onError($curlError ?: "Sidecar returned HTTP $httpCode");

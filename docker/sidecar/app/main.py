@@ -1,7 +1,11 @@
 import asyncio
 import json
+import logging
 import os
 from contextlib import asynccontextmanager
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.responses import StreamingResponse
@@ -53,20 +57,49 @@ async def chat(
         raise HTTPException(status_code=503, detail="Service not ready")
 
     session = session_manager.get_or_create(request.session_id)
+    logger.info("Chat request: session=%s, messages=%d", request.session_id, len(request.messages))
 
     async def event_stream():
-        try:
-            messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        messages = [{"role": m.role, "content": m.content} for m in request.messages]
+        logger.info("Starting event_stream for session=%s", request.session_id)
 
-            async for event in _with_heartbeat(
-                stream_chat(system_prompt=request.system_prompt, messages=messages),
-                interval=15.0,
-            ):
+        # Use a queue to decouple the SDK async generator (anyio-based)
+        # from the SSE response generator (asyncio-based).
+        queue: asyncio.Queue = asyncio.Queue()
+        sentinel = object()
+
+        async def producer():
+            try:
+                async for event in stream_chat(
+                    system_prompt=request.system_prompt, messages=messages
+                ):
+                    await queue.put(event)
+            except Exception as e:
+                logger.error("Producer error: %s", e, exc_info=True)
+                await queue.put(ErrorEvent(error=str(e)))
+            finally:
+                await queue.put(sentinel)
+
+        task = asyncio.create_task(producer())
+
+        # Send initial heartbeat immediately
+        yield ": heartbeat\n\n"
+
+        try:
+            while True:
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=5.0)
+                except asyncio.TimeoutError:
+                    session.touch()
+                    yield ": heartbeat\n\n"
+                    continue
+
+                if event is sentinel:
+                    break
+
                 session.touch()
 
-                if event is None:
-                    yield ": heartbeat\n\n"
-                elif isinstance(event, TokenEvent):
+                if isinstance(event, TokenEvent):
                     yield _sse("chat-token", {"token": event.text})
                 elif isinstance(event, DoneEvent):
                     yield _sse("chat-done", {"done": True, "full_response": event.full_text})
@@ -74,7 +107,11 @@ async def chat(
                     yield _sse("chat-error", {"error": event.error})
 
         except Exception as e:
+            logger.error("Event stream error: %s", e, exc_info=True)
             yield _sse("chat-error", {"error": str(e)})
+        finally:
+            if not task.done():
+                task.cancel()
 
     return StreamingResponse(
         event_stream(),
@@ -95,19 +132,6 @@ async def delete_session(
     if session_manager and session_manager.remove(session_id):
         return Response(status_code=204)
     raise HTTPException(status_code=404, detail="Session not found")
-
-
-async def _with_heartbeat(stream, interval: float = 15.0):
-    """Wrap an async iterator to yield None as heartbeat when no events arrive within interval."""
-    aiter = stream.__aiter__()
-    while True:
-        try:
-            event = await asyncio.wait_for(aiter.__anext__(), timeout=interval)
-            yield event
-        except asyncio.TimeoutError:
-            yield None  # heartbeat signal
-        except StopAsyncIteration:
-            break
 
 
 def _sse(event: str, data: dict) -> str:

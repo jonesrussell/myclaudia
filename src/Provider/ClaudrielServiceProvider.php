@@ -141,6 +141,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->controller(BriefStreamController::class . '::stream')
                 ->allowAll()
                 ->methods('GET')
+                ->render()
                 ->build(),
         );
 
@@ -150,6 +151,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->controller(ChatStreamController::class . '::stream')
                 ->allowAll()
                 ->methods('GET')
+                ->render()
                 ->build(),
         );
 
@@ -187,6 +189,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->controller(ChatController::class . '::send')
                 ->allowAll()
                 ->methods('POST')
+                ->render()
                 ->build(),
         );
     }

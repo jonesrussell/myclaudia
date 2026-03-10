@@ -1,8 +1,11 @@
+import logging
 import os
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
-from claude_code_sdk import query, ClaudeCodeOptions, AssistantMessage, ResultMessage
+from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ResultMessage, TextBlock
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,7 +42,7 @@ async def stream_chat(
 
     prompt = _format_messages(messages)
 
-    options = ClaudeCodeOptions(
+    options = ClaudeAgentOptions(
         system_prompt=system_prompt,
         model=model,
         max_turns=25,
@@ -49,21 +52,26 @@ async def stream_chat(
     full_text = ""
 
     try:
+        logger.info("Starting query with model=%s, prompt_len=%d", model, len(prompt))
         async for message in query(prompt=prompt, options=options):
+            msg_type = type(message).__name__
+            logger.info("Received message type: %s", msg_type)
             if isinstance(message, AssistantMessage):
                 for block in message.content:
-                    if hasattr(block, "text"):
+                    if isinstance(block, TextBlock):
+                        logger.info("TextBlock: %s...", block.text[:80])
                         full_text += block.text
                         yield TokenEvent(text=block.text)
+                    else:
+                        logger.info("Skipping block type: %s", type(block).__name__)
             elif isinstance(message, ResultMessage):
-                for block in message.content:
-                    if hasattr(block, "text"):
-                        full_text += block.text
-                        yield TokenEvent(text=block.text)
+                logger.info("ResultMessage received (query complete)")
 
         yield DoneEvent(full_text=full_text)
+        logger.info("Stream complete, full_text_len=%d", len(full_text))
 
     except Exception as e:
+        logger.error("Stream error: %s", e, exc_info=True)
         yield ErrorEvent(error=str(e))
 
 

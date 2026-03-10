@@ -1,6 +1,17 @@
 :80 {
 	root * /srv/public
-	php_fastcgi php:9000
+
+	@streaming path /stream/*
+	handle @streaming {
+		php_fastcgi php:9000 {
+			read_timeout 300s
+		}
+	}
+
+	handle {
+		php_fastcgi php:9000
+	}
+
 	file_server
 	encode gzip
 }
