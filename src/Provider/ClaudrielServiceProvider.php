@@ -313,7 +313,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             $dispatcher,
         );
 
-        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $personRepo, $skillRepo);
+        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $personRepo, $skillRepo, $workspaceRepo);
         $sessionStore = new BriefSessionStore($this->projectRoot.'/storage/brief-session.txt');
 
         return [

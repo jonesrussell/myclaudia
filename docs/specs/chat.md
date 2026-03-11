@@ -22,7 +22,8 @@ public function stream(string $systemPrompt, array $messages, callable $onToken)
 
 // ChatSystemPromptBuilder
 public function __construct(string $rootPath, DayBriefAssembler $briefAssembler)
-public function build(string $tenantId): string
+public function build(string $tenantId, ?object $activeWorkspace = null): string
+// $activeWorkspace: optional Workspace entity; when provided, build() prepends workspace context to the prompt
 
 // ChatController
 public function send(ServerRequestInterface $request): ResponseInterface

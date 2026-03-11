@@ -71,15 +71,36 @@ Note: the Twig `day-brief.html.twig` template exists but the controller currentl
 
 ```php
 DayBriefAssembler(
-    EntityRepositoryInterface $eventRepo,      // mc_event
-    EntityRepositoryInterface $commitmentRepo, // commitment
-    DriftDetector $driftDetector
+    EntityRepositoryInterface $eventRepo,       // mc_event
+    EntityRepositoryInterface $commitmentRepo,  // commitment
+    DriftDetector $driftDetector,
+    ?EntityRepositoryInterface $personRepo = null,    // person (optional)
+    ?EntityRepositoryInterface $skillRepo = null,     // skill (optional)
+    ?EntityRepositoryInterface $workspaceRepo = null, // workspace (optional)
 )
 
 DriftDetector(
     EntityRepositoryInterface $repo  // commitment
 )
 ```
+
+## Workspace Data in the Brief
+
+When `$workspaceRepo` is provided, `assemble()` returns a `workspaces` key:
+
+```php
+'workspaces' => [
+    [
+        'uuid'           => string,
+        'name'           => string,
+        'description'    => string,
+        'activity_count' => int,  // count of recent events with matching workspace_id
+    ],
+    ...
+]
+```
+
+`activity_count` is computed by filtering `$recentEvents` (already time-windowed) by `workspace_id === $ws->get('uuid')`. When `$workspaceRepo` is null, `workspaces` is an empty array.
 
 ## Testing Pattern
 

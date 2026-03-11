@@ -70,6 +70,21 @@ After extraction, pass output to `CommitmentHandler::handle()`:
 - `$candidates` = `$stepResult->output['commitments']`
 - Only candidates with `confidence >= 0.7` are saved as `Commitment` entities
 
+## WorkspaceClassificationStep
+
+`src/Pipeline/WorkspaceClassificationStep.php` — optional step that assigns a `workspace_id` to an event.
+
+```
+Input:
+  $input['event_data']  array  — normalized event fields
+  $input['workspaces']  array  — array of Workspace entities to match against
+
+Output (on success):
+  $output['workspace_id'] = string|null  — uuid of matched workspace, or null
+```
+
+The step uses heuristics or AI to decide which workspace the event belongs to. A `null` result means no workspace matched; the event is saved without a `workspace_id`.
+
 ## Adding More Pipeline Steps
 
 Follow the same pattern:

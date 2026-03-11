@@ -27,6 +27,10 @@ final class McEvent extends ContentEntityBase
         if ($this->get('category') === null) {
             $this->set('category', 'notification');
         }
+
+        if ($this->get('workspace_id') === null) {
+            $this->set('workspace_id', null);
+        }
     }
 
     /**

@@ -9,6 +9,7 @@
 | `src/Entity/Integration.php` | Service integration config record |
 | `src/Entity/McEvent.php` | Immutable ingested fact (source event) |
 | `src/Entity/Person.php` | Contact/sender extracted from ingestion |
+| `src/Entity/Workspace.php` | Named grouping context for events and commitments |
 | `src/McClaudiaServiceProvider.php` | Registers all entity types + routes |
 
 ## Interface Signatures
@@ -40,6 +41,8 @@ $repo->count(array $criteria = []): int
 | Integration | `iid` | `uuid` | `name` |
 | McEvent | `eid` | `uuid` | — |
 | Person | `pid` | `uuid` | `name` |
+| Skill | `sid` | `uuid` | `name` |
+| Workspace | `wid` | `uuid` | `name` |
 
 ## EntityType Registration
 
@@ -78,6 +81,30 @@ $this->entityType(new EntityType(
 | `tenant_id` | string | |
 | `trace_id` | string | Unique per ingestion |
 | `occurred` | string | ISO 8601 timestamp |
+| `workspace_id` | string | Optional; uuid of associated Workspace |
+
+## Person Fields (enrichment)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `pid` | int | Primary key |
+| `uuid` | string | |
+| `name` | string | Display name |
+| `email` | string | Primary email address |
+| `last_interaction_at` | string | ISO 8601; updated on each ingestion event |
+| `source` | string | Origin of record e.g. `'gmail'` |
+| `metadata` | string | JSON-encoded extra data |
+
+## Workspace Fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `wid` | int | Primary key |
+| `uuid` | string | |
+| `name` | string | Human-readable workspace name |
+| `description` | string | Optional description; defaults to `''` |
+| `account_id` | string | Optional; links to an Account entity |
+| `metadata` | string | JSON-encoded extra data; defaults to `'{}'` |
 
 ## Testing Pattern
 

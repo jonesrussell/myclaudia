@@ -8,6 +8,7 @@ use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Entity\Commitment;
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
+use Claudriel\Entity\Workspace;
 use Claudriel\Support\DriftDetector;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -176,5 +177,75 @@ final class DayBriefAssemblerTest extends TestCase
 
         self::assertCount(1, $brief['notifications']);
         self::assertSame('CI build passed', $brief['notifications'][0]['title']);
+    }
+
+    public function test_assembler_includes_workspace_data_with_activity_counts(): void
+    {
+        $dispatcher = new EventDispatcher;
+
+        $workspaceRepo = new EntityRepository(
+            new EntityType(id: 'workspace', label: 'Workspace', class: Workspace::class, keys: ['id' => 'wid', 'uuid' => 'uuid', 'label' => 'name']),
+            new InMemoryStorageDriver,
+            $dispatcher,
+        );
+
+        $assembler = new DayBriefAssembler(
+            $this->eventRepo,
+            $this->commitmentRepo,
+            new DriftDetector($this->commitmentRepo),
+            $this->personRepo,
+            null,
+            $workspaceRepo,
+        );
+
+        $wsUuid = 'test-workspace-uuid-1234';
+        $workspace = new Workspace(['wid' => 1, 'uuid' => $wsUuid, 'name' => 'Alpha Project', 'description' => 'Test workspace']);
+        $workspaceRepo->save($workspace);
+
+        // 2 events belonging to the workspace
+        $this->eventRepo->save(new McEvent([
+            'eid' => 101,
+            'content_hash' => 'hash-101',
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'category' => 'people',
+            'payload' => '{}',
+            'occurred' => (new \DateTimeImmutable('-1 hour'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+            'workspace_id' => $wsUuid,
+        ]));
+        $this->eventRepo->save(new McEvent([
+            'eid' => 102,
+            'content_hash' => 'hash-102',
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'category' => 'people',
+            'payload' => '{}',
+            'occurred' => (new \DateTimeImmutable('-2 hours'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+            'workspace_id' => $wsUuid,
+        ]));
+
+        // 1 event without workspace_id
+        $this->eventRepo->save(new McEvent([
+            'eid' => 103,
+            'content_hash' => 'hash-103',
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'category' => 'people',
+            'payload' => '{}',
+            'occurred' => (new \DateTimeImmutable('-3 hours'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+        ]));
+
+        $result = $assembler->assemble('user-1', new \DateTimeImmutable('-24 hours'));
+
+        self::assertArrayHasKey('workspaces', $result);
+        self::assertCount(1, $result['workspaces']);
+
+        $entry = $result['workspaces'][0];
+        self::assertSame('Alpha Project', $entry['name']);
+        self::assertSame($wsUuid, $entry['uuid']);
+        self::assertSame(2, $entry['activity_count']);
     }
 }
