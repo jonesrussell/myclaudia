@@ -3,9 +3,19 @@ import os
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
+from pathlib import Path
+
 from claude_agent_sdk import AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, query
 
 logger = logging.getLogger(__name__)
+
+# Prefer the system-installed Claude CLI over the bundled one.
+# The bundled CLI may not share the host's OAuth credentials.
+CLAUDE_CLI_PATH: str | None = None
+for _candidate in ["/usr/local/bin/claude", "/usr/bin/claude"]:
+    if Path(_candidate).is_file():
+        CLAUDE_CLI_PATH = _candidate
+        break
 
 
 @dataclass
@@ -48,6 +58,7 @@ async def stream_chat(
         model=model,
         max_turns=25,
         allowed_tools=ALLOWED_TOOLS,
+        cli_path=CLAUDE_CLI_PATH,
     )
 
     full_text = ""
