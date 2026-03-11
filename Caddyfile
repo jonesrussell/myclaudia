@@ -16,7 +16,22 @@ claudriel.northcloud.one {
 
   root * /home/deployer/claudriel/current/public
 
-  encode gzip zstd
+  @not_stream {
+    not path /stream/*
+  }
+  encode @not_stream gzip zstd
+
+  @stream {
+    path /stream/*
+  }
+  handle @stream {
+    header Cache-Control "no-cache"
+    header Connection "keep-alive"
+    header X-Accel-Buffering "no"
+    php_fastcgi unix//run/php/php8.4-fpm.sock {
+      resolve_root_symlink
+    }
+  }
 
   @images {
     path /images/*
