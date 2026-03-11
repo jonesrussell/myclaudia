@@ -8,6 +8,8 @@ use Claudriel\Command\BriefCommand;
 use Claudriel\Command\CommitmentsCommand;
 use Claudriel\Command\CommitmentUpdateCommand;
 use Claudriel\Command\SkillsCommand;
+use Claudriel\Command\WorkspaceCreateCommand;
+use Claudriel\Command\WorkspacesCommand;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
@@ -299,6 +301,18 @@ final class ClaudrielServiceProvider extends ServiceProvider
             $dispatcher,
         );
 
+        $workspaceType = new EntityType(
+            id: 'workspace',
+            label: 'Workspace',
+            class: Workspace::class,
+            keys: ['id' => 'wid', 'uuid' => 'uuid', 'label' => 'name'],
+        );
+        $workspaceRepo = new EntityRepository(
+            $workspaceType,
+            new SqlStorageDriver($resolver, 'wid'),
+            $dispatcher,
+        );
+
         $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $personRepo, $skillRepo);
         $sessionStore = new BriefSessionStore($this->projectRoot.'/storage/brief-session.txt');
 
@@ -307,6 +321,8 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new CommitmentsCommand($commitmentRepo),
             new CommitmentUpdateCommand($commitmentRepo),
             new SkillsCommand($skillRepo),
+            new WorkspacesCommand($workspaceRepo),
+            new WorkspaceCreateCommand($workspaceRepo),
         ];
     }
 }

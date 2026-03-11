@@ -13,7 +13,7 @@ final class ChatSystemPromptBuilder
         private readonly string $projectRoot,
     ) {}
 
-    public function build(string $tenantId = 'default', bool $hasToolAccess = false): string
+    public function build(string $tenantId = 'default', bool $hasToolAccess = false, ?string $activeWorkspace = null): string
     {
         $parts = [];
 
@@ -32,6 +32,11 @@ final class ChatSystemPromptBuilder
         // Brief summary
         $brief = $this->assembler->assemble($tenantId, new \DateTimeImmutable('-24 hours'));
         $parts[] = $this->formatBriefContext($brief);
+
+        // Active workspace context
+        if ($activeWorkspace !== null) {
+            $parts[] = "## Active Workspace: {$activeWorkspace}\nYou are currently operating within the {$activeWorkspace} workspace.\nThis workspace includes events, commitments, and people related to the {$activeWorkspace} project.";
+        }
 
         // Chat instructions
         $parts[] = $this->buildInstructions($hasToolAccess);
