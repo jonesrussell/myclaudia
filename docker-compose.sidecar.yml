@@ -10,7 +10,7 @@ services:
       - SESSION_TIMEOUT_MINUTES=15
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
     volumes:
-      - /home/deployer/.claude:/root/.claude-config:ro
+      - /home/deployer/.claude:/root/.claude:rw
       - /home/deployer/.claude.json:/root/.claude.json:ro
     restart: unless-stopped
     healthcheck:

@@ -1,7 +1,8 @@
 #!/bin/sh
-# Copy read-only Claude config to a writable location so Claude Code
-# can write working state (session files, tool output, etc.)
-if [ -d /root/.claude-config ]; then
+# If Claude config was mounted read-only to a staging path, copy it
+# to the writable location. When mounted directly to /root/.claude (rw),
+# this is a no-op.
+if [ -d /root/.claude-config ] && [ ! -d /root/.claude ]; then
     cp -a /root/.claude-config/. /root/.claude/
 fi
 

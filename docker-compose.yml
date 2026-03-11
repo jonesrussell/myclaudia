@@ -40,7 +40,7 @@ services:
       - SESSION_TIMEOUT_MINUTES=15
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
     volumes:
-      - ${HOME}/.claude:/root/.claude-config:ro
+      - ${HOME}/.claude:/root/.claude:rw
       - ${HOME}/.claude.json:/root/.claude.json:ro
     expose:
       - "8100"
