@@ -225,6 +225,39 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->build(),
         );
 
+        $createRoute = RouteBuilder::create('/api/workspaces')
+            ->controller(WorkspaceApiController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $createRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.workspaces.create', $createRoute);
+
+        $router->addRoute(
+            'claudriel.api.workspaces.show',
+            RouteBuilder::create('/api/workspaces/{uuid}')
+                ->controller(WorkspaceApiController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $updateRoute = RouteBuilder::create('/api/workspaces/{uuid}')
+            ->controller(WorkspaceApiController::class.'::update')
+            ->allowAll()
+            ->methods('PATCH')
+            ->build();
+        $updateRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.workspaces.update', $updateRoute);
+
+        $deleteRoute = RouteBuilder::create('/api/workspaces/{uuid}')
+            ->controller(WorkspaceApiController::class.'::delete')
+            ->allowAll()
+            ->methods('DELETE')
+            ->build();
+        $deleteRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.workspaces.delete', $deleteRoute);
+
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
         // @see https://github.com/jonesrussell/claudriel/issues/21

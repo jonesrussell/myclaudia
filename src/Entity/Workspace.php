@@ -20,6 +20,9 @@ final class Workspace extends ContentEntityBase
     {
         parent::__construct($values, 'workspace', $this->entityKeys);
 
+        if ($this->get('account_id') === null) {
+            $this->set('account_id', null);
+        }
         if ($this->get('description') === null) {
             $this->set('description', '');
         }

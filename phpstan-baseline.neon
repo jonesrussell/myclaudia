@@ -145,9 +145,15 @@ parameters:
 			path: src/Controller/IngestController.php
 
 		-
-			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
-			identifier: method.notFound
-			count: 3
+			message: '#^Parameter \#1 \$workspace of method Claudriel\\Controller\\WorkspaceApiController\:\:serialize\(\) expects Claudriel\\Entity\\Workspace, Waaseyaa\\Entity\\EntityInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/WorkspaceApiController.php
+
+		-
+			message: '#^Property Claudriel\\Controller\\WorkspaceApiController\:\:\$twig is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
 			path: src/Controller/WorkspaceApiController.php
 
 		-
