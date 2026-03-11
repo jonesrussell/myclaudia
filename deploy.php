@@ -1,48 +1,91 @@
 <?php
 
+/**
+ * PHP Deployer configuration for claudriel.northcloud.one
+ *
+ * Deployment strategy: artifact upload
+ * Composer uses path repositories (../waaseyaa/packages/*), so vendor is
+ * pre-built in CI and uploaded — the server never runs composer directly.
+ *
+ * Usage:
+ *   dep deploy production           # Full deploy
+ *   dep rollback production          # Roll back to previous release
+ *   dep deploy:unlock production     # Unlock if deploy was interrupted
+ */
+
 namespace Deployer;
 
 require 'recipe/common.php';
 
-// Config
+// ---------------------------------------------------------------------------
+// Project
+// ---------------------------------------------------------------------------
 
-set('repository', 'git@github.com:jonesrussell/claudriel.git');
+set('application', 'claudriel');
 set('keep_releases', 5);
+set('allow_anonymous_stats', false);
 
-set('release_name', function (): string {
-    return date('YmdHis');
+// ---------------------------------------------------------------------------
+// Shared filesystem
+// ---------------------------------------------------------------------------
+
+set('shared_files', ['.env']);
+set('shared_dirs', ['context']);
+
+// ---------------------------------------------------------------------------
+// Hosts
+// ---------------------------------------------------------------------------
+
+host('production')
+    ->setHostname('claudriel.northcloud.one')
+    ->set('remote_user', 'deployer')
+    ->set('deploy_path', '/home/deployer/claudriel')
+    ->set('labels', ['stage' => 'production']);
+
+// ---------------------------------------------------------------------------
+// Tasks
+// ---------------------------------------------------------------------------
+
+desc('Upload pre-built release artifact from CI');
+task('deploy:upload', function (): void {
+    upload('.build/', '{{release_path}}/', [
+        'options' => ['--recursive', '--compress'],
+    ]);
 });
 
-add('shared_files', [
-    '.env',
-]);
-add('shared_dirs', [
-    'context',
-]);
-
-// Hosts
-
-host('claudriel.northcloud.one')
-    ->set('remote_user', 'deployer')
-    ->set('deploy_path', '~/claudriel');
-
-// Tasks
-
+desc('Copy Caddyfile to deploy root');
 task('deploy:copy_caddyfile', function (): void {
     run('cp {{release_path}}/Caddyfile {{deploy_path}}/Caddyfile');
 });
-after('deploy:symlink', 'deploy:copy_caddyfile');
 
-task('deploy:reload_caddy', function (): void {
+desc('Reload Caddy to pick up config changes');
+task('caddy:reload', function (): void {
     run('sudo systemctl reload caddy || true');
 });
-after('deploy:copy_caddyfile', 'deploy:reload_caddy');
 
-task('deploy:reload_php_fpm', function (): void {
-    run('sudo systemctl restart php8.4-fpm || true');
+desc('Reload PHP-FPM to pick up new release');
+task('php-fpm:reload', function (): void {
+    run('sudo systemctl reload php8.4-fpm');
 });
-after('deploy:reload_caddy', 'deploy:reload_php_fpm');
 
-// Hooks
+// ---------------------------------------------------------------------------
+// Deploy flow
+// ---------------------------------------------------------------------------
+
+desc('Deploy Claudriel to production');
+task('deploy', [
+    'deploy:info',
+    'deploy:setup',
+    'deploy:lock',
+    'deploy:release',
+    'deploy:upload',
+    'deploy:shared',
+    'deploy:copy_caddyfile',
+    'deploy:symlink',
+    'deploy:unlock',
+    'deploy:cleanup',
+    'caddy:reload',
+    'php-fpm:reload',
+]);
 
 after('deploy:failed', 'deploy:unlock');

@@ -1,0 +1,108 @@
+name: Deploy to claudriel.northcloud.one
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # -------------------------------------------------------------------
+      # Checkout
+      #
+      # Both repos are needed side-by-side because composer.json uses path
+      # repositories pointing to ../waaseyaa/packages/*.
+      # -------------------------------------------------------------------
+
+      - name: Checkout claudriel
+        uses: actions/checkout@v4
+        with:
+          path: claudriel
+
+      - name: Checkout waaseyaa framework
+        uses: actions/checkout@v4
+        with:
+          repository: waaseyaa/framework
+          path: waaseyaa
+          token: ${{ secrets.WAASEYAA_PAT }}
+
+      # -------------------------------------------------------------------
+      # PHP setup
+      # -------------------------------------------------------------------
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, mbstring, xml
+          coverage: none
+
+      # -------------------------------------------------------------------
+      # Build
+      # -------------------------------------------------------------------
+
+      - name: Rewrite Composer path repositories for CI
+        working-directory: claudriel
+        run: |
+          php -r "
+            \$c = json_decode(file_get_contents('composer.json'), true);
+            \$c['repositories'] = [['type' => 'path', 'url' => '../waaseyaa/packages/*']];
+            file_put_contents('composer.json', json_encode(\$c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . \"\\n\");
+          "
+          rm -f composer.lock
+
+      - name: Install Composer dependencies (production)
+        working-directory: claudriel
+        run: |
+          composer install \
+            --no-dev \
+            --no-interaction \
+            --optimize-autoloader \
+            --prefer-dist
+
+      # -------------------------------------------------------------------
+      # Assemble build artifact
+      # -------------------------------------------------------------------
+
+      - name: Assemble build artifact
+        run: |
+          mkdir -p claudriel/.build
+          rsync -aL \
+            --exclude='.git' \
+            --exclude='.build/' \
+            --exclude='.github/' \
+            --exclude='tests/' \
+            --exclude='docs/' \
+            --exclude='.env' \
+            --exclude='*.sqlite' \
+            claudriel/ claudriel/.build/
+
+      # -------------------------------------------------------------------
+      # Deploy via PHP Deployer
+      # -------------------------------------------------------------------
+
+      - name: Install PHP Deployer
+        run: composer global require deployer/deployer --no-interaction
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add known host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan claudriel.northcloud.one >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        working-directory: claudriel
+        run: dep deploy production --no-interaction
