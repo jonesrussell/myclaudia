@@ -21,7 +21,7 @@ final class WorkspaceClassificationStep implements PipelineStepInterface
         }
 
         $workspaceList = implode(', ', array_map(
-            fn(array $w) => "{$w['name']}: {$w['description']}",
+            fn (array $w) => "{$w['name']}: {$w['description']}",
             $workspaces
         ));
 

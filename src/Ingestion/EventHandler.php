@@ -57,6 +57,7 @@ final class EventHandler
         if ($existing !== []) {
             $existing[0]->set('last_interaction_at', $now);
             $this->personRepo->save($existing[0]);
+
             return;
         }
         $tier = PersonTierClassifier::classify($email);

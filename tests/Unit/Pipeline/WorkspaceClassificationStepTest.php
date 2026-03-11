@@ -25,7 +25,8 @@ final class WorkspaceClassificationStepTest extends TestCase
 
     public function test_classifies_event_into_matching_workspace(): void
     {
-        $aiClient = new class {
+        $aiClient = new class
+        {
             public function complete(string $prompt): string
             {
                 return 'Acme Corp';
@@ -47,7 +48,8 @@ final class WorkspaceClassificationStepTest extends TestCase
 
     public function test_returns_null_when_no_workspaces_exist(): void
     {
-        $aiClient = new class {
+        $aiClient = new class
+        {
             public function complete(string $prompt): string
             {
                 return 'Acme Corp';
@@ -69,7 +71,8 @@ final class WorkspaceClassificationStepTest extends TestCase
 
     public function test_returns_null_when_ai_says_none(): void
     {
-        $aiClient = new class {
+        $aiClient = new class
+        {
             public function complete(string $prompt): string
             {
                 return 'none';
@@ -91,7 +94,8 @@ final class WorkspaceClassificationStepTest extends TestCase
 
     public function test_fails_on_empty_ai_response(): void
     {
-        $aiClient = new class {
+        $aiClient = new class
+        {
             public function complete(string $prompt): string
             {
                 return '';
