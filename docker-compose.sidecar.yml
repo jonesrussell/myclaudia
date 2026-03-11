@@ -1,0 +1,20 @@
+services:
+  sidecar:
+    build: ./docker-context
+    ports:
+      - "127.0.0.1:8100:8100"
+    environment:
+      - CLAUDRIEL_SIDECAR_KEY=${CLAUDRIEL_SIDECAR_KEY}
+      - CLAUDRIEL_API_KEY=${CLAUDRIEL_API_KEY}
+      - CLAUDRIEL_INGEST_URL=https://claudriel.northcloud.one/api/ingest
+      - SESSION_TIMEOUT_MINUTES=15
+      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
+    volumes:
+      - /home/deployer/.claude:/root/.claude-config:ro
+      - /home/deployer/.claude.json:/root/.claude.json:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

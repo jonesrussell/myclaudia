@@ -105,3 +105,15 @@ jobs:
       - name: Deploy
         working-directory: claudriel
         run: dep deploy production --no-interaction
+
+      - name: Deploy sidecar container
+        run: |
+          ssh deployer@claudriel.northcloud.one '
+            cd /home/deployer/claudriel
+            mkdir -p sidecar
+            cp current/docker-compose.sidecar.yml sidecar/
+            rm -rf sidecar/docker-context
+            cp -r current/docker/sidecar sidecar/docker-context
+            cd sidecar
+            docker compose -f docker-compose.sidecar.yml --env-file ../shared/.env up -d --build
+          '

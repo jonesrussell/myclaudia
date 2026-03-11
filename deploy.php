@@ -58,6 +58,11 @@ task('deploy:copy_caddyfile', function (): void {
     run('cp {{release_path}}/Caddyfile {{deploy_path}}/Caddyfile');
 });
 
+desc('Ensure sidecar directory exists');
+task('deploy:sidecar_dir', function (): void {
+    run('mkdir -p {{deploy_path}}/sidecar');
+});
+
 desc('Reload Caddy to pick up config changes');
 task('caddy:reload', function (): void {
     run('sudo systemctl reload caddy || true');
@@ -76,6 +81,7 @@ desc('Deploy Claudriel to production');
 task('deploy', [
     'deploy:info',
     'deploy:setup',
+    'deploy:sidecar_dir',
     'deploy:lock',
     'deploy:release',
     'deploy:upload',

@@ -7,6 +7,13 @@ claudriel.northcloud.one {
     }
   }
 
+  @not_ingest {
+    not path /api/ingest
+  }
+  basicauth @not_ingest {
+    {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+  }
+
   root * /home/deployer/claudriel/current/public
 
   encode gzip zstd
