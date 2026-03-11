@@ -18,7 +18,7 @@ final class DayBriefAssembler
         private readonly ?EntityRepositoryInterface $workspaceRepo = null,
     ) {}
 
-    /** @return array{schedule: array, job_hunt: array, people: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array}, counts: array{job_alerts: int, messages: int, due_today: int, drifting: int}, generated_at: string, matched_skills: array, workspaces: array} */
+    /** @return array{schedule: array, job_hunt: array, people: array, triage: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array}, counts: array{job_alerts: int, messages: int, triage: int, due_today: int, drifting: int}, generated_at: string, matched_skills: array, workspaces: array} */
     public function assemble(string $tenantId, \DateTimeImmutable $since): array
     {
         $recentEvents = array_values(array_filter(
@@ -26,11 +26,10 @@ final class DayBriefAssembler
             fn ($e) => new \DateTimeImmutable($e->get('occurred') ?? 'now') >= $since,
         ));
 
-        $peopleByEmail = $this->indexPeopleByEmail();
-
         $schedule = [];
         $jobHunt = [];
         $peopleEvents = [];
+        $triage = [];
         $creators = [];
         $notifications = [];
 
@@ -51,6 +50,12 @@ final class DayBriefAssembler
                     'details' => $payload['snippet'] ?? $payload['body'] ?? '',
                 ],
                 'people' => $peopleEvents[] = [
+                    'person_name' => $payload['from_name'] ?? $payload['from_email'] ?? '',
+                    'person_email' => $payload['from_email'] ?? '',
+                    'summary' => $payload['subject'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'triage' => $triage[] = [
                     'person_name' => $payload['from_name'] ?? $payload['from_email'] ?? '',
                     'person_email' => $payload['from_email'] ?? '',
                     'summary' => $payload['subject'] ?? '',
@@ -84,6 +89,7 @@ final class DayBriefAssembler
             'schedule' => $schedule,
             'job_hunt' => $jobHunt,
             'people' => $peopleEvents,
+            'triage' => $triage,
             'creators' => $creators,
             'notifications' => $notifications,
             'commitments' => [
@@ -93,6 +99,7 @@ final class DayBriefAssembler
             'counts' => [
                 'job_alerts' => count($jobHunt),
                 'messages' => count($peopleEvents),
+                'triage' => count($triage),
                 'due_today' => $dueToday,
                 'drifting' => count($drifting),
             ],
@@ -100,23 +107,6 @@ final class DayBriefAssembler
             'matched_skills' => $this->matchSkillsToEvents($recentEvents),
             'workspaces' => $this->buildWorkspaceData($recentEvents),
         ];
-    }
-
-    /** @return array<string, mixed> */
-    private function indexPeopleByEmail(): array
-    {
-        if ($this->personRepo === null) {
-            return [];
-        }
-        $index = [];
-        foreach ($this->personRepo->findBy([]) as $person) {
-            $email = $person->get('email');
-            if ($email) {
-                $index[$email] = $person;
-            }
-        }
-
-        return $index;
     }
 
     private function buildWorkspaceData(array $recentEvents): array

@@ -6,19 +6,16 @@ namespace Claudriel\Support;
 
 final class PersonTierClassifier
 {
-    private const AUTOMATED_PATTERNS = [
-        'noreply@', 'no-reply@', 'notifications@', 'mailer-daemon@',
-        'donotreply@', 'automated@', 'system@', 'alerts@',
-    ];
+    private static ?AutomatedSenderDetector $detector = null;
 
     public static function classify(string $email, ?string $name = null): string
     {
-        $lower = strtolower($email);
+        if (self::$detector === null) {
+            self::$detector = new AutomatedSenderDetector;
+        }
 
-        foreach (self::AUTOMATED_PATTERNS as $pattern) {
-            if (str_contains($lower, $pattern)) {
-                return 'automated';
-            }
+        if (self::$detector->isAutomated($email, $name ?? '')) {
+            return 'automated';
         }
 
         return 'contact';

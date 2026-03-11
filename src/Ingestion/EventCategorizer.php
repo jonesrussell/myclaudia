@@ -11,17 +11,19 @@ final class EventCategorizer
         'recruiter', 'resume', 'offer', 'salary', 'applied',
     ];
 
+    public function __construct() {}
+
     /**
      * @param  array<string, mixed>  $payload
      */
-    public static function categorize(string $source, string $type, array $payload = []): string
+    public function categorize(string $source, string $type, array $payload = []): string
     {
         if ($source === 'google-calendar') {
-            return self::categorizeCalendar($payload);
+            return $this->categorizeCalendar($payload);
         }
 
         if ($source === 'gmail') {
-            return self::categorizeGmail($type, $payload);
+            return $this->categorizeGmail($type, $payload);
         }
 
         return 'notification';
@@ -30,7 +32,7 @@ final class EventCategorizer
     /**
      * @param  array<string, mixed>  $payload
      */
-    private static function categorizeCalendar(array $payload): string
+    private function categorizeCalendar(array $payload): string
     {
         $title = strtolower($payload['title'] ?? $payload['subject'] ?? '');
         foreach (self::JOB_KEYWORDS as $keyword) {
@@ -45,7 +47,7 @@ final class EventCategorizer
     /**
      * @param  array<string, mixed>  $payload
      */
-    private static function categorizeGmail(string $type, array $payload): string
+    private function categorizeGmail(string $type, array $payload): string
     {
         $subject = strtolower($payload['subject'] ?? '');
         $body = strtolower($payload['body'] ?? '');

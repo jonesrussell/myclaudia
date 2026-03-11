@@ -61,6 +61,7 @@ final class DayBriefAssemblerTest extends TestCase
         self::assertArrayHasKey('schedule', $brief);
         self::assertArrayHasKey('job_hunt', $brief);
         self::assertArrayHasKey('people', $brief);
+        self::assertArrayHasKey('triage', $brief);
         self::assertArrayHasKey('creators', $brief);
         self::assertArrayHasKey('notifications', $brief);
         self::assertArrayHasKey('commitments', $brief);
@@ -70,6 +71,7 @@ final class DayBriefAssemblerTest extends TestCase
         self::assertArrayHasKey('drifting', $brief['commitments']);
         self::assertArrayHasKey('job_alerts', $brief['counts']);
         self::assertArrayHasKey('messages', $brief['counts']);
+        self::assertArrayHasKey('triage', $brief['counts']);
         self::assertArrayHasKey('due_today', $brief['counts']);
         self::assertArrayHasKey('drifting', $brief['counts']);
     }
@@ -131,6 +133,26 @@ final class DayBriefAssemblerTest extends TestCase
         self::assertSame('Jane', $brief['people'][0]['person_name']);
         self::assertSame('Lunch?', $brief['people'][0]['summary']);
         self::assertSame(1, $brief['counts']['messages']);
+    }
+
+    public function test_groups_triage_events(): void
+    {
+        $event = new McEvent([
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'category' => 'triage',
+            'payload' => json_encode(['from_email' => 'unknown@company.com', 'from_name' => 'Unknown Sender', 'subject' => 'Partnership opportunity']),
+            'occurred' => (new \DateTimeImmutable('-1 hour'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+        ]);
+        $this->eventRepo->save($event);
+
+        $brief = $this->assembler->assemble('user-1', new \DateTimeImmutable('-24 hours'));
+
+        self::assertCount(1, $brief['triage']);
+        self::assertSame('Unknown Sender', $brief['triage'][0]['person_name']);
+        self::assertSame('Partnership opportunity', $brief['triage'][0]['summary']);
+        self::assertSame(1, $brief['counts']['triage']);
     }
 
     public function test_includes_pending_commitments(): void

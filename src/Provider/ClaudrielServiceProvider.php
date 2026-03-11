@@ -32,6 +32,7 @@ use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
 use Claudriel\Entity\Skill;
 use Claudriel\Entity\Workspace;
+use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Support\DriftDetector;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\Database\PdoDatabase;
@@ -324,7 +325,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new SkillsCommand($skillRepo),
             new WorkspacesCommand($workspaceRepo),
             new WorkspaceCreateCommand($workspaceRepo),
-            new RecategorizeEventsCommand($entityTypeManager),
+            new RecategorizeEventsCommand($entityTypeManager, new EventCategorizer),
         ];
     }
 }

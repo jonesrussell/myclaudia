@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Ingestion\Handler\CommitmentIngestHandler;
 use Claudriel\Ingestion\Handler\GenericEventHandler;
 use Claudriel\Ingestion\Handler\PersonIngestHandler;
@@ -27,7 +28,7 @@ final class IngestController
         private readonly EntityTypeManager $entityTypeManager,
         private readonly mixed $twig = null,
     ) {
-        $fallback = new GenericEventHandler($this->entityTypeManager);
+        $fallback = new GenericEventHandler($this->entityTypeManager, new EventCategorizer);
         $this->registry = new IngestHandlerRegistry($fallback);
         $this->registry->addHandler(new CommitmentIngestHandler($this->entityTypeManager));
         $this->registry->addHandler(new PersonIngestHandler($this->entityTypeManager));

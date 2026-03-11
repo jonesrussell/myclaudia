@@ -18,6 +18,7 @@ final class GenericEventHandler implements IngestHandlerInterface
 {
     public function __construct(
         private readonly EntityTypeManagerInterface $entityTypeManager,
+        private readonly EventCategorizer $categorizer = new EventCategorizer,
     ) {}
 
     public function supports(string $type): bool
@@ -28,7 +29,7 @@ final class GenericEventHandler implements IngestHandlerInterface
     public function handle(array $data): array
     {
         $payload = $data['payload'];
-        $category = EventCategorizer::categorize($data['source'], $data['type'], $payload);
+        $category = $this->categorizer->categorize($data['source'], $data['type'], $payload);
 
         $event = new McEvent([
             'source' => $data['source'],

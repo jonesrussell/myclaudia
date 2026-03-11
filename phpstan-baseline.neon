@@ -39,6 +39,18 @@ parameters:
 		-
 			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
 			identifier: method.notFound
+			count: 5
+			path: src/Command/RecategorizeEventsCommand.php
+
+		-
+			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:set\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Command/RecategorizeEventsCommand.php
+
+		-
+			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
+			identifier: method.notFound
 			count: 4
 			path: src/Command/SkillsCommand.php
 
@@ -109,7 +121,7 @@ parameters:
 			path: src/Controller/DashboardController.php
 
 		-
-			message: '#^Offset ''workspaces'' on array\{schedule\: array, job_hunt\: array, people\: array, creators\: array, notifications\: array, commitments\: array\{pending\: array, drifting\: array\}, counts\: array\{job_alerts\: int, messages\: int, due_today\: int, drifting\: int\}, generated_at\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			message: '#^Offset ''workspaces'' on array\{schedule\: array, job_hunt\: array, people\: array, triage\: array, creators\: array, notifications\: array, commitments\: array\{pending\: array, drifting\: array\}, counts\: array\{job_alerts\: int, messages\: int, triage\: int, due_today\: int, drifting\: int\}, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 2
 			path: src/Controller/DashboardController.php
@@ -148,6 +160,12 @@ parameters:
 			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
 			identifier: method.notFound
 			count: 19
+			path: src/Domain/DayBrief/Assembler/DayBriefAssembler.php
+
+		-
+			message: '#^Property Claudriel\\Domain\\DayBrief\\Assembler\\DayBriefAssembler\:\:\$personRepo is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
 			path: src/Domain/DayBrief/Assembler/DayBriefAssembler.php
 
 		-

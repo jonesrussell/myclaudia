@@ -6,6 +6,7 @@ namespace Claudriel\Tests\Unit\Ingestion;
 
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
+use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Ingestion\EventHandler;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -37,7 +38,7 @@ final class EventHandlerTest extends TestCase
             $dispatcher,
         );
 
-        $this->handler = new EventHandler($this->eventRepo, $this->personRepo);
+        $this->handler = new EventHandler($this->eventRepo, $this->personRepo, new EventCategorizer);
     }
 
     public function test_creates_event_and_person_from_envelope(): void

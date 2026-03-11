@@ -194,6 +194,7 @@
         .panel-item.schedule { border-left-color: var(--accent-blue); }
         .panel-item.job_hunt { border-left-color: var(--accent-teal); }
         .panel-item.people { border-left-color: var(--accent-amber); }
+        .panel-item.triage { border-left-color: var(--accent-purple, #a78bfa); }
         .panel-item.commitment { border-left-color: var(--accent-red); }
         .panel-item.notification { border-left-color: var(--text-muted); }
 
@@ -561,6 +562,19 @@
                     {% endif %}
                 </div>
             </div>
+
+            {# Triage #}
+            <div class="panel-section" id="panelTriage" {% if triage|default([])|length == 0 %}style="display:none"{% endif %}>
+                <div class="panel-section-title">Triage <span class="badge" id="triageCount">{{ triage|default([])|length }}</span></div>
+                <div id="triageItems">
+                    {% for item in triage|default([]) %}
+                        <div class="panel-item triage" data-chat="Tell me about {{ item.person_name }}'s message">
+                            {{ item.person_name }}
+                            <span class="item-meta">{{ item.summary }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
         </aside>
 
         {# ── Chat Area ── #}
@@ -779,28 +793,148 @@
             contentEl.innerHTML = html;
         }
 
-        // ── Poll Brief Updates ──
-        function updatePanelCounters(counts) {
-            var el;
-            el = document.getElementById('countJobs');
-            if (el) el.textContent = counts.job_alerts || 0;
-            el = document.getElementById('countMessages');
-            if (el) el.textContent = counts.messages || 0;
-            el = document.getElementById('countDueToday');
-            if (el) el.textContent = counts.due_today || 0;
-            el = document.getElementById('countDrifting');
-            if (el) el.textContent = counts.drifting || 0;
+        // ── Sidebar Rebuild from Brief Data ──
+        function rebuildSidebar(data) {
+            // Schedule
+            var scheduleCount = document.getElementById('scheduleCount');
+            var scheduleItems = document.getElementById('scheduleItems');
+            if (scheduleCount && scheduleItems && data.schedule) {
+                scheduleCount.textContent = data.schedule.length;
+                if (data.schedule.length > 0) {
+                    scheduleItems.innerHTML = data.schedule.map(function(item) {
+                        return '<div class="panel-item schedule" data-chat="Tell me about ' + esc(item.title) + '">'
+                            + esc(item.title)
+                            + '<span class="item-meta">' + esc(item.start_time || '') + '</span></div>';
+                    }).join('');
+                } else {
+                    scheduleItems.innerHTML = '<div class="panel-empty">No schedule items.</div>';
+                }
+            }
+
+            // People
+            var peopleCount = document.getElementById('peopleCount');
+            var peopleItems = document.getElementById('peopleItems');
+            if (peopleCount && peopleItems && data.people) {
+                peopleCount.textContent = data.people.length;
+                if (data.people.length > 0) {
+                    peopleItems.innerHTML = data.people.map(function(item) {
+                        return '<div class="panel-item people" data-chat="What did ' + esc(item.person_name) + ' say?">'
+                            + esc(item.person_name)
+                            + '<span class="item-meta">' + esc(item.summary || '') + '</span></div>';
+                    }).join('');
+                } else {
+                    peopleItems.innerHTML = '<div class="panel-empty">No messages from people.</div>';
+                }
+            }
+
+            // Triage
+            var triageSection = document.getElementById('panelTriage');
+            var triageCount = document.getElementById('triageCount');
+            var triageItems = document.getElementById('triageItems');
+            if (triageSection && triageCount && triageItems && data.triage) {
+                triageCount.textContent = data.triage.length;
+                if (data.triage.length > 0) {
+                    triageSection.style.display = '';
+                    triageItems.innerHTML = data.triage.map(function(item) {
+                        return '<div class="panel-item triage" data-chat="Tell me about ' + esc(item.person_name) + '\'s message">'
+                            + esc(item.person_name)
+                            + '<span class="item-meta">' + esc(item.summary || '') + '</span></div>';
+                    }).join('');
+                } else {
+                    triageSection.style.display = 'none';
+                }
+            }
+
+            // Commitments
+            var commitmentCount = document.getElementById('commitmentCount');
+            var commitmentItems = document.getElementById('commitmentItems');
+            if (commitmentCount && commitmentItems && data.commitments) {
+                var drifting = data.commitments.drifting || [];
+                var pending = data.commitments.pending || [];
+                commitmentCount.textContent = drifting.length + pending.length;
+                var html = '';
+                drifting.forEach(function(c) {
+                    html += '<div class="panel-item commitment drifting" data-chat="What happened with ' + esc(c.title || '(untitled)') + '?">'
+                        + esc(c.title || '(untitled)') + ' <span class="drifting-label">(drifting)</span>'
+                        + (c.updated_at ? '<span class="item-meta">Last: ' + esc(c.updated_at) + '</span>' : '')
+                        + '</div>';
+                });
+                pending.forEach(function(c) {
+                    html += '<div class="panel-item commitment" data-chat="Update me on ' + esc(c.title || '(untitled)') + '">'
+                        + esc(c.title || '(untitled)')
+                        + (c.due_date ? '<span class="item-meta">Due: ' + esc(c.due_date) + '</span>' : '')
+                        + '</div>';
+                });
+                if (html === '') {
+                    html = '<div class="panel-empty">No pending commitments.</div>';
+                }
+                commitmentItems.innerHTML = html;
+            }
+
+            // Re-attach data-chat click handlers
+            document.querySelectorAll('[data-chat]').forEach(function(el) {
+                el.onclick = function() {
+                    var prompt = this.getAttribute('data-chat');
+                    if (prompt && inputEl && !inputEl.disabled) {
+                        inputEl.value = prompt;
+                        inputEl.focus();
+                        inputEl.dispatchEvent(new Event('input'));
+                    }
+                };
+            });
+        }
+
+        // ── SSE Brief Updates (with polling fallback) ──
+        var briefSource = null;
+        var sseRetryDelay = 30000;
+        var sseMaxRetryDelay = 300000;
+
+        function connectBriefSSE() {
+            if (briefSource) {
+                briefSource.close();
+            }
+            briefSource = new EventSource('/stream/brief');
+
+            briefSource.addEventListener('brief-update', function(e) {
+                try {
+                    var data = JSON.parse(e.data);
+                    rebuildSidebar(data);
+                    sseRetryDelay = 30000; // Reset on success
+                } catch (err) {
+                    console.warn('SSE brief-update parse error:', err);
+                }
+            });
+
+            briefSource.onerror = function() {
+                briefSource.close();
+                briefSource = null;
+                // Exponential backoff: 30s, 60s, 120s, max 300s
+                setTimeout(connectBriefSSE, sseRetryDelay);
+                sseRetryDelay = Math.min(sseRetryDelay * 2, sseMaxRetryDelay);
+            };
         }
 
         function pollBrief() {
             fetch('/brief', { headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data.counts) updatePanelCounters(data.counts);
+                    rebuildSidebar(data);
                 })
                 .catch(function() {});
         }
-        setInterval(pollBrief, 60000);
+
+        // Try SSE first, fall back to polling
+        if (typeof EventSource !== 'undefined') {
+            connectBriefSSE();
+            // Reconnect SSE when tab becomes visible again
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && !briefSource) {
+                    connectBriefSSE();
+                }
+            });
+        } else {
+            setInterval(pollBrief, 300000);
+        }
 
         // ── Chat Functions ──
         function appendMessage(role, content) {

@@ -16,6 +16,7 @@ final class RecategorizeEventsCommand extends Command
 {
     public function __construct(
         private readonly EntityTypeManagerInterface $entityTypeManager,
+        private readonly EventCategorizer $categorizer = new EventCategorizer,
     ) {
         parent::__construct();
     }
@@ -33,7 +34,7 @@ final class RecategorizeEventsCommand extends Command
             $payloadJson = $event->get('payload') ?? '{}';
             $payload = json_decode($payloadJson, true) ?? [];
 
-            $newCategory = EventCategorizer::categorize($source, $type, $payload);
+            $newCategory = $this->categorizer->categorize($source, $type, $payload);
             $oldCategory = $event->get('category') ?? 'notification';
 
             if ($newCategory !== $oldCategory) {

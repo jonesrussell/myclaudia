@@ -16,6 +16,7 @@ final class EventHandler
     public function __construct(
         private readonly EntityRepositoryInterface $eventRepo,
         private readonly EntityRepositoryInterface $personRepo,
+        private readonly EventCategorizer $categorizer = new EventCategorizer,
     ) {}
 
     public function handle(Envelope $envelope): McEvent
@@ -33,7 +34,7 @@ final class EventHandler
 
         $this->upsertPerson($payload['from_email'] ?? '', $payload['from_name'] ?? '', $envelope->tenantId ?? '', $envelope->source);
 
-        $category = EventCategorizer::categorize($envelope->source, $envelope->type, $payload);
+        $category = $this->categorizer->categorize($envelope->source, $envelope->type, $payload);
 
         $event = new McEvent([
             'source' => $envelope->source,
