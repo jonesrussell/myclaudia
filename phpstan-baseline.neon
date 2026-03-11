@@ -43,6 +43,12 @@ parameters:
 			path: src/Command/SkillsCommand.php
 
 		-
+			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Command/WorkspacesCommand.php
+
+		-
 			message: '#^Property Claudriel\\Controller\\BriefStreamController\:\:\$twig is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -103,6 +109,12 @@ parameters:
 			path: src/Controller/DashboardController.php
 
 		-
+			message: '#^Offset ''workspaces'' on array\{schedule\: array, job_hunt\: array, people\: array, creators\: array, notifications\: array, commitments\: array\{pending\: array, drifting\: array\}, counts\: array\{job_alerts\: int, messages\: int, due_today\: int, drifting\: int\}, generated_at\: string, \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Controller/DashboardController.php
+
+		-
 			message: '#^Property Claudriel\\Controller\\IngestController\:\:\$twig is never read, only written\.$#'
 			identifier: property.onlyWritten
 			count: 1
@@ -121,6 +133,12 @@ parameters:
 			path: src/Controller/IngestController.php
 
 		-
+			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/WorkspaceApiController.php
+
+		-
 			message: '#^PHPDoc tag @param references unknown parameter\: \$brief$#'
 			identifier: parameter.notFound
 			count: 1
@@ -129,7 +147,7 @@ parameters:
 		-
 			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:get\(\)\.$#'
 			identifier: method.notFound
-			count: 16
+			count: 19
 			path: src/Domain/DayBrief/Assembler/DayBriefAssembler.php
 
 		-
@@ -137,6 +155,12 @@ parameters:
 			identifier: nullCoalesce.offset
 			count: 1
 			path: src/Ingestion/CommitmentHandler.php
+
+		-
+			message: '#^Call to an undefined method Waaseyaa\\Entity\\EntityInterface\:\:set\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Ingestion/EventHandler.php
 
 		-
 			message: '#^Method Claudriel\\Ingestion\\EventHandler\:\:handle\(\) should return Claudriel\\Entity\\McEvent but returns Waaseyaa\\Entity\\EntityInterface\.$#'
