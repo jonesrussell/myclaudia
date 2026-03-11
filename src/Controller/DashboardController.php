@@ -44,7 +44,13 @@ final class DashboardController
         } catch (\Throwable) {
         }
 
-        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $personRepo, $skillRepo);
+        $workspaceRepo = null;
+        try {
+            $workspaceRepo = new StorageRepositoryAdapter($this->entityTypeManager->getStorage('workspace'));
+        } catch (\Throwable) {
+        }
+
+        $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, $driftDetector, $personRepo, $skillRepo, $workspaceRepo);
         $brief = $assembler->assemble('default', $since);
 
         $sessionStore->recordBriefAt(new \DateTimeImmutable);
@@ -86,6 +92,7 @@ final class DashboardController
                 'api_configured' => $apiConfigured,
                 'csrf_token' => CsrfMiddleware::token(),
                 'model' => $model,
+                'workspaces' => $brief['workspaces'] ?? [],
             ]));
 
             return new SsrResponse(
@@ -106,6 +113,7 @@ final class DashboardController
                 'brief' => $jsonBrief,
                 'sessions' => $twigSessions,
                 'api_configured' => $apiConfigured,
+                'workspaces' => $brief['workspaces'] ?? [],
             ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
             statusCode: 200,
             headers: ['Content-Type' => 'application/json'],

@@ -16,6 +16,7 @@ use Claudriel\Controller\ContextController;
 use Claudriel\Controller\DashboardController;
 use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\IngestController;
+use Claudriel\Controller\WorkspaceApiController;
 use Claudriel\Controller\NotFoundController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
@@ -210,6 +211,15 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->build(),
         );
 
+        $router->addRoute(
+            'claudriel.api.workspaces',
+            RouteBuilder::create('/api/workspaces')
+                ->controller(WorkspaceApiController::class.'::list')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
         // @see https://github.com/jonesrussell/claudriel/issues/21
@@ -231,7 +241,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'person', 'account', 'integration', 'skill', 'chat_session', 'chat_message'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'person', 'account', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {

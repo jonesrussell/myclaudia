@@ -15,9 +15,10 @@ final class DayBriefAssembler
         private readonly DriftDetector $driftDetector,
         private readonly ?EntityRepositoryInterface $personRepo = null,
         private readonly ?EntityRepositoryInterface $skillRepo = null,
+        private readonly ?EntityRepositoryInterface $workspaceRepo = null,
     ) {}
 
-    /** @return array{schedule: array, job_hunt: array, people: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array}, counts: array{job_alerts: int, messages: int, due_today: int, drifting: int}, generated_at: string, matched_skills: array} */
+    /** @return array{schedule: array, job_hunt: array, people: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array}, counts: array{job_alerts: int, messages: int, due_today: int, drifting: int}, generated_at: string, matched_skills: array, workspaces: array} */
     public function assemble(string $tenantId, \DateTimeImmutable $since): array
     {
         $recentEvents = array_values(array_filter(
@@ -97,6 +98,7 @@ final class DayBriefAssembler
             ],
             'generated_at' => (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM),
             'matched_skills' => $this->matchSkillsToEvents($recentEvents),
+            'workspaces' => $this->buildWorkspaceData($recentEvents),
         ];
     }
 
@@ -115,6 +117,29 @@ final class DayBriefAssembler
         }
 
         return $index;
+    }
+
+    private function buildWorkspaceData(array $recentEvents): array
+    {
+        if ($this->workspaceRepo === null) {
+            return [];
+        }
+        $workspaces = $this->workspaceRepo->findBy([]);
+
+        return array_map(function ($ws) use ($recentEvents) {
+            $wsUuid = $ws->get('uuid');
+            $activityCount = count(array_filter(
+                $recentEvents,
+                fn ($e) => $e->get('workspace_id') === $wsUuid,
+            ));
+
+            return [
+                'uuid' => $wsUuid,
+                'name' => $ws->get('name') ?? '',
+                'description' => $ws->get('description') ?? '',
+                'activity_count' => $activityCount,
+            ];
+        }, $workspaces);
     }
 
     private function matchSkillsToEvents(array $recentEvents): array
