@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Entity\Workspace;
+use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -11,32 +13,146 @@ final class WorkspaceApiController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
+        private readonly mixed $twig = null,
     ) {}
 
-    public function list(): SsrResponse
+    public function list(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
-        try {
-            $storage = $this->entityTypeManager->getStorage('workspace');
-        } catch (\Throwable) {
-            return new SsrResponse(
-                content: json_encode(['workspaces' => []], JSON_THROW_ON_ERROR),
-                statusCode: 200,
-                headers: ['Content-Type' => 'application/json'],
-            );
+        $storage = $this->entityTypeManager->getStorage('workspace');
+        $entityQuery = $storage->getQuery();
+
+        if (isset($query['account_id'])) {
+            $entityQuery->condition('account_id', $query['account_id']);
         }
 
-        $ids = $storage->getQuery()->execute();
+        $ids = $entityQuery->execute();
         $entities = $storage->loadMultiple($ids);
 
-        $workspaces = array_map(fn ($ws) => [
-            'uuid' => $ws->get('uuid'),
-            'name' => $ws->get('name'),
-            'description' => $ws->get('description') ?? '',
-        ], array_values($entities));
+        $workspaces = array_map(fn ($ws) => $this->serialize($ws), array_values($entities));
 
+        return $this->json(['workspaces' => $workspaces]);
+    }
+
+    public function create(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    {
+        $raw = $httpRequest?->getContent() ?? '';
+        $body = json_decode($raw, true) ?? [];
+
+        $name = $body['name'] ?? null;
+        if (! is_string($name) || trim($name) === '') {
+            return $this->json(['error' => 'Field "name" is required.'], 422);
+        }
+
+        $workspace = new Workspace([
+            'name' => trim($name),
+            'account_id' => $body['account_id'] ?? null,
+            'description' => $body['description'] ?? '',
+            'metadata' => json_encode($body['metadata'] ?? new \stdClass, JSON_THROW_ON_ERROR),
+        ]);
+
+        $storage = $this->entityTypeManager->getStorage('workspace');
+        $storage->save($workspace);
+
+        return $this->json(['workspace' => $this->serialize($workspace)], 201);
+    }
+
+    public function show(array $params = [], array $query = [], mixed $account = null): SsrResponse
+    {
+        $workspace = $this->findByUuid($params['uuid'] ?? '');
+        if ($workspace === null) {
+            return $this->json(['error' => 'Workspace not found.'], 404);
+        }
+
+        return $this->json(['workspace' => $this->serialize($workspace)]);
+    }
+
+    public function update(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    {
+        $workspace = $this->findByUuid($params['uuid'] ?? '');
+        if ($workspace === null) {
+            return $this->json(['error' => 'Workspace not found.'], 404);
+        }
+
+        $raw = $httpRequest?->getContent() ?? '';
+        $body = json_decode($raw, true) ?? [];
+
+        $allowedFields = ['name', 'description', 'metadata', 'account_id'];
+        foreach ($allowedFields as $field) {
+            if (! array_key_exists($field, $body)) {
+                continue;
+            }
+
+            $value = $body[$field];
+            if ($field === 'name' && (! is_string($value) || trim($value) === '')) {
+                return $this->json(['error' => 'Field "name" cannot be empty.'], 422);
+            }
+            if ($field === 'metadata') {
+                $value = json_encode($value, JSON_THROW_ON_ERROR);
+            }
+            $workspace->set($field, $field === 'name' ? trim($value) : $value);
+        }
+
+        $storage = $this->entityTypeManager->getStorage('workspace');
+        $storage->save($workspace);
+
+        return $this->json(['workspace' => $this->serialize($workspace)]);
+    }
+
+    public function delete(array $params = [], array $query = [], mixed $account = null): SsrResponse
+    {
+        $workspace = $this->findByUuid($params['uuid'] ?? '');
+        if ($workspace === null) {
+            return $this->json(['error' => 'Workspace not found.'], 404);
+        }
+
+        $storage = $this->entityTypeManager->getStorage('workspace');
+        $storage->delete([$workspace]);
+
+        return $this->json(['deleted' => true], 200);
+    }
+
+    private function findByUuid(string $uuid): ?Workspace
+    {
+        if ($uuid === '') {
+            return null;
+        }
+
+        $storage = $this->entityTypeManager->getStorage('workspace');
+        $ids = $storage->getQuery()->condition('uuid', $uuid)->execute();
+
+        if (empty($ids)) {
+            return null;
+        }
+
+        $entity = $storage->load(reset($ids));
+
+        return $entity instanceof Workspace ? $entity : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serialize(Workspace $workspace): array
+    {
+        $metadata = $workspace->get('metadata');
+        $decoded = is_string($metadata) ? json_decode($metadata, true) : $metadata;
+
+        return [
+            'uuid' => $workspace->get('uuid'),
+            'account_id' => $workspace->get('account_id'),
+            'name' => $workspace->get('name'),
+            'description' => $workspace->get('description') ?? '',
+            'metadata' => $decoded ?? new \stdClass,
+            'created_at' => $workspace->get('created_at'),
+            'updated_at' => $workspace->get('updated_at'),
+        ];
+    }
+
+    private function json(mixed $data, int $statusCode = 200): SsrResponse
+    {
         return new SsrResponse(
-            content: json_encode(['workspaces' => $workspaces], JSON_THROW_ON_ERROR),
-            statusCode: 200,
+            content: json_encode($data, JSON_THROW_ON_ERROR),
+            statusCode: $statusCode,
             headers: ['Content-Type' => 'application/json'],
         );
     }

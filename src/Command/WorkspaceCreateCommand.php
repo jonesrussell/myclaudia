@@ -25,16 +25,19 @@ final class WorkspaceCreateCommand extends Command
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Workspace name');
         $this->addOption('description', null, InputOption::VALUE_OPTIONAL, 'Workspace description', '');
+        $this->addOption('account-id', null, InputOption::VALUE_OPTIONAL, 'Account ID that owns this workspace');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $name = (string) $input->getArgument('name');
         $description = (string) $input->getOption('description');
+        $accountId = $input->getOption('account-id');
 
         $workspace = new Workspace([
             'name' => $name,
             'description' => $description,
+            'account_id' => $accountId !== null ? (int) $accountId : null,
         ]);
 
         $this->workspaceRepo->save($workspace);
