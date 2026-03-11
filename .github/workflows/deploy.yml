@@ -114,6 +114,7 @@ jobs:
             cp current/docker-compose.sidecar.yml sidecar/
             rm -rf sidecar/docker-context
             cp -r current/docker/sidecar sidecar/docker-context
+            grep -E "^(CLAUDRIEL_|ANTHROPIC_|CLAUDE_MODEL|SIDECAR_)" shared/.env > sidecar/.env
             cd sidecar
-            docker compose -f docker-compose.sidecar.yml --env-file ../shared/.env up -d --build
+            docker compose -f docker-compose.sidecar.yml --env-file .env up -d --build
           '
