@@ -36,3 +36,9 @@ storage/brief-signal.txt
 # Docker
 docker-compose.override.yml
 .superpowers/
+
+# Codex local files
+.codex/*
+!.codex/skills/
+.codex/skills/*
+!.codex/skills/*.md
