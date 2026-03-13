@@ -24,6 +24,7 @@ final class CommitmentHandler
         foreach ($candidates as $candidate) {
             if (($candidate['confidence'] ?? 0.0) < self::CONFIDENCE_THRESHOLD) {
                 $this->logLowConfidenceCandidate($candidate, $event);
+
                 continue;
             }
             $this->repo->save(new Commitment([

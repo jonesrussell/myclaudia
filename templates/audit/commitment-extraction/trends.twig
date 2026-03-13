@@ -1,0 +1,335 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Commitment Extraction Trends{% endblock %}
+
+{% block styles %}
+  .trend-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .trend-hero, .trend-grid {
+    display: grid;
+    gap: 1rem;
+  }
+  .trend-hero {
+    margin-bottom: 1.5rem;
+  }
+  .trend-hero h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  .trend-hero p, .muted {
+    color: var(--text-secondary);
+  }
+  .panel, .summary-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  }
+  .panel {
+    padding: 1rem 1.1rem;
+  }
+  .panel h2, .panel h3 {
+    font-family: var(--font-display);
+    margin-bottom: 0.85rem;
+  }
+  .trend-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    margin-bottom: 1rem;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .summary-card {
+    padding: 0.9rem 1rem;
+  }
+  .summary-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .summary-value {
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+  }
+  .chart {
+    display: grid;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .chart-row {
+    display: grid;
+    grid-template-columns: 64px 1fr 72px;
+    gap: 0.65rem;
+    align-items: center;
+  }
+  .chart-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(107, 109, 130, 0.18);
+    overflow: hidden;
+  }
+  .chart-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-teal));
+  }
+  .lookup-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: end;
+  }
+  .lookup-form label {
+    display: grid;
+    gap: 0.35rem;
+    flex: 1 1 260px;
+  }
+  .lookup-form input {
+    background: rgba(15, 17, 23, 0.7);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: var(--radius-md);
+    padding: 0.7rem 0.8rem;
+  }
+  .lookup-form button, .sender-link, .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.7rem 0.95rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(124, 196, 255, 0.3);
+    color: var(--accent-blue);
+    background: rgba(29, 91, 142, 0.12);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .lookup-form button {
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+  }
+  th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+{% endblock %}
+
+{% block content %}
+  {% set max_7 = 1 %}
+  {% for point in daily_trends_7.series %}
+    {% if point.total_attempts > max_7 %}
+      {% set max_7 = point.total_attempts %}
+    {% endif %}
+  {% endfor %}
+  {% set max_30 = 1 %}
+  {% for point in daily_trends_30.series %}
+    {% if point.total_attempts > max_30 %}
+      {% set max_30 = point.total_attempts %}
+    {% endif %}
+  {% endfor %}
+
+  <main class="trend-page">
+    <section class="trend-hero">
+      <div>
+        <a class="nav-link" href="/audit/commitment-extraction">Back to audit dashboard</a>
+      </div>
+      <div>
+        <h1>Commitment Extraction Trends</h1>
+        <p>Compare recent extraction quality over the last 7 days and 30 days, then pivot into sender-specific behavior when a mailbox starts drifting.</p>
+      </div>
+    </section>
+
+    <section class="trend-grid">
+      <article class="panel">
+        <h2>7-Day Trend</h2>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Attempts</div>
+            <div class="summary-value">{{ daily_trends_7.summary.total_attempts }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Successful</div>
+            <div class="summary-value">{{ daily_trends_7.summary.successful_extractions }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Low confidence</div>
+            <div class="summary-value">{{ daily_trends_7.summary.low_confidence_logs }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Avg confidence</div>
+            <div class="summary-value">{{ (daily_trends_7.summary.average_confidence * 100)|round(1) }}%</div>
+          </div>
+        </div>
+        <div class="chart" aria-label="7-day trend chart placeholder">
+          {% for point in daily_trends_7.series %}
+            <div class="chart-row">
+              <strong>{{ point.label }}</strong>
+              <div class="chart-bar">
+                <div class="chart-fill" style="width: {{ max_7 > 0 ? (point.total_attempts / max_7 * 100) : 0 }}%"></div>
+              </div>
+              <span>{{ point.total_attempts }} attempts</span>
+            </div>
+          {% endfor %}
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Attempts</th>
+              <th>Successful</th>
+              <th>Low confidence</th>
+              <th>Avg confidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for point in daily_trends_7.series %}
+              <tr>
+                <td>{{ point.date }}</td>
+                <td>{{ point.total_attempts }}</td>
+                <td>{{ point.successful_extractions }}</td>
+                <td>{{ point.low_confidence_logs }}</td>
+                <td>{{ (point.average_confidence * 100)|round(1) }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </article>
+
+      <article class="panel">
+        <h2>30-Day Trend</h2>
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Attempts</div>
+            <div class="summary-value">{{ daily_trends_30.summary.total_attempts }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Successful</div>
+            <div class="summary-value">{{ daily_trends_30.summary.successful_extractions }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Low confidence</div>
+            <div class="summary-value">{{ daily_trends_30.summary.low_confidence_logs }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Avg confidence</div>
+            <div class="summary-value">{{ (daily_trends_30.summary.average_confidence * 100)|round(1) }}%</div>
+          </div>
+        </div>
+        <div class="chart" aria-label="30-day trend chart placeholder">
+          {% for point in daily_trends_30.series %}
+            <div class="chart-row">
+              <strong>{{ point.label }}</strong>
+              <div class="chart-bar">
+                <div class="chart-fill" style="width: {{ max_30 > 0 ? (point.total_attempts / max_30 * 100) : 0 }}%"></div>
+              </div>
+              <span>{{ point.total_attempts }} attempts</span>
+            </div>
+          {% endfor %}
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Attempts</th>
+              <th>Successful</th>
+              <th>Low confidence</th>
+              <th>Avg confidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for point in daily_trends_30.series %}
+              <tr>
+                <td>{{ point.date }}</td>
+                <td>{{ point.total_attempts }}</td>
+                <td>{{ point.successful_extractions }}</td>
+                <td>{{ point.low_confidence_logs }}</td>
+                <td>{{ (point.average_confidence * 100)|round(1) }}%</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Sender Lookup</h2>
+      <form class="lookup-form" method="get" action="/audit/commitment-extraction/trends">
+        <label>
+          <span>Sender email</span>
+          <input type="email" name="sender_email" value="{{ sender_lookup }}" placeholder="sender@example.com">
+        </label>
+        <button type="submit">Preview sender trends</button>
+      </form>
+
+      {% if sender_preview %}
+        <div class="summary-grid" style="margin-top: 1rem;">
+          <div class="summary-card">
+            <div class="summary-label">Sender attempts</div>
+            <div class="summary-value">{{ sender_preview.summary.total_attempts }}</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Low-confidence rate</div>
+            <div class="summary-value">{{ (sender_preview.summary.low_confidence_rate * 100)|round(1) }}%</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Avg confidence</div>
+            <div class="summary-value">{{ (sender_preview.summary.average_confidence * 100)|round(1) }}%</div>
+          </div>
+        </div>
+        <p class="muted">Previewing the last {{ sender_preview.window_days }} days for <strong>{{ sender_preview.sender }}</strong>.</p>
+        {% if sender_lookup_url %}
+          <p><a class="sender-link" href="{{ sender_lookup_url }}">Open sender trend detail</a></p>
+        {% endif %}
+      {% else %}
+        <p class="muted" style="margin-top: 1rem;">Enter a sender to generate a 30-day drill-down link.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel" style="margin-top: 1rem;">
+      <h3>Monthly Rollup</h3>
+      <p class="muted">Monthly aggregation is included for longer-term tuning baselines and API consumers.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Attempts</th>
+            <th>Successful</th>
+            <th>Low confidence</th>
+            <th>Avg confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for point in monthly_trends.series %}
+            <tr>
+              <td>{{ point.label }}</td>
+              <td>{{ point.total_attempts }}</td>
+              <td>{{ point.successful_extractions }}</td>
+              <td>{{ point.low_confidence_logs }}</td>
+              <td>{{ (point.average_confidence * 100)|round(1) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+{% endblock %}

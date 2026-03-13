@@ -287,6 +287,35 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->build(),
         );
 
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.trends',
+            RouteBuilder::create('/audit/commitment-extraction/trends')
+                ->controller(CommitmentExtractionAuditController::class.'::trends')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.trends_json',
+            RouteBuilder::create('/audit/commitment-extraction/trends.json')
+                ->controller(CommitmentExtractionAuditController::class.'::trendsJson')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.sender',
+            RouteBuilder::create('/audit/commitment-extraction/sender/{email}')
+                ->controller(CommitmentExtractionAuditController::class.'::sender')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
         // @see https://github.com/jonesrussell/claudriel/issues/21

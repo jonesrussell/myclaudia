@@ -51,10 +51,18 @@ final class BriefSignalTest extends TestCase
         // Same mtime, no change
         self::assertFalse($signal->hasChangedSince($baseline));
 
-        // Sleep to ensure mtime differs, then touch again
-        sleep(1);
-        $signal->touch();
-        self::assertTrue($signal->hasChangedSince($baseline));
+        // Retry until the filesystem mtime ticks forward; one second is flaky on some filesystems.
+        $changed = false;
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            sleep(1);
+            $signal->touch();
+            if ($signal->hasChangedSince($baseline)) {
+                $changed = true;
+                break;
+            }
+        }
+
+        self::assertTrue($changed);
     }
 
     public function test_has_changed_since_returns_false_when_no_file(): void

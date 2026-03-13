@@ -1,0 +1,207 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Claudriel\Tests\Unit\Audit;
+
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\CommitmentExtractionLog;
+use Claudriel\Entity\McEvent;
+use Claudriel\Service\Audit\CommitmentExtractionAuditService;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Waaseyaa\Database\PdoDatabase;
+use Waaseyaa\Entity\EntityType;
+use Waaseyaa\Entity\EntityTypeManager;
+use Waaseyaa\EntityStorage\SqlEntityStorage;
+use Waaseyaa\EntityStorage\SqlSchemaHandler;
+
+final class CommitmentExtractionAuditTrendsTest extends TestCase
+{
+    public function test_daily_trends_aggregate_attempts_successes_and_average_confidence(): void
+    {
+        $service = new CommitmentExtractionAuditService($this->buildSeededEntityTypeManager());
+
+        $trends = $service->getDailyTrends(7);
+        $series = [];
+        foreach ($trends['series'] as $point) {
+            $series[$point['date']] = $point;
+        }
+
+        self::assertSame(3, $trends['summary']['total_attempts']);
+        self::assertSame(2, $trends['summary']['successful_extractions']);
+        self::assertSame(1, $trends['summary']['low_confidence_logs']);
+        self::assertSame(0.7967, $trends['summary']['average_confidence']);
+
+        self::assertSame(2, $series['2026-03-12']['total_attempts']);
+        self::assertSame(1, $series['2026-03-12']['successful_extractions']);
+        self::assertSame(1, $series['2026-03-12']['low_confidence_logs']);
+        self::assertSame(0.715, $series['2026-03-12']['average_confidence']);
+
+        self::assertSame(1, $series['2026-03-13']['total_attempts']);
+        self::assertSame(1, $series['2026-03-13']['successful_extractions']);
+        self::assertSame(0, $series['2026-03-13']['low_confidence_logs']);
+        self::assertSame(0.96, $series['2026-03-13']['average_confidence']);
+    }
+
+    public function test_monthly_trends_roll_up_by_month(): void
+    {
+        $service = new CommitmentExtractionAuditService($this->buildSeededEntityTypeManager());
+
+        $trends = $service->getMonthlyTrends(3);
+        $series = [];
+        foreach ($trends['series'] as $point) {
+            $series[$point['month']] = $point;
+        }
+
+        self::assertSame(1, $series['2026-01']['total_attempts']);
+        self::assertSame(0, $series['2026-01']['successful_extractions']);
+        self::assertSame(1, $series['2026-01']['low_confidence_logs']);
+        self::assertSame(0.22, $series['2026-01']['average_confidence']);
+
+        self::assertSame(1, $series['2026-02']['total_attempts']);
+        self::assertSame(0, $series['2026-02']['successful_extractions']);
+        self::assertSame(1, $series['2026-02']['low_confidence_logs']);
+        self::assertSame(0.48, $series['2026-02']['average_confidence']);
+
+        self::assertSame(3, $series['2026-03']['total_attempts']);
+        self::assertSame(2, $series['2026-03']['successful_extractions']);
+        self::assertSame(1, $series['2026-03']['low_confidence_logs']);
+        self::assertSame(0.7967, $series['2026-03']['average_confidence']);
+    }
+
+    public function test_sender_trends_calculate_distribution_and_low_confidence_rate(): void
+    {
+        $service = new CommitmentExtractionAuditService($this->buildSeededEntityTypeManager());
+
+        $trends = $service->getSenderTrends('alpha@example.com', 30);
+        $distribution = [];
+        foreach ($trends['confidence_distribution'] as $bucket) {
+            $distribution[$bucket['label']] = $bucket['count'];
+        }
+        $series = [];
+        foreach ($trends['daily_trends'] as $point) {
+            $series[$point['date']] = $point;
+        }
+
+        self::assertSame('alpha@example.com', $trends['sender']);
+        self::assertSame(3, $trends['summary']['total_attempts']);
+        self::assertSame(1, $trends['summary']['successful_extractions']);
+        self::assertSame(2, $trends['summary']['low_confidence_logs']);
+        self::assertSame(0.6667, $trends['summary']['low_confidence_rate']);
+        self::assertSame(0.6367, $trends['summary']['average_confidence']);
+
+        self::assertSame(0, $distribution['0.0-0.3']);
+        self::assertSame(1, $distribution['0.3-0.5']);
+        self::assertSame(1, $distribution['0.5-0.7']);
+        self::assertSame(1, $distribution['0.7-0.9']);
+        self::assertSame(0, $distribution['0.9-1.0']);
+
+        self::assertSame(2, $series['2026-03-12']['total_attempts']);
+        self::assertSame(1, $series['2026-03-12']['low_confidence_logs']);
+        self::assertSame(0.5, $series['2026-03-12']['low_confidence_rate']);
+        self::assertSame(0.715, $series['2026-03-12']['average_confidence']);
+
+        self::assertSame(1, $series['2026-02-20']['total_attempts']);
+        self::assertSame(1, $series['2026-02-20']['low_confidence_logs']);
+        self::assertSame(1.0, $series['2026-02-20']['low_confidence_rate']);
+    }
+
+    private function buildSeededEntityTypeManager(): EntityTypeManager
+    {
+        $db = PdoDatabase::createSqlite(':memory:');
+        $dispatcher = new EventDispatcher;
+
+        $entityTypeManager = new EntityTypeManager(
+            $dispatcher,
+            function ($definition) use ($db, $dispatcher): SqlEntityStorage {
+                (new SqlSchemaHandler($definition, $db))->ensureTable();
+
+                return new SqlEntityStorage($definition, $db, $dispatcher);
+            },
+        );
+
+        foreach ($this->entityTypes() as $entityType) {
+            $entityTypeManager->registerEntityType($entityType);
+        }
+
+        $eventStorage = $entityTypeManager->getStorage('mc_event');
+        $alphaEvent = new McEvent([
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'payload' => '{"from_email":"alpha@example.com","subject":"Alpha"}',
+            'occurred' => '2026-03-12 08:15:00',
+            'content_hash' => 'trend-alpha',
+        ]);
+        $eventStorage->save($alphaEvent);
+        $alphaEventId = $alphaEvent->id();
+
+        $betaEvent = new McEvent([
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'payload' => '{"from_email":"beta@example.com","subject":"Beta"}',
+            'occurred' => '2026-03-13 11:30:00',
+            'content_hash' => 'trend-beta',
+        ]);
+        $eventStorage->save($betaEvent);
+        $betaEventId = $betaEvent->id();
+
+        $gammaEvent = new McEvent([
+            'source' => 'gmail',
+            'type' => 'message.received',
+            'payload' => '{"from_email":"gamma@example.com","subject":"Gamma"}',
+            'occurred' => '2026-01-25 09:00:00',
+            'content_hash' => 'trend-gamma',
+        ]);
+        $eventStorage->save($gammaEvent);
+        $gammaEventId = $gammaEvent->id();
+
+        $commitmentStorage = $entityTypeManager->getStorage('commitment');
+        $commitmentStorage->save(new Commitment([
+            'title' => 'Alpha follow-up',
+            'confidence' => 0.82,
+            'source_event_id' => $alphaEventId,
+        ]));
+        $commitmentStorage->save(new Commitment([
+            'title' => 'Beta launch',
+            'confidence' => 0.96,
+            'source_event_id' => $betaEventId,
+        ]));
+
+        $logStorage = $entityTypeManager->getStorage('commitment_extraction_log');
+        $logStorage->save(new CommitmentExtractionLog([
+            'mc_event_id' => $alphaEventId,
+            'raw_event_payload' => '{"from_email":"alpha@example.com","subject":"Alpha maybe"}',
+            'extracted_commitment_payload' => '{"title":"Alpha maybe","confidence":0.61}',
+            'confidence' => 0.61,
+            'created_at' => '2026-03-12 09:15:00',
+        ]));
+        $logStorage->save(new CommitmentExtractionLog([
+            'mc_event_id' => $gammaEventId,
+            'raw_event_payload' => '{"from_email":"gamma@example.com","subject":"Gamma maybe"}',
+            'extracted_commitment_payload' => '{"title":"Gamma maybe","confidence":0.22}',
+            'confidence' => 0.22,
+            'created_at' => '2026-01-25 09:16:00',
+        ]));
+        $logStorage->save(new CommitmentExtractionLog([
+            'raw_event_payload' => '{"from_email":"alpha@example.com","subject":"Alpha second"}',
+            'extracted_commitment_payload' => '{"title":"Alpha second maybe","confidence":0.48}',
+            'confidence' => 0.48,
+            'created_at' => '2026-02-20 15:17:00',
+        ]));
+
+        return $entityTypeManager;
+    }
+
+    /**
+     * @return list<EntityType>
+     */
+    private function entityTypes(): array
+    {
+        return [
+            new EntityType(id: 'mc_event', label: 'Event', class: McEvent::class, keys: ['id' => 'eid', 'uuid' => 'uuid', 'content_hash' => 'content_hash']),
+            new EntityType(id: 'commitment', label: 'Commitment', class: Commitment::class, keys: ['id' => 'cid', 'uuid' => 'uuid', 'label' => 'title']),
+            new EntityType(id: 'commitment_extraction_log', label: 'Commitment Extraction Log', class: CommitmentExtractionLog::class, keys: ['id' => 'celid', 'uuid' => 'uuid']),
+        ];
+    }
+}

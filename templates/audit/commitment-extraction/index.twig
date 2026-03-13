@@ -25,6 +25,17 @@
     color: var(--text-secondary);
     max-width: 48rem;
   }
+  .hero-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .hero-link:hover {
+    text-decoration: underline;
+  }
   .metric-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -160,6 +171,7 @@
       <div>
         <h1>Commitment Extraction Audit</h1>
         <p>Track extraction quality across successful commitments and low-confidence rejections, then drill into the raw payloads behind each weak result.</p>
+        <p><a class="hero-link" href="/audit/commitment-extraction/trends">View time-based trend reporting</a></p>
       </div>
     </section>
 
@@ -209,7 +221,7 @@
             <tbody>
               {% for sender in top_senders %}
                 <tr>
-                  <td><code>{{ sender.sender }}</code></td>
+                  <td><a class="log-link" href="/audit/commitment-extraction/sender/{{ sender.sender|url_encode }}"><code>{{ sender.sender }}</code></a></td>
                   <td><span class="rate-pill">{{ (sender.low_confidence_rate * 100)|round(1) }}%</span></td>
                   <td>{{ sender.low_confidence_attempts }}</td>
                   <td>{{ sender.total_attempts }}</td>

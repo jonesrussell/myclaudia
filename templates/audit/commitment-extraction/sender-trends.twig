@@ -1,0 +1,175 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Sender Extraction Trends{% endblock %}
+
+{% block styles %}
+  .sender-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .panel, .metric-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  }
+  .panel {
+    padding: 1rem 1.1rem;
+    margin-top: 1rem;
+  }
+  .hero h1, .panel h2 {
+    font-family: var(--font-display);
+  }
+  .hero p, .muted {
+    color: var(--text-secondary);
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+  .metric-card {
+    padding: 0.95rem 1rem;
+  }
+  .metric-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metric-value {
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+  }
+  .distribution {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .distribution-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 48px;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .distribution-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(107, 109, 130, 0.18);
+    overflow: hidden;
+  }
+  .distribution-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .nav-link:hover {
+    text-decoration: underline;
+  }
+{% endblock %}
+
+{% block content %}
+  {% set max_bucket = 1 %}
+  {% for bucket in sender_trends.confidence_distribution %}
+    {% if bucket.count > max_bucket %}
+      {% set max_bucket = bucket.count %}
+    {% endif %}
+  {% endfor %}
+
+  <main class="sender-page">
+    <section class="hero">
+      <a class="nav-link" href="/audit/commitment-extraction/trends">Back to trend reporting</a>
+      <h1>Sender Trend: {{ sender_trends.sender }}</h1>
+      <p>Focused 30-day extraction-quality view for one sender, including confidence distribution and daily low-confidence rate.</p>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <div class="metric-label">Attempts</div>
+        <div class="metric-value">{{ sender_trends.summary.total_attempts }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Successful</div>
+        <div class="metric-value">{{ sender_trends.summary.successful_extractions }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Low confidence</div>
+        <div class="metric-value">{{ sender_trends.summary.low_confidence_logs }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Low-confidence rate</div>
+        <div class="metric-value">{{ (sender_trends.summary.low_confidence_rate * 100)|round(1) }}%</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Avg confidence</div>
+        <div class="metric-value">{{ (sender_trends.summary.average_confidence * 100)|round(1) }}%</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Confidence Distribution</h2>
+      <div class="distribution">
+        {% for bucket in sender_trends.confidence_distribution %}
+          <div class="distribution-row">
+            <strong>{{ bucket.label }}</strong>
+            <div class="distribution-bar">
+              <div class="distribution-fill" style="width: {{ max_bucket > 0 ? (bucket.count / max_bucket * 100) : 0 }}%"></div>
+            </div>
+            <span>{{ bucket.count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Daily Trend</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Attempts</th>
+            <th>Successful</th>
+            <th>Low confidence</th>
+            <th>Low-confidence rate</th>
+            <th>Avg confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for point in sender_trends.daily_trends %}
+            <tr>
+              <td>{{ point.date }}</td>
+              <td>{{ point.total_attempts }}</td>
+              <td>{{ point.successful_extractions }}</td>
+              <td>{{ point.low_confidence_logs }}</td>
+              <td>{{ (point.low_confidence_rate * 100)|round(1) }}%</td>
+              <td>{{ (point.average_confidence * 100)|round(1) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+{% endblock %}

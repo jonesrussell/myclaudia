@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace Claudriel\Service\Audit;
 
-use Waaseyaa\Entity\EntityInterface;
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\CommitmentExtractionLog;
+use Claudriel\Entity\McEvent;
+use DateInterval;
+use DatePeriod;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Entity\Storage\EntityStorageInterface;
 
@@ -17,6 +23,9 @@ final class CommitmentExtractionAuditService
         '0.7-0.9' => [0.7, 0.9],
         '0.9-1.0' => [0.9, 1.0],
     ];
+
+    /** @var array<string, McEvent|null> */
+    private array $eventCache = [];
 
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
@@ -52,7 +61,7 @@ final class CommitmentExtractionAuditService
         }
 
         foreach ($this->getAllExtractionAttempts() as $attempt) {
-            $confidence = (float) ($attempt['confidence'] ?? 0.0);
+            $confidence = $attempt['confidence'];
             $distribution[$this->resolveBucketLabel($confidence)]++;
         }
 
@@ -114,9 +123,7 @@ final class CommitmentExtractionAuditService
         }
 
         foreach ($senderStats as &$stats) {
-            $stats['low_confidence_rate'] = $stats['total_attempts'] > 0
-                ? round($stats['low_confidence_attempts'] / $stats['total_attempts'], 4)
-                : 0.0;
+            $stats['low_confidence_rate'] = round($stats['low_confidence_attempts'] / $stats['total_attempts'], 4);
         }
         unset($stats);
 
@@ -126,6 +133,265 @@ final class CommitmentExtractionAuditService
         });
 
         return array_slice($senderStats, 0, 10);
+    }
+
+    /**
+     * @return array{
+     *   window_days: int,
+     *   generated_at: string,
+     *   summary: array{
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     average_confidence: float
+     *   },
+     *   series: list<array{
+     *     date: string,
+     *     label: string,
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     average_confidence: float
+     *   }>
+     * }
+     */
+    public function getDailyTrends(int $days = 7): array
+    {
+        $days = max(1, $days);
+        $end = new DateTimeImmutable('today');
+        $start = $end->sub(new DateInterval(sprintf('P%dD', $days - 1)));
+
+        $series = [];
+        foreach (new DatePeriod($start, new DateInterval('P1D'), $end->add(new DateInterval('P1D'))) as $date) {
+            $key = $date->format('Y-m-d');
+            $series[$key] = [
+                'date' => $key,
+                'label' => $date->format('M j'),
+                'total_attempts' => 0,
+                'successful_extractions' => 0,
+                'low_confidence_logs' => 0,
+                'average_confidence' => 0.0,
+                '_confidence_total' => 0.0,
+            ];
+        }
+
+        foreach ($this->getNormalizedAttempts() as $attempt) {
+            $occurredAt = $this->parseDateTime($attempt['occurred_at']);
+            if ($occurredAt === null) {
+                continue;
+            }
+
+            $key = $occurredAt->format('Y-m-d');
+            if (! isset($series[$key])) {
+                continue;
+            }
+
+            $series[$key]['total_attempts']++;
+            $series[$key]['successful_extractions'] += $attempt['is_successful'] ? 1 : 0;
+            $series[$key]['low_confidence_logs'] += $attempt['is_low_confidence'] ? 1 : 0;
+            $series[$key]['_confidence_total'] += $attempt['confidence'];
+        }
+
+        return [
+            'window_days' => $days,
+            'generated_at' => gmdate(DateTimeInterface::ATOM),
+            'summary' => $this->buildTrendSummary($series),
+            'series' => $this->finalizeSeries($series),
+        ];
+    }
+
+    /**
+     * @return array{
+     *   window_months: int,
+     *   generated_at: string,
+     *   summary: array{
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     average_confidence: float
+     *   },
+     *   series: list<array{
+     *     month: string,
+     *     label: string,
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     average_confidence: float
+     *   }>
+     * }
+     */
+    public function getMonthlyTrends(int $months = 1): array
+    {
+        $months = max(1, $months);
+        $end = new DateTimeImmutable('first day of this month');
+        $start = $end->sub(new DateInterval(sprintf('P%dM', $months - 1)));
+
+        $series = [];
+        foreach (new DatePeriod($start, new DateInterval('P1M'), $end->add(new DateInterval('P1M'))) as $month) {
+            $key = $month->format('Y-m');
+            $series[$key] = [
+                'month' => $key,
+                'label' => $month->format('M Y'),
+                'total_attempts' => 0,
+                'successful_extractions' => 0,
+                'low_confidence_logs' => 0,
+                'average_confidence' => 0.0,
+                '_confidence_total' => 0.0,
+            ];
+        }
+
+        foreach ($this->getNormalizedAttempts() as $attempt) {
+            $occurredAt = $this->parseDateTime($attempt['occurred_at']);
+            if ($occurredAt === null) {
+                continue;
+            }
+
+            $key = $occurredAt->format('Y-m');
+            if (! isset($series[$key])) {
+                continue;
+            }
+
+            $series[$key]['total_attempts']++;
+            $series[$key]['successful_extractions'] += $attempt['is_successful'] ? 1 : 0;
+            $series[$key]['low_confidence_logs'] += $attempt['is_low_confidence'] ? 1 : 0;
+            $series[$key]['_confidence_total'] += $attempt['confidence'];
+        }
+
+        return [
+            'window_months' => $months,
+            'generated_at' => gmdate(DateTimeInterface::ATOM),
+            'summary' => $this->buildTrendSummary($series),
+            'series' => $this->finalizeSeries($series),
+        ];
+    }
+
+    /**
+     * @return array{
+     *   sender: string,
+     *   window_days: int,
+     *   generated_at: string,
+     *   summary: array{
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     low_confidence_rate: float,
+     *     average_confidence: float
+     *   },
+     *   confidence_distribution: list<array{label: string, count: int}>,
+     *   daily_trends: list<array{
+     *     date: string,
+     *     label: string,
+     *     total_attempts: int,
+     *     successful_extractions: int,
+     *     low_confidence_logs: int,
+     *     average_confidence: float,
+     *     low_confidence_rate: float
+     *   }>
+     * }
+     */
+    public function getSenderTrends(string $senderEmail, int $days = 30): array
+    {
+        $sender = $this->normalizeSender($senderEmail) ?? strtolower(trim($senderEmail));
+        $days = max(1, $days);
+        $end = new DateTimeImmutable('today');
+        $start = $end->sub(new DateInterval(sprintf('P%dD', $days - 1)));
+
+        $distribution = [];
+        foreach (array_keys(self::CONFIDENCE_BUCKETS) as $label) {
+            $distribution[$label] = 0;
+        }
+
+        $series = [];
+        foreach (new DatePeriod($start, new DateInterval('P1D'), $end->add(new DateInterval('P1D'))) as $date) {
+            $key = $date->format('Y-m-d');
+            $series[$key] = [
+                'date' => $key,
+                'label' => $date->format('M j'),
+                'total_attempts' => 0,
+                'successful_extractions' => 0,
+                'low_confidence_logs' => 0,
+                'average_confidence' => 0.0,
+                'low_confidence_rate' => 0.0,
+                '_confidence_total' => 0.0,
+            ];
+        }
+
+        foreach ($this->getNormalizedAttempts() as $attempt) {
+            if ($attempt['sender'] !== $sender) {
+                continue;
+            }
+
+            $distribution[$this->resolveBucketLabel($attempt['confidence'])]++;
+
+            $occurredAt = $this->parseDateTime($attempt['occurred_at']);
+            if ($occurredAt === null) {
+                continue;
+            }
+
+            $key = $occurredAt->format('Y-m-d');
+            if (! isset($series[$key])) {
+                continue;
+            }
+
+            $series[$key]['total_attempts']++;
+            $series[$key]['successful_extractions'] += $attempt['is_successful'] ? 1 : 0;
+            $series[$key]['low_confidence_logs'] += $attempt['is_low_confidence'] ? 1 : 0;
+            $series[$key]['_confidence_total'] += $attempt['confidence'];
+        }
+
+        $dailyTrends = [];
+        $totals = [
+            'total_attempts' => 0,
+            'successful_extractions' => 0,
+            'low_confidence_logs' => 0,
+            'average_confidence' => 0.0,
+            '_confidence_total' => 0.0,
+        ];
+
+        foreach ($series as $point) {
+            $totalAttempts = $point['total_attempts'];
+            $averageConfidence = $totalAttempts > 0 ? round($point['_confidence_total'] / $totalAttempts, 4) : 0.0;
+            $lowConfidenceRate = $totalAttempts > 0 ? round($point['low_confidence_logs'] / $totalAttempts, 4) : 0.0;
+
+            $dailyTrends[] = [
+                'date' => $point['date'],
+                'label' => $point['label'],
+                'total_attempts' => $totalAttempts,
+                'successful_extractions' => $point['successful_extractions'],
+                'low_confidence_logs' => $point['low_confidence_logs'],
+                'average_confidence' => $averageConfidence,
+                'low_confidence_rate' => $lowConfidenceRate,
+            ];
+
+            $totals['total_attempts'] += $totalAttempts;
+            $totals['successful_extractions'] += $point['successful_extractions'];
+            $totals['low_confidence_logs'] += $point['low_confidence_logs'];
+            $totals['_confidence_total'] += $point['_confidence_total'];
+        }
+
+        $confidenceDistribution = [];
+        foreach ($distribution as $label => $count) {
+            $confidenceDistribution[] = ['label' => $label, 'count' => $count];
+        }
+
+        return [
+            'sender' => $sender,
+            'window_days' => $days,
+            'generated_at' => gmdate(DateTimeInterface::ATOM),
+            'summary' => [
+                'total_attempts' => $totals['total_attempts'],
+                'successful_extractions' => $totals['successful_extractions'],
+                'low_confidence_logs' => $totals['low_confidence_logs'],
+                'low_confidence_rate' => $totals['total_attempts'] > 0
+                    ? round($totals['low_confidence_logs'] / $totals['total_attempts'], 4)
+                    : 0.0,
+                'average_confidence' => $totals['total_attempts'] > 0
+                    ? round($totals['_confidence_total'] / $totals['total_attempts'], 4)
+                    : 0.0,
+            ],
+            'confidence_distribution' => $confidenceDistribution,
+            'daily_trends' => $dailyTrends,
+        ];
     }
 
     /**
@@ -142,7 +408,7 @@ final class CommitmentExtractionAuditService
         $page = max(1, $page);
         $perPage = max(1, min(100, $perPage));
 
-        $logs = array_map(fn (EntityInterface $log): array => $this->normalizeLog($log), $this->getLogEntries());
+        $logs = array_map(fn (CommitmentExtractionLog $log): array => $this->normalizeLog($log), $this->getLogEntries());
         usort($logs, fn (array $a, array $b): int => [$b['created_at'], $b['id']] <=> [$a['created_at'], $a['id']]);
 
         $total = count($logs);
@@ -164,6 +430,7 @@ final class CommitmentExtractionAuditService
      */
     public function getLogDetail(int|string $id): ?array
     {
+        /** @var CommitmentExtractionLog|null $log */
         $log = $this->getLogStorage()->load((string) $id);
         if ($log === null) {
             return null;
@@ -173,29 +440,33 @@ final class CommitmentExtractionAuditService
     }
 
     /**
-     * @return list<EntityInterface>
+     * @return list<Commitment>
      */
     private function getSuccessfulCommitments(): array
     {
         $storage = $this->entityTypeManager->getStorage('commitment');
         $ids = $storage->getQuery()->execute();
+        /** @var list<Commitment> $entities */
         $entities = array_values($storage->loadMultiple($ids));
 
         return array_values(array_filter(
             $entities,
-            fn (EntityInterface $entity): bool => (float) ($entity->get('confidence') ?? 0.0) >= 0.7
+            fn (Commitment $entity): bool => (float) ($entity->get('confidence') ?? 0.0) >= 0.7
         ));
     }
 
     /**
-     * @return list<EntityInterface>
+     * @return list<CommitmentExtractionLog>
      */
     private function getLogEntries(): array
     {
         $storage = $this->getLogStorage();
         $ids = $storage->getQuery()->execute();
 
-        return array_values($storage->loadMultiple($ids));
+        /** @var list<CommitmentExtractionLog> $logs */
+        $logs = array_values($storage->loadMultiple($ids));
+
+        return $logs;
     }
 
     private function getLogStorage(): EntityStorageInterface
@@ -204,21 +475,53 @@ final class CommitmentExtractionAuditService
     }
 
     /**
-     * @return list<array{confidence: float}>
+     * @return list<array{
+     *   confidence: float,
+     *   sender: string|null,
+     *   occurred_at: string|null,
+     *   is_successful: bool,
+     *   is_low_confidence: bool
+     * }>
      */
     private function getAllExtractionAttempts(): array
     {
         $attempts = [];
 
         foreach ($this->getSuccessfulCommitments() as $commitment) {
-            $attempts[] = ['confidence' => (float) ($commitment->get('confidence') ?? 0.0)];
+            $attempts[] = [
+                'confidence' => (float) ($commitment->get('confidence') ?? 0.0),
+                'sender' => $this->resolveSenderForCommitment($commitment),
+                'occurred_at' => $this->resolveOccurredAtForCommitment($commitment),
+                'is_successful' => true,
+                'is_low_confidence' => false,
+            ];
         }
 
         foreach ($this->getLogEntries() as $log) {
-            $attempts[] = ['confidence' => (float) ($log->get('confidence') ?? 0.0)];
+            $attempts[] = [
+                'confidence' => (float) ($log->get('confidence') ?? 0.0),
+                'sender' => $this->resolveSenderForLog($log),
+                'occurred_at' => $this->resolveOccurredAtForLog($log),
+                'is_successful' => false,
+                'is_low_confidence' => true,
+            ];
         }
 
         return $attempts;
+    }
+
+    /**
+     * @return list<array{
+     *   confidence: float,
+     *   sender: string|null,
+     *   occurred_at: string|null,
+     *   is_successful: bool,
+     *   is_low_confidence: bool
+     * }>
+     */
+    private function getNormalizedAttempts(): array
+    {
+        return $this->getAllExtractionAttempts();
     }
 
     private function resolveBucketLabel(float $confidence): string
@@ -233,14 +536,14 @@ final class CommitmentExtractionAuditService
         return '0.0-0.3';
     }
 
-    private function resolveSenderForCommitment(EntityInterface $commitment): ?string
+    private function resolveSenderForCommitment(Commitment $commitment): ?string
     {
         $eventId = $commitment->get('source_event_id');
         if ($eventId === null) {
             return null;
         }
 
-        $event = $this->entityTypeManager->getStorage('mc_event')->load((string) $eventId);
+        $event = $this->loadEvent((string) $eventId);
         if ($event === null) {
             return null;
         }
@@ -248,7 +551,7 @@ final class CommitmentExtractionAuditService
         return $this->resolveSenderFromPayload($event->get('payload')) ?? $this->normalizeSender($event->get('from_email'));
     }
 
-    private function resolveSenderForLog(EntityInterface $log): ?string
+    private function resolveSenderForLog(CommitmentExtractionLog $log): ?string
     {
         $sender = $this->resolveSenderFromPayload($log->get('raw_event_payload'));
         if ($sender !== null) {
@@ -260,7 +563,7 @@ final class CommitmentExtractionAuditService
             return null;
         }
 
-        $event = $this->entityTypeManager->getStorage('mc_event')->load((string) $eventId);
+        $event = $this->loadEvent((string) $eventId);
         if ($event === null) {
             return null;
         }
@@ -287,7 +590,7 @@ final class CommitmentExtractionAuditService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function extractSenderFromArray(array $payload): ?string
     {
@@ -312,10 +615,114 @@ final class CommitmentExtractionAuditService
         return $sender === '' ? null : $sender;
     }
 
+    private function resolveOccurredAtForCommitment(Commitment $commitment): ?string
+    {
+        $eventId = $commitment->get('source_event_id');
+        if ($eventId === null) {
+            return null;
+        }
+
+        $event = $this->loadEvent((string) $eventId);
+        if ($event === null) {
+            return null;
+        }
+
+        foreach (['occurred', 'created_at'] as $field) {
+            $timestamp = $event->get($field);
+            if (is_string($timestamp) && trim($timestamp) !== '') {
+                return $timestamp;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveOccurredAtForLog(CommitmentExtractionLog $log): ?string
+    {
+        $timestamp = $log->get('created_at');
+
+        return is_string($timestamp) && trim($timestamp) !== '' ? $timestamp : null;
+    }
+
+    private function loadEvent(string $eventId): ?McEvent
+    {
+        if (! array_key_exists($eventId, $this->eventCache)) {
+            /** @var McEvent|null $event */
+            $event = $this->entityTypeManager->getStorage('mc_event')->load($eventId);
+            $this->eventCache[$eventId] = $event;
+        }
+
+        return $this->eventCache[$eventId];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $series
+     * @return array{
+     *   total_attempts: int,
+     *   successful_extractions: int,
+     *   low_confidence_logs: int,
+     *   average_confidence: float
+     * }
+     */
+    private function buildTrendSummary(array $series): array
+    {
+        $totalAttempts = 0;
+        $successfulExtractions = 0;
+        $lowConfidenceLogs = 0;
+        $confidenceTotal = 0.0;
+
+        foreach ($series as $point) {
+            $totalAttempts += (int) $point['total_attempts'];
+            $successfulExtractions += (int) $point['successful_extractions'];
+            $lowConfidenceLogs += (int) $point['low_confidence_logs'];
+            $confidenceTotal += (float) ($point['_confidence_total'] ?? 0.0);
+        }
+
+        return [
+            'total_attempts' => $totalAttempts,
+            'successful_extractions' => $successfulExtractions,
+            'low_confidence_logs' => $lowConfidenceLogs,
+            'average_confidence' => $totalAttempts > 0 ? round($confidenceTotal / $totalAttempts, 4) : 0.0,
+        ];
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $series
+     * @return list<array<string, mixed>>
+     */
+    private function finalizeSeries(array $series): array
+    {
+        $results = [];
+
+        foreach ($series as $point) {
+            $totalAttempts = (int) $point['total_attempts'];
+            $point['average_confidence'] = $totalAttempts > 0
+                ? round(((float) $point['_confidence_total']) / $totalAttempts, 4)
+                : 0.0;
+            unset($point['_confidence_total']);
+            $results[] = $point;
+        }
+
+        return $results;
+    }
+
+    private function parseDateTime(mixed $value): ?DateTimeImmutable
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        try {
+            return new DateTimeImmutable($value);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
-    private function normalizeLog(EntityInterface $log): array
+    private function normalizeLog(CommitmentExtractionLog $log): array
     {
         return [
             'id' => $log->id(),

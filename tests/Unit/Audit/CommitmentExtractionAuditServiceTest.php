@@ -23,21 +23,32 @@ final class CommitmentExtractionAuditServiceTest extends TestCase
         $entityTypeManager = $this->buildEntityTypeManager();
 
         $eventStorage = $entityTypeManager->getStorage('mc_event');
-        $alphaEventId = $eventStorage->save(new McEvent([
+        $alphaEvent = new McEvent([
             'source' => 'gmail',
             'type' => 'message.received',
             'payload' => '{"from_email":"alpha@example.com","subject":"Alpha"}',
-        ]));
-        $betaEventId = $eventStorage->save(new McEvent([
+            'content_hash' => 'audit-alpha',
+        ]);
+        $eventStorage->save($alphaEvent);
+        $alphaEventId = $alphaEvent->id();
+
+        $betaEvent = new McEvent([
             'source' => 'gmail',
             'type' => 'message.received',
             'payload' => '{"from_email":"beta@example.com","subject":"Beta"}',
-        ]));
-        $gammaEventId = $eventStorage->save(new McEvent([
+            'content_hash' => 'audit-beta',
+        ]);
+        $eventStorage->save($betaEvent);
+        $betaEventId = $betaEvent->id();
+
+        $gammaEvent = new McEvent([
             'source' => 'gmail',
             'type' => 'message.received',
             'payload' => '{"from_email":"gamma@example.com","subject":"Gamma"}',
-        ]));
+            'content_hash' => 'audit-gamma',
+        ]);
+        $eventStorage->save($gammaEvent);
+        $gammaEventId = $gammaEvent->id();
 
         $commitmentStorage = $entityTypeManager->getStorage('commitment');
         $commitmentStorage->save(new Commitment([
