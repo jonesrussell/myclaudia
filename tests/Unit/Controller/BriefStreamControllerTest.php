@@ -21,6 +21,7 @@ use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\EntityStorage\SqlEntityStorage;
 use Waaseyaa\EntityStorage\SqlSchemaHandler;
+use Waaseyaa\SSR\SsrResponse;
 
 final class BriefStreamControllerTest extends TestCase
 {
@@ -79,7 +80,7 @@ final class BriefStreamControllerTest extends TestCase
             httpRequest: $request,
         );
 
-        self::assertInstanceOf(\Waaseyaa\SSR\SsrResponse::class, $response);
+        self::assertInstanceOf(SsrResponse::class, $response);
         self::assertSame(200, $response->statusCode);
         self::assertSame('application/json', $response->headers['Content-Type']);
 

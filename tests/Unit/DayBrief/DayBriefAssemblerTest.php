@@ -16,6 +16,7 @@ use Claudriel\Temporal\AtomicTimeService;
 use Claudriel\Temporal\Clock\MonotonicClockInterface;
 use Claudriel\Temporal\Clock\WallClockInterface;
 use Claudriel\Temporal\RequestTimeSnapshotStore;
+use Claudriel\Temporal\TimeSnapshot;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Waaseyaa\Entity\EntityType;
@@ -124,7 +125,7 @@ final class DayBriefAssemblerTest extends TestCase
 
     public function test_uses_injected_snapshot_for_generated_metadata(): void
     {
-        $snapshot = new \Claudriel\Temporal\TimeSnapshot(
+        $snapshot = new TimeSnapshot(
             new \DateTimeImmutable('2026-03-14T12:00:00+00:00'),
             new \DateTimeImmutable('2026-03-14T08:00:00-04:00'),
             1234,
@@ -158,7 +159,7 @@ final class DayBriefAssemblerTest extends TestCase
             'tenant_id' => 'user-1',
         ]));
 
-        $snapshot = new \Claudriel\Temporal\TimeSnapshot(
+        $snapshot = new TimeSnapshot(
             new \DateTimeImmutable('2026-03-14T14:15:00+00:00'),
             new \DateTimeImmutable('2026-03-14T10:15:00-04:00'),
             5678,
