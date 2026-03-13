@@ -1,0 +1,342 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Platform Observability Dashboard{% endblock %}
+
+{% block styles %}
+  .observability-page {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .panel, .metric-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  }
+  .panel {
+    padding: 1rem 1.1rem;
+    margin-top: 1rem;
+  }
+  .hero h1, .panel h2 {
+    font-family: var(--font-display);
+  }
+  .hero p, .muted {
+    color: var(--text-secondary);
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.7rem 0.95rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(124, 196, 255, 0.3);
+    color: var(--accent-blue);
+    background: rgba(29, 91, 142, 0.12);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+  .metric-card {
+    padding: 0.95rem 1rem;
+  }
+  .metric-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metric-value {
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+  }
+  .two-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+  }
+  th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .severity-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 78px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+  }
+  .severity-pill.high, .severity-pill.critical {
+    color: #ffd0d0;
+    background: rgba(181, 52, 52, 0.18);
+    border: 1px solid rgba(240, 96, 96, 0.32);
+  }
+  .severity-pill.medium, .severity-pill.warning {
+    color: #ffe2b3;
+    background: rgba(177, 110, 16, 0.18);
+    border: 1px solid rgba(241, 180, 78, 0.28);
+  }
+  .severity-pill.low, .severity-pill.info {
+    color: #ccf3dd;
+    background: rgba(26, 122, 73, 0.18);
+    border: 1px solid rgba(87, 199, 138, 0.28);
+  }
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  li + li {
+    margin-top: 0.45rem;
+  }
+  @media (max-width: 900px) {
+    .two-column {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endblock %}
+
+{% block content %}
+  <main class="observability-page">
+    <section class="hero">
+      <p><a class="nav-link" href="/audit/commitment-extraction">Back to audit dashboard</a></p>
+      <h1>Platform Observability Dashboard</h1>
+      <p class="muted">{{ system_summary }}</p>
+    </section>
+
+    <section class="panel">
+      <h2>Extraction Health</h2>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <div class="metric-label">Avg confidence</div>
+          <div class="metric-value">{{ extraction_health.average_confidence }}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Low-confidence rate</div>
+          <div class="metric-value">{{ (extraction_health.low_confidence_rate * 100)|round(1) }}%</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Attempts</div>
+          <div class="metric-value">{{ extraction_health.summary_metrics.total_extraction_attempts }}</div>
+        </article>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Top failure categories</th>
+            <th>Count</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in extraction_health.top_failure_categories %}
+            <tr>
+              <td><code>{{ category.category }}</code></td>
+              <td>{{ category.count }}</td>
+              <td>{{ (category.rate * 100)|round(1) }}%</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="3">No failure categories recorded.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Drift Overview</h2>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <div class="metric-label">Classification</div>
+          <div class="metric-value">{{ drift_overview.classification }}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Avg delta</div>
+          <div class="metric-value">{{ drift_overview.delta.avg_confidence_delta > 0 ? '+' : '' }}{{ (drift_overview.delta.avg_confidence_delta * 100)|round(1) }}%</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Low-rate delta</div>
+          <div class="metric-value">{{ drift_overview.delta.low_confidence_rate_delta > 0 ? '+' : '' }}{{ (drift_overview.delta.low_confidence_rate_delta * 100)|round(1) }}%</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Self-Assessment</h2>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <div class="metric-label">Overall score</div>
+          <div class="metric-value">{{ self_assessment.overall_score }}/100</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Top hotspot</div>
+          <div class="metric-value">{{ self_assessment.sender_hotspots[0].sender|default('None') }}</div>
+        </article>
+      </div>
+      <div class="two-column">
+        <div>
+          <h3>Hotspots</h3>
+          <ul>
+            {% for hotspot in self_assessment.sender_hotspots %}
+              <li>{{ hotspot.sender }} ({{ hotspot.classification }})</li>
+            {% else %}
+              <li>No sender hotspots detected.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <h3>Focus Areas</h3>
+          <ul>
+            {% for area in self_assessment.recommended_focus_areas %}
+              <li>{{ area }}</li>
+            {% else %}
+              <li>No active focus areas.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Improvement Suggestions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Severity</th>
+            <th>Recommended action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for suggestion in improvement_suggestions %}
+            <tr>
+              <td><code>{{ suggestion.category }}</code></td>
+              <td><span class="severity-pill {{ suggestion.severity }}">{{ suggestion.severity }}</span></td>
+              <td>{{ suggestion.recommended_action }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="3">No suggestions generated.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Training Export Readiness</h2>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <div class="metric-label">Daily samples</div>
+          <div class="metric-value">{{ training_export_readiness.daily_sample_count }}</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Failure samples</div>
+          <div class="metric-value">{{ training_export_readiness.failure_sample_count }}</div>
+        </article>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Failure category</th>
+            <th>Count</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in training_export_readiness.failure_distribution %}
+            <tr>
+              <td><code>{{ category.category }}</code></td>
+              <td>{{ category.count }}</td>
+              <td>{{ (category.rate * 100)|round(1) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Governance Integrity</h2>
+      <p class="muted">{{ governance_integrity.summary }}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Issue</th>
+            <th>Severity</th>
+            <th>Context</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for issue in governance_integrity.issues %}
+            <tr>
+              <td><code>{{ issue.code }}</code></td>
+              <td><span class="severity-pill {{ governance_integrity.classifications[issue.code]|default('info') }}">{{ governance_integrity.classifications[issue.code]|default('info') }}</span></td>
+              <td>{{ issue.context }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="3">No governance issues detected.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Model Update Batches</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Batch ID</th>
+            <th>Generated</th>
+            <th>Samples</th>
+            <th>Drift</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for batch in model_update_batches %}
+            <tr>
+              <td><a href="/ai/model-update-batch/{{ batch.batch_id|url_encode }}.json">{{ batch.batch_id }}</a></td>
+              <td>{{ batch.generated_at|default('n/a') }}</td>
+              <td>{{ batch.total_samples|default('n/a') }}</td>
+              <td>{{ batch.drift_classification|default('n/a') }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="4">No stored model update batches available.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>System Summary</h2>
+      <p class="muted">{{ system_summary }}</p>
+    </section>
+  </main>
+{% endblock %}

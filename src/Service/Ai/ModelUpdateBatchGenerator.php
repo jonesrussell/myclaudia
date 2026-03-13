@@ -137,6 +137,53 @@ final class ModelUpdateBatchGenerator
     }
 
     /**
+     * @return list<array{
+     *   batch_id: string,
+     *   path: string,
+     *   generated_at: string|null,
+     *   window_days: int|null,
+     *   total_samples: int|null,
+     *   failure_rate: float|null,
+     *   drift_classification: string|null
+     * }>
+     */
+    public function listStoredBatches(int $limit = 10): array
+    {
+        if (! is_dir($this->storageDirectory)) {
+            return [];
+        }
+
+        $files = glob(rtrim($this->storageDirectory, '/').'/*.json') ?: [];
+        rsort($files);
+
+        $batches = [];
+        foreach (array_slice($files, 0, max(1, $limit)) as $file) {
+            $contents = file_get_contents($file);
+            if (! is_string($contents) || trim($contents) === '') {
+                continue;
+            }
+
+            /** @var array<string, mixed> $payload */
+            $payload = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            $metadata = $payload['metadata'] ?? [];
+
+            $batches[] = [
+                'batch_id' => (string) ($payload['batch_id'] ?? basename($file, '.json')),
+                'path' => $file,
+                'generated_at' => is_string($metadata['generated_at'] ?? null) ? $metadata['generated_at'] : null,
+                'window_days' => is_int($metadata['window_days'] ?? null) ? $metadata['window_days'] : null,
+                'total_samples' => is_int($metadata['total_samples'] ?? null) ? $metadata['total_samples'] : null,
+                'failure_rate' => is_float($metadata['failure_rate'] ?? null) || is_int($metadata['failure_rate'] ?? null)
+                    ? (float) $metadata['failure_rate']
+                    : null,
+                'drift_classification' => is_string($metadata['drift_classification'] ?? null) ? $metadata['drift_classification'] : null,
+            ];
+        }
+
+        return $batches;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function loadBatch(string $batchId): ?array

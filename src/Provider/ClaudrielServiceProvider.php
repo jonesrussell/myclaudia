@@ -26,6 +26,7 @@ use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\IngestController;
 use Claudriel\Controller\NotFoundController;
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\WorkspaceApiController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
@@ -368,6 +369,25 @@ final class ClaudrielServiceProvider extends ServiceProvider
             'claudriel.governance.integrity_json',
             RouteBuilder::create('/governance/integrity.json')
                 ->controller(CodifiedContextIntegrityController::class.'::jsonView')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.platform.observability',
+            RouteBuilder::create('/platform/observability')
+                ->controller(ObservabilityDashboardController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.platform.observability_json',
+            RouteBuilder::create('/platform/observability.json')
+                ->controller(ObservabilityDashboardController::class.'::jsonView')
                 ->allowAll()
                 ->methods('GET')
                 ->build(),
