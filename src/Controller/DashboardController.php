@@ -89,7 +89,7 @@ final class DashboardController
         $brief = $assembler->assemble($scope->tenantId, $since, $scope->workspaceId(), $snapshot);
         $briefPayload = $this->buildBriefPayload($brief);
         $fallbackPayload = [
-            'workspaces' => $briefPayload['workspaces'] ?? [],
+            'workspaces' => $briefPayload['workspaces'],
             'briefs' => $briefPayload,
             'updated_at' => $snapshot->utc()->format(\DateTimeInterface::ATOM),
         ];
@@ -135,7 +135,7 @@ final class DashboardController
                 'api_configured' => $apiConfigured,
                 'csrf_token' => CsrfMiddleware::token(),
                 'model' => $model,
-                'workspaces' => $brief['workspaces'] ?? [],
+                'workspaces' => $brief['workspaces'],
                 'brief_fallback_payload' => json_encode($fallbackPayload, JSON_THROW_ON_ERROR),
                 'brief_fallback_url' => '/stream/brief?transport=fallback&request_id='.$requestId,
             ]));
@@ -153,7 +153,7 @@ final class DashboardController
                 'brief' => $briefPayload,
                 'sessions' => $twigSessions,
                 'api_configured' => $apiConfigured,
-                'workspaces' => $brief['workspaces'] ?? [],
+                'workspaces' => $brief['workspaces'],
                 'brief_fallback' => $fallbackPayload,
                 'brief_fallback_url' => '/stream/brief?transport=fallback&request_id='.$requestId,
             ], JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR),
