@@ -1,0 +1,336 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Commitment Extraction Audit{% endblock %}
+
+{% block styles %}
+  .audit-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .audit-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .audit-hero h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+  .audit-hero p {
+    color: var(--text-secondary);
+    max-width: 48rem;
+  }
+  .hero-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .hero-link:hover {
+    text-decoration: underline;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .metric-card, .panel {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  }
+  .metric-card {
+    padding: 1rem 1.1rem;
+  }
+  .metric-label {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-top: 0.35rem;
+  }
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .panel {
+    padding: 1rem 1.1rem;
+  }
+  .panel h2 {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    margin-bottom: 0.9rem;
+  }
+  .histogram {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .histogram-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 48px;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .histogram-bar {
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(107, 109, 130, 0.18);
+    overflow: hidden;
+  }
+  .histogram-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-amber), var(--accent-teal));
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+  }
+  th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  td code {
+    font-size: 0.83rem;
+    color: var(--accent-teal);
+  }
+  .rate-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(240, 96, 96, 0.12);
+    color: #ffb6b6;
+    border: 1px solid rgba(240, 96, 96, 0.25);
+  }
+  .log-link {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+  .log-link:hover {
+    text-decoration: underline;
+  }
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    color: var(--text-secondary);
+  }
+  .pagination a {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+  .pagination a:hover {
+    text-decoration: underline;
+  }
+  .empty-state {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  @media (max-width: 900px) {
+    .panel-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endblock %}
+
+{% block content %}
+  {% set max_bucket = 1 %}
+  {% for bucket in confidence_distribution %}
+    {% if bucket.count > max_bucket %}
+      {% set max_bucket = bucket.count %}
+    {% endif %}
+  {% endfor %}
+
+  <main class="audit-page">
+    {% include 'components/status-bar.twig' with { data: statusBarData } %}
+    <section class="audit-hero">
+      <div>
+        <h1>Commitment Extraction Audit</h1>
+        <p>Track extraction quality across successful commitments and low-confidence rejections, then drill into the raw payloads behind each weak result.</p>
+        <p><a class="hero-link" href="/audit/commitment-extraction/trends">View time-based trend reporting</a></p>
+        <p><a class="hero-link" href="/audit/commitment-extraction/drift">View drift detection and alerts</a></p>
+        <p><a class="hero-link" href="/ai/self-assessment">View autonomous self-assessment</a></p>
+        <p><a class="hero-link" href="/ai/improvement-suggestions">View improvement suggestions</a></p>
+        <p><a class="hero-link" href="/governance/integrity">Run integrity scan</a></p>
+        <p><a class="hero-link" href="/platform/observability">Open platform observability dashboard</a></p>
+      </div>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <div class="metric-label">Total extraction attempts</div>
+        <div class="metric-value">{{ metrics.total_extraction_attempts }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Successful commitments</div>
+        <div class="metric-value">{{ metrics.total_successful_commitments }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Low-confidence logs</div>
+        <div class="metric-value">{{ metrics.total_low_confidence_logs }}</div>
+      </article>
+    </section>
+
+    <section class="panel-grid">
+      <article class="panel">
+        <h2>Confidence Histogram</h2>
+        <div class="histogram">
+          {% for bucket in confidence_distribution %}
+            <div class="histogram-row">
+              <strong>{{ bucket.label }}</strong>
+              <div class="histogram-bar">
+                <div class="histogram-fill" style="width: {{ max_bucket > 0 ? (bucket.count / max_bucket * 100) : 0 }}%"></div>
+              </div>
+              <span>{{ bucket.count }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Top Senders by Low-Confidence Rate</h2>
+        {% if top_senders %}
+          <table>
+            <thead>
+              <tr>
+                <th>Sender</th>
+                <th>Rate</th>
+                <th>Low</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sender in top_senders %}
+                <tr>
+                  <td><a class="log-link" href="/audit/commitment-extraction/sender/{{ sender.sender|url_encode }}"><code>{{ sender.sender }}</code></a></td>
+                  <td><span class="rate-pill">{{ (sender.low_confidence_rate * 100)|round(1) }}%</span></td>
+                  <td>{{ sender.low_confidence_attempts }}</td>
+                  <td>{{ sender.total_attempts }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="empty-state">No sender data available yet.</p>
+        {% endif %}
+      </article>
+    </section>
+
+    <section class="panel" style="margin-bottom: 1rem;">
+      <h2>Failure Categories</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Count</th>
+            <th>Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in failure_category_distribution %}
+            <tr>
+              <td><code>{{ category.category }}</code></td>
+              <td>{{ category.count }}</td>
+              <td>{{ (category.rate * 100)|round(1) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" style="margin-bottom: 1rem;">
+      <h2>Export Training Data</h2>
+      <p class="empty-state" style="font-style: normal;">Generate JSON exports for retraining workflows from recent extraction attempts and known failures.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Export</th>
+            <th>Endpoint</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Daily training samples</td>
+            <td><a class="log-link" href="/ai/export/daily.json"><code>/ai/export/daily.json</code></a></td>
+          </tr>
+          <tr>
+            <td>Sender training samples</td>
+            <td><a class="log-link" href="/ai/export/sender/alpha%40example.com.json"><code>/ai/export/sender/{email}.json</code></a></td>
+          </tr>
+          <tr>
+            <td>All recent failures</td>
+            <td><a class="log-link" href="/ai/export/failures.json"><code>/ai/export/failures.json</code></a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Low-Confidence Log Entries</h2>
+      {% if logs.items %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Sender</th>
+              <th>Confidence</th>
+              <th>Failure category</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs.items %}
+              <tr>
+                <td>{{ log.id }}</td>
+                <td>{{ log.sender ?? 'unknown' }}</td>
+                <td>{{ (log.confidence * 100)|round(1) }}%</td>
+                <td><code>{{ log.failure_category }}</code></td>
+                <td>{{ log.created_at ?? 'n/a' }}</td>
+                <td><a class="log-link" href="/audit/commitment-extraction/log/{{ log.id }}">Inspect log</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span>Page {{ logs.page }} of {{ logs.total_pages }} · {{ logs.total }} logs</span>
+          <span>
+            {% if logs.page > 1 %}
+              <a href="/audit/commitment-extraction?page={{ logs.page - 1 }}&per_page={{ logs.per_page }}">Previous</a>
+            {% endif %}
+            {% if logs.page < logs.total_pages %}
+              <a href="/audit/commitment-extraction?page={{ logs.page + 1 }}&per_page={{ logs.per_page }}">Next</a>
+            {% endif %}
+          </span>
+        </div>
+      {% else %}
+        <p class="empty-state">No low-confidence logs have been recorded.</p>
+      {% endif %}
+    </section>
+  </main>
+{% endblock %}

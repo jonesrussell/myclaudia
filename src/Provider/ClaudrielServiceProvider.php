@@ -11,6 +11,11 @@ use Claudriel\Command\RecategorizeEventsCommand;
 use Claudriel\Command\SkillsCommand;
 use Claudriel\Command\WorkspaceCreateCommand;
 use Claudriel\Command\WorkspacesCommand;
+use Claudriel\Controller\Ai\ExtractionImprovementSuggestionController;
+use Claudriel\Controller\Ai\ExtractionSelfAssessmentController;
+use Claudriel\Controller\Ai\ModelUpdateBatchController;
+use Claudriel\Controller\Ai\TrainingExportController;
+use Claudriel\Controller\Audit\CommitmentExtractionAuditController;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
@@ -18,8 +23,10 @@ use Claudriel\Controller\CommitmentUpdateController;
 use Claudriel\Controller\ContextController;
 use Claudriel\Controller\DashboardController;
 use Claudriel\Controller\DayBriefController;
+use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\IngestController;
 use Claudriel\Controller\NotFoundController;
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\WorkspaceApiController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
@@ -27,6 +34,7 @@ use Claudriel\Entity\Account;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
 use Claudriel\Entity\Commitment;
+use Claudriel\Entity\CommitmentExtractionLog;
 use Claudriel\Entity\Integration;
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
@@ -83,6 +91,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Commitment',
             class: Commitment::class,
             keys: ['id' => 'cid', 'uuid' => 'uuid', 'label' => 'title'],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'commitment_extraction_log',
+            label: 'Commitment Extraction Log',
+            class: CommitmentExtractionLog::class,
+            keys: ['id' => 'celid', 'uuid' => 'uuid'],
         ));
 
         $this->entityType(new EntityType(
@@ -258,6 +273,204 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $deleteRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.api.workspaces.delete', $deleteRoute);
 
+        $router->addRoute(
+            'claudriel.ai.export.daily',
+            RouteBuilder::create('/ai/export/daily.json')
+                ->controller(TrainingExportController::class.'::daily')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.export.sender',
+            RouteBuilder::create('/ai/export/sender/{email}.json')
+                ->controller(TrainingExportController::class.'::sender')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.export.failures',
+            RouteBuilder::create('/ai/export/failures.json')
+                ->controller(TrainingExportController::class.'::failures')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.self_assessment',
+            RouteBuilder::create('/ai/self-assessment')
+                ->controller(ExtractionSelfAssessmentController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.self_assessment_json',
+            RouteBuilder::create('/ai/self-assessment.json')
+                ->controller(ExtractionSelfAssessmentController::class.'::jsonView')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.improvement_suggestions',
+            RouteBuilder::create('/ai/improvement-suggestions')
+                ->controller(ExtractionImprovementSuggestionController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.ai.improvement_suggestions_json',
+            RouteBuilder::create('/ai/improvement-suggestions.json')
+                ->controller(ExtractionImprovementSuggestionController::class.'::jsonView')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $modelUpdateBatchRoute = RouteBuilder::create('/ai/model-update-batch')
+            ->controller(ModelUpdateBatchController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $modelUpdateBatchRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.ai.model_update_batch', $modelUpdateBatchRoute);
+
+        $router->addRoute(
+            'claudriel.ai.model_update_batch_show',
+            RouteBuilder::create('/ai/model-update-batch/{batchId}.json')
+                ->controller(ModelUpdateBatchController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.governance.integrity',
+            RouteBuilder::create('/governance/integrity')
+                ->controller(CodifiedContextIntegrityController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.governance.integrity_json',
+            RouteBuilder::create('/governance/integrity.json')
+                ->controller(CodifiedContextIntegrityController::class.'::jsonView')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.platform.observability',
+            RouteBuilder::create('/platform/observability')
+                ->controller(ObservabilityDashboardController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.platform.observability_json',
+            RouteBuilder::create('/platform/observability.json')
+                ->controller(ObservabilityDashboardController::class.'::jsonView')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction',
+            RouteBuilder::create('/audit/commitment-extraction')
+                ->controller(CommitmentExtractionAuditController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.show',
+            RouteBuilder::create('/audit/commitment-extraction/log/{id}')
+                ->controller(CommitmentExtractionAuditController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.trends',
+            RouteBuilder::create('/audit/commitment-extraction/trends')
+                ->controller(CommitmentExtractionAuditController::class.'::trends')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.trends_json',
+            RouteBuilder::create('/audit/commitment-extraction/trends.json')
+                ->controller(CommitmentExtractionAuditController::class.'::trendsJson')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.sender',
+            RouteBuilder::create('/audit/commitment-extraction/sender/{email}')
+                ->controller(CommitmentExtractionAuditController::class.'::sender')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.drift',
+            RouteBuilder::create('/audit/commitment-extraction/drift')
+                ->controller(CommitmentExtractionAuditController::class.'::drift')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.drift_json',
+            RouteBuilder::create('/audit/commitment-extraction/drift.json')
+                ->controller(CommitmentExtractionAuditController::class.'::driftJson')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.sender_drift',
+            RouteBuilder::create('/audit/commitment-extraction/drift/sender/{email}')
+                ->controller(CommitmentExtractionAuditController::class.'::senderDrift')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
         // @see https://github.com/jonesrussell/claudriel/issues/21
@@ -279,7 +492,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'person', 'account', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Ingestion;
 
 use Claudriel\Entity\Commitment;
+use Claudriel\Entity\CommitmentExtractionLog;
 use Claudriel\Entity\McEvent;
 use Claudriel\Ingestion\CommitmentHandler;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +23,12 @@ final class CommitmentHandlerTest extends TestCase
             new InMemoryStorageDriver,
             new EventDispatcher,
         );
-        $handler = new CommitmentHandler($repo);
+        $logRepo = new EntityRepository(
+            new EntityType(id: 'commitment_extraction_log', label: 'Commitment Extraction Log', class: CommitmentExtractionLog::class, keys: ['id' => 'celid', 'uuid' => 'uuid']),
+            new InMemoryStorageDriver,
+            new EventDispatcher,
+        );
+        $handler = new CommitmentHandler($repo, $logRepo);
         $event = new McEvent(['source' => 'gmail', 'type' => 'message.received', 'payload' => '{}']);
         $candidates = [
             ['title' => 'Send report', 'confidence' => 0.92],

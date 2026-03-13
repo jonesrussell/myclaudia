@@ -1,0 +1,169 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Sender Extraction Drift{% endblock %}
+
+{% block styles %}
+  .sender-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .panel, .metric-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  }
+  .panel {
+    padding: 1rem 1.1rem;
+    margin-top: 1rem;
+  }
+  .hero h1, .panel h2 {
+    font-family: var(--font-display);
+  }
+  .hero p, .muted {
+    color: var(--text-secondary);
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+  .metric-card {
+    padding: 0.95rem 1rem;
+  }
+  .metric-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .metric-value {
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+  }
+  .drift-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 186, 108, 0.28);
+    background: rgba(255, 186, 108, 0.12);
+    color: #ffd59a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 0.7rem 0.6rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .nav-link:hover {
+    text-decoration: underline;
+  }
+{% endblock %}
+
+{% block content %}
+  <main class="sender-page">
+    <section class="hero">
+      <a class="nav-link" href="/audit/commitment-extraction/drift">Back to drift detection</a>
+      <h1>Sender Drift: {{ sender_drift.sender }}</h1>
+      <p class="muted">
+        Comparing {{ sender_drift.current_window.start_date }} to {{ sender_drift.current_window.end_date }}
+        against {{ sender_drift.previous_window.start_date }} to {{ sender_drift.previous_window.end_date }}.
+      </p>
+      <p><span class="drift-pill">{{ sender_drift.classification }}</span></p>
+    </section>
+
+    <section class="metric-grid">
+      <article class="metric-card">
+        <div class="metric-label">Avg confidence delta</div>
+        <div class="metric-value">{{ sender_drift.delta.avg_confidence_delta > 0 ? '+' : '' }}{{ (sender_drift.delta.avg_confidence_delta * 100)|round(1) }}%</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Low-confidence rate delta</div>
+        <div class="metric-value">{{ sender_drift.delta.low_confidence_rate_delta > 0 ? '+' : '' }}{{ (sender_drift.delta.low_confidence_rate_delta * 100)|round(1) }}%</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Current attempts</div>
+        <div class="metric-value">{{ sender_drift.current_window.total_attempts }}</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Previous attempts</div>
+        <div class="metric-value">{{ sender_drift.previous_window.total_attempts }}</div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Drift Metrics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Current</th>
+            <th>Previous</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Average confidence</td>
+            <td>{{ (sender_drift.current_window.average_confidence * 100)|round(1) }}%</td>
+            <td>{{ (sender_drift.previous_window.average_confidence * 100)|round(1) }}%</td>
+            <td>{{ sender_drift.delta.avg_confidence_delta > 0 ? '+' : '' }}{{ (sender_drift.delta.avg_confidence_delta * 100)|round(1) }}%</td>
+          </tr>
+          <tr>
+            <td>Low-confidence rate</td>
+            <td>{{ (sender_drift.current_window.low_confidence_rate * 100)|round(1) }}%</td>
+            <td>{{ (sender_drift.previous_window.low_confidence_rate * 100)|round(1) }}%</td>
+            <td>{{ sender_drift.delta.low_confidence_rate_delta > 0 ? '+' : '' }}{{ (sender_drift.delta.low_confidence_rate_delta * 100)|round(1) }}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Failure Category Drift</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Current rate</th>
+            <th>Previous rate</th>
+            <th>Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in sender_drift.delta.failure_category_distribution_delta %}
+            <tr>
+              <td><code>{{ category.category }}</code></td>
+              <td>{{ (category.current_rate * 100)|round(1) }}%</td>
+              <td>{{ (category.previous_rate * 100)|round(1) }}%</td>
+              <td>{{ category.delta > 0 ? '+' : '' }}{{ (category.delta * 100)|round(1) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+{% endblock %}
