@@ -28,6 +28,7 @@ use Claudriel\Controller\Audit\CommitmentExtractionAuditController;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
+use Claudriel\Controller\CommitmentApiController;
 use Claudriel\Controller\CommitmentUpdateController;
 use Claudriel\Controller\ContextController;
 use Claudriel\Controller\DashboardController;
@@ -35,8 +36,10 @@ use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\IngestController;
 use Claudriel\Controller\NotFoundController;
+use Claudriel\Controller\PeopleApiController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\ScheduleApiController;
+use Claudriel\Controller\TriageApiController;
 use Claudriel\Controller\WorkspaceApiController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
@@ -239,6 +242,48 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->build(),
         );
 
+        $router->addRoute(
+            'claudriel.api.commitments',
+            RouteBuilder::create('/api/commitments')
+                ->controller(CommitmentApiController::class.'::list')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $createCommitmentRoute = RouteBuilder::create('/api/commitments')
+            ->controller(CommitmentApiController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $createCommitmentRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.commitments.create', $createCommitmentRoute);
+
+        $router->addRoute(
+            'claudriel.api.commitments.show',
+            RouteBuilder::create('/api/commitments/{uuid}')
+                ->controller(CommitmentApiController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $updateCommitmentRoute = RouteBuilder::create('/api/commitments/{uuid}')
+            ->controller(CommitmentApiController::class.'::update')
+            ->allowAll()
+            ->methods('PATCH')
+            ->build();
+        $updateCommitmentRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.commitments.update', $updateCommitmentRoute);
+
+        $deleteCommitmentRoute = RouteBuilder::create('/api/commitments/{uuid}')
+            ->controller(CommitmentApiController::class.'::delete')
+            ->allowAll()
+            ->methods('DELETE')
+            ->build();
+        $deleteCommitmentRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.commitments.delete', $deleteCommitmentRoute);
+
         $ingestRoute = RouteBuilder::create('/api/ingest')
             ->controller(IngestController::class.'::handle')
             ->allowAll()
@@ -358,6 +403,90 @@ final class ClaudrielServiceProvider extends ServiceProvider
             ->build();
         $deleteScheduleRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.api.schedule.delete', $deleteScheduleRoute);
+
+        $router->addRoute(
+            'claudriel.api.people',
+            RouteBuilder::create('/api/people')
+                ->controller(PeopleApiController::class.'::list')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $createPeopleRoute = RouteBuilder::create('/api/people')
+            ->controller(PeopleApiController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $createPeopleRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.people.create', $createPeopleRoute);
+
+        $router->addRoute(
+            'claudriel.api.people.show',
+            RouteBuilder::create('/api/people/{uuid}')
+                ->controller(PeopleApiController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $updatePeopleRoute = RouteBuilder::create('/api/people/{uuid}')
+            ->controller(PeopleApiController::class.'::update')
+            ->allowAll()
+            ->methods('PATCH')
+            ->build();
+        $updatePeopleRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.people.update', $updatePeopleRoute);
+
+        $deletePeopleRoute = RouteBuilder::create('/api/people/{uuid}')
+            ->controller(PeopleApiController::class.'::delete')
+            ->allowAll()
+            ->methods('DELETE')
+            ->build();
+        $deletePeopleRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.people.delete', $deletePeopleRoute);
+
+        $router->addRoute(
+            'claudriel.api.triage',
+            RouteBuilder::create('/api/triage')
+                ->controller(TriageApiController::class.'::list')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $createTriageRoute = RouteBuilder::create('/api/triage')
+            ->controller(TriageApiController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $createTriageRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.triage.create', $createTriageRoute);
+
+        $router->addRoute(
+            'claudriel.api.triage.show',
+            RouteBuilder::create('/api/triage/{uuid}')
+                ->controller(TriageApiController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $updateTriageRoute = RouteBuilder::create('/api/triage/{uuid}')
+            ->controller(TriageApiController::class.'::update')
+            ->allowAll()
+            ->methods('PATCH')
+            ->build();
+        $updateTriageRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.triage.update', $updateTriageRoute);
+
+        $deleteTriageRoute = RouteBuilder::create('/api/triage/{uuid}')
+            ->controller(TriageApiController::class.'::delete')
+            ->allowAll()
+            ->methods('DELETE')
+            ->build();
+        $deleteTriageRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.triage.delete', $deleteTriageRoute);
 
         $router->addRoute(
             'claudriel.ai.export.daily',
