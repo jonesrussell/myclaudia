@@ -9,6 +9,7 @@ use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
 use Claudriel\Domain\Chat\SidecarChatClient;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Entity\ChatMessage;
+use Claudriel\Entity\Workspace;
 use Claudriel\Support\DriftDetector;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Waaseyaa\Entity\EntityTypeManager;
@@ -42,6 +43,11 @@ final class ChatStreamController
         $userMsg = $msgStorage->load(reset($ids));
         $sessionUuid = $userMsg->get('session_uuid');
 
+        $localActionResponse = $this->handleLocalAction($userMsg, $msgStorage);
+        if ($localActionResponse instanceof StreamedResponse) {
+            return $localActionResponse;
+        }
+
         // Check API key
         $apiKey = $this->getApiKey();
         if ($apiKey === null) {
@@ -58,6 +64,67 @@ final class ChatStreamController
                     session_write_close();
                 }
                 $this->streamTokens($sessionUuid, $apiKey, $msgStorage);
+            },
+            200,
+            [
+                'Content-Type' => 'text/event-stream',
+                'Cache-Control' => 'no-cache',
+                'Connection' => 'keep-alive',
+                'X-Accel-Buffering' => 'no',
+            ],
+        );
+    }
+
+    private function handleLocalAction(mixed $userMsg, mixed $msgStorage): ?StreamedResponse
+    {
+        $content = trim((string) $userMsg->get('content'));
+        $workspaceName = $this->extractWorkspaceName($content);
+
+        if ($workspaceName === null) {
+            return null;
+        }
+
+        $workspaceStorage = $this->entityTypeManager->getStorage('workspace');
+        $existingIds = $workspaceStorage->getQuery()->condition('name', $workspaceName)->execute();
+
+        if ($existingIds !== []) {
+            $existing = $workspaceStorage->load(reset($existingIds));
+            $responseText = sprintf(
+                'The workspace "%s" already exists.',
+                (string) ($existing?->get('name') ?? $workspaceName),
+            );
+        } else {
+            $workspace = new Workspace([
+                'name' => $workspaceName,
+                'description' => '',
+            ]);
+            $workspaceStorage->save($workspace);
+
+            $responseText = sprintf(
+                'Created the Claudriel workspace "%s". Refresh the sidebar if it is not visible yet.',
+                $workspaceName,
+            );
+        }
+
+        return new StreamedResponse(
+            function () use ($userMsg, $msgStorage, $responseText): void {
+                echo "retry: 3000\n\n";
+
+                $assistantMsg = new ChatMessage([
+                    'uuid' => $this->generateUuid(),
+                    'session_uuid' => $userMsg->get('session_uuid'),
+                    'role' => 'assistant',
+                    'content' => $responseText,
+                    'created_at' => (new \DateTimeImmutable)->format('c'),
+                ]);
+                $msgStorage->save($assistantMsg);
+
+                $data = json_encode(['done' => true, 'full_response' => $responseText], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+                echo "event: chat-done\ndata: {$data}\n\n";
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+                flush();
             },
             200,
             [
@@ -225,5 +292,16 @@ final class ChatStreamController
             random_int(0, 0x3FFF) | 0x8000,
             random_int(0, 0xFFFF), random_int(0, 0xFFFF), random_int(0, 0xFFFF),
         );
+    }
+
+    private function extractWorkspaceName(string $message): ?string
+    {
+        if (! preg_match('/\bcreate\b.*\bworkspace\b.*\b(?:named|called)\s+["\']?([^"\']+)["\']?/i', $message, $matches)) {
+            return null;
+        }
+
+        $name = trim($matches[1]);
+
+        return $name !== '' ? $name : null;
     }
 }
