@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller\Audit;
 
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Service\Audit\CommitmentExtractionAuditService;
 use Claudriel\Service\Audit\CommitmentExtractionDriftDetector;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,8 @@ final class CommitmentExtractionAuditController
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
         private readonly ?Environment $twig = null,
+        private readonly ?string $projectRoot = null,
+        private readonly ?string $batchStorageDirectory = null,
     ) {}
 
     public function index(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
@@ -25,6 +28,7 @@ final class CommitmentExtractionAuditController
         $perPage = max(1, (int) ($query['per_page'] ?? $httpRequest?->query->get('per_page', 25) ?? 25));
 
         $payload = [
+            'statusBarData' => $this->getStatusBarData(),
             'metrics' => $service->getSummaryMetrics(),
             'confidence_distribution' => $service->getConfidenceDistribution(),
             'failure_category_counts' => $service->getFailureCategoryCounts(),
@@ -233,5 +237,18 @@ final class CommitmentExtractionAuditController
             statusCode: $statusCode,
             headers: ['Content-Type' => 'application/json'],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getStatusBarData(): array
+    {
+        return (new ObservabilityDashboardController(
+            $this->entityTypeManager,
+            null,
+            $this->projectRoot,
+            $this->batchStorageDirectory,
+        ))->getStatusBarData();
     }
 }

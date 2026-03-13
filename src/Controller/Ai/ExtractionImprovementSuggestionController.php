@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller\Ai;
 
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Service\Ai\ExtractionImprovementSuggestionService;
 use Claudriel\Service\Ai\ExtractionSelfAssessmentService;
 use Claudriel\Service\Ai\TrainingExportService;
@@ -20,6 +21,8 @@ final class ExtractionImprovementSuggestionController
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
         private readonly ?Environment $twig = null,
+        private readonly ?string $projectRoot = null,
+        private readonly ?string $batchStorageDirectory = null,
     ) {}
 
     public function index(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
@@ -56,6 +59,7 @@ final class ExtractionImprovementSuggestionController
         return [
             'report' => $report,
             'summary' => $service->summarizeSuggestions($report['suggestions']),
+            'statusBarData' => $this->getStatusBarData(),
         ];
     }
 
@@ -83,5 +87,18 @@ final class ExtractionImprovementSuggestionController
             statusCode: $statusCode,
             headers: ['Content-Type' => 'application/json'],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getStatusBarData(): array
+    {
+        return (new ObservabilityDashboardController(
+            $this->entityTypeManager,
+            null,
+            $this->projectRoot,
+            $this->batchStorageDirectory,
+        ))->getStatusBarData();
     }
 }

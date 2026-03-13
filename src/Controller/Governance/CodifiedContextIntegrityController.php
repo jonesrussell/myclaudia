@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller\Governance;
 
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Service\Governance\CodifiedContextIntegrityScanner;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
 final class CodifiedContextIntegrityController
 {
     public function __construct(
+        private readonly EntityTypeManager $entityTypeManager,
         private readonly ?Environment $twig = null,
         private readonly ?string $projectRoot = null,
+        private readonly ?string $batchStorageDirectory = null,
     ) {}
 
     public function index(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
@@ -49,6 +53,7 @@ final class CodifiedContextIntegrityController
 
         return [
             'generated_at' => $scan['generated_at'],
+            'statusBarData' => $this->getStatusBarData(),
             'issues' => $scan['issues'],
             'classifications' => $classifications,
             'summary' => $scanner->summarize($scan['issues']),
@@ -65,5 +70,18 @@ final class CodifiedContextIntegrityController
             statusCode: $statusCode,
             headers: ['Content-Type' => 'application/json'],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getStatusBarData(): array
+    {
+        return (new ObservabilityDashboardController(
+            $this->entityTypeManager,
+            null,
+            $this->projectRoot,
+            $this->batchStorageDirectory,
+        ))->getStatusBarData();
     }
 }

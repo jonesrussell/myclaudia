@@ -50,6 +50,63 @@ final class ObservabilityDashboardController
     }
 
     /**
+     * @return array{
+     *   items: list<array{label: string, value: string, status: string, badge: string}>
+     * }
+     */
+    public function getStatusBarData(): array
+    {
+        $services = $this->buildServices();
+        $snapshot = $services['audit']->getQualitySnapshot(14);
+        $assessment = $services['self_assessment']->generateAssessment(14);
+        $drift = $services['drift']->detectDailyDrift(14);
+        $integrityScan = $services['integrity']->scan();
+        $batches = $services['batch_generator']->listStoredBatches(1);
+        $lastBatch = is_string($batches[0]['generated_at'] ?? null) ? $batches[0]['generated_at'] : 'No batches';
+
+        $scoreStatus = $this->resolveScoreStatus($assessment['overall_score']);
+        $driftStatus = $this->resolveDriftStatus($drift['classification']);
+        $failureRateStatus = $this->resolveFailureRateStatus($snapshot['low_confidence_rate']);
+        $integrityStatus = $this->resolveIntegrityStatus(count($integrityScan['issues']));
+        $batchStatus = $batches === [] ? 'yellow' : 'green';
+
+        return [
+            'items' => [
+                [
+                    'label' => 'Extraction Health',
+                    'value' => sprintf('%d/100', $assessment['overall_score']),
+                    'status' => $scoreStatus,
+                    'badge' => $scoreStatus,
+                ],
+                [
+                    'label' => 'Drift',
+                    'value' => ucfirst($drift['classification']),
+                    'status' => $driftStatus,
+                    'badge' => $driftStatus,
+                ],
+                [
+                    'label' => 'Failure Rate',
+                    'value' => sprintf('%.1f%%', $snapshot['low_confidence_rate'] * 100),
+                    'status' => $failureRateStatus,
+                    'badge' => $failureRateStatus,
+                ],
+                [
+                    'label' => 'Integrity',
+                    'value' => count($integrityScan['issues']) === 0 ? 'Healthy' : sprintf('%d issues', count($integrityScan['issues'])),
+                    'status' => $integrityStatus,
+                    'badge' => $integrityStatus,
+                ],
+                [
+                    'label' => 'Last Model Batch',
+                    'value' => $lastBatch,
+                    'status' => $batchStatus,
+                    'badge' => $batchStatus,
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function buildPayload(array $query = [], ?Request $httpRequest = null): array
@@ -70,6 +127,7 @@ final class ObservabilityDashboardController
         $payload = [
             'generated_at' => (new DateTimeImmutable)->format(\DateTimeInterface::ATOM),
             'window_days' => $days,
+            'statusBarData' => $this->getStatusBarData(),
             'extraction_health' => [
                 'average_confidence' => $qualitySnapshot['average_confidence'],
                 'low_confidence_rate' => $qualitySnapshot['low_confidence_rate'],
@@ -182,6 +240,42 @@ final class ObservabilityDashboardController
             count($payload['model_update_batches']),
             count($payload['model_update_batches']) === 1 ? '' : 'es',
         );
+    }
+
+    private function resolveScoreStatus(int $score): string
+    {
+        return match (true) {
+            $score >= 75 => 'green',
+            $score >= 55 => 'yellow',
+            default => 'red',
+        };
+    }
+
+    private function resolveDriftStatus(string $classification): string
+    {
+        return match ($classification) {
+            'none' => 'green',
+            'minor' => 'yellow',
+            default => 'red',
+        };
+    }
+
+    private function resolveFailureRateStatus(float $rate): string
+    {
+        return match (true) {
+            $rate < 0.2 => 'green',
+            $rate < 0.4 => 'yellow',
+            default => 'red',
+        };
+    }
+
+    private function resolveIntegrityStatus(int $issues): string
+    {
+        return match (true) {
+            $issues === 0 => 'green',
+            $issues <= 2 => 'yellow',
+            default => 'red',
+        };
     }
 
     /**

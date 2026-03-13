@@ -110,6 +110,7 @@
 
 {% block content %}
   <main class="assessment-page">
+    {% include 'components/status-bar.twig' with { data: statusBarData } %}
     <section class="hero">
       <div class="action-row">
         <a class="nav-link" href="/audit/commitment-extraction">Back to audit dashboard</a>

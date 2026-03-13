@@ -121,6 +121,7 @@
 
 {% block content %}
   <main class="observability-page">
+    {% include 'components/status-bar.twig' with { data: statusBarData } %}
     <section class="hero">
       <p><a class="nav-link" href="/audit/commitment-extraction">Back to audit dashboard</a></p>
       <h1>Platform Observability Dashboard</h1>

@@ -69,6 +69,7 @@
 
 {% block content %}
   <main class="integrity-page">
+    {% include 'components/status-bar.twig' with { data: statusBarData } %}
     <section class="panel">
       <h1>Codified Context Integrity Report</h1>
       <p class="muted">{{ summary }}</p>

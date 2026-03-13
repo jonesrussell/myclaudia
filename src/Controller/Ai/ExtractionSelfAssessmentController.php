@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller\Ai;
 
+use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Service\Ai\ExtractionSelfAssessmentService;
 use Claudriel\Service\Audit\CommitmentExtractionAuditService;
 use Claudriel\Service\Audit\CommitmentExtractionDriftDetector;
@@ -18,6 +19,8 @@ final class ExtractionSelfAssessmentController
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
         private readonly ?Environment $twig = null,
+        private readonly ?string $projectRoot = null,
+        private readonly ?string $batchStorageDirectory = null,
     ) {}
 
     public function index(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
@@ -54,6 +57,7 @@ final class ExtractionSelfAssessmentController
         return [
             'assessment' => $assessment,
             'focus_summary' => $service->generateFocusSummary(),
+            'statusBarData' => $this->getStatusBarData(),
         ];
     }
 
@@ -79,5 +83,18 @@ final class ExtractionSelfAssessmentController
             statusCode: $statusCode,
             headers: ['Content-Type' => 'application/json'],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function getStatusBarData(): array
+    {
+        return (new ObservabilityDashboardController(
+            $this->entityTypeManager,
+            null,
+            $this->projectRoot,
+            $this->batchStorageDirectory,
+        ))->getStatusBarData();
     }
 }

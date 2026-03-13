@@ -1,0 +1,64 @@
+<style>
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin: 1rem 0 1.25rem;
+  }
+  .status-bar-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    padding: 0.9rem 1rem;
+  }
+  .status-bar-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .status-bar-value {
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 68px;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    margin-top: 0.55rem;
+  }
+  .status-badge.green {
+    color: #ccf3dd;
+    background: rgba(26, 122, 73, 0.18);
+    border: 1px solid rgba(87, 199, 138, 0.28);
+  }
+  .status-badge.yellow {
+    color: #ffe2b3;
+    background: rgba(177, 110, 16, 0.18);
+    border: 1px solid rgba(241, 180, 78, 0.28);
+  }
+  .status-badge.red {
+    color: #ffd0d0;
+    background: rgba(181, 52, 52, 0.18);
+    border: 1px solid rgba(240, 96, 96, 0.32);
+  }
+</style>
+
+<section class="status-bar" aria-label="Platform Status Bar">
+  {% for item in data.items %}
+    <article class="status-bar-card">
+      <div class="status-bar-label">{{ item.label }}</div>
+      <div class="status-bar-value">{{ item.value }}</div>
+      <span class="status-badge {{ item.badge }}">{{ item.status }}</span>
+    </article>
+  {% endfor %}
+</section>

@@ -167,6 +167,7 @@
   {% endfor %}
 
   <main class="audit-page">
+    {% include 'components/status-bar.twig' with { data: statusBarData } %}
     <section class="audit-hero">
       <div>
         <h1>Commitment Extraction Audit</h1>
