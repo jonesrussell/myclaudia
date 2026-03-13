@@ -81,6 +81,46 @@ final class TemporalAgentDecision
         );
     }
 
+    public static function suppressDuplicate(self $decision, string $duplicateOf): self
+    {
+        return new self(
+            $decision->agentName,
+            TemporalAgentLifecycle::SUPPRESSED,
+            $decision->kind,
+            'Suppressed',
+            'Temporal agent output was suppressed deterministically for the current evaluation window.',
+            'duplicate_within_window',
+            [],
+            ['duplicate_of' => $duplicateOf] + $decision->metadata,
+            $decision->suppression,
+        );
+    }
+
+    public function agentName(): string
+    {
+        return $this->agentName;
+    }
+
+    public function state(): string
+    {
+        return $this->state;
+    }
+
+    public function kind(): string
+    {
+        return $this->kind;
+    }
+
+    public function suppressionKey(): string
+    {
+        return $this->suppression['key'];
+    }
+
+    public function suppressionWindowStartsAt(): string
+    {
+        return $this->suppression['window_starts_at'];
+    }
+
     /**
      * @return array{
      *   agent: string,
