@@ -20,7 +20,7 @@ final class ScheduleApiControllerTest extends TestCase
     public function test_crud_and_today_filtering_for_schedule_entries(): void
     {
         $controller = new ScheduleApiController($this->buildEntityTypeManager());
-        $today = (new \DateTimeImmutable('+1 hour'))->setTimezone(new \DateTimeZone('UTC'));
+        $today = new \DateTimeImmutable('2026-03-13T22:00:00-04:00');
         $tomorrow = $today->modify('+1 day');
 
         $createToday = $controller->create(
@@ -44,7 +44,7 @@ final class ScheduleApiControllerTest extends TestCase
         $todayEntry = json_decode($createToday->content, true, 512, JSON_THROW_ON_ERROR)['schedule'];
         $tomorrowEntry = json_decode($createTomorrow->content, true, 512, JSON_THROW_ON_ERROR)['schedule'];
 
-        $listResponse = $controller->list(query: ['date' => 'today']);
+        $listResponse = $controller->list(query: ['date' => 'today', 'timezone' => 'America/Toronto']);
         $listPayload = json_decode($listResponse->content, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertCount(1, $listPayload['schedule']);
