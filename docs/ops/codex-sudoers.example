@@ -1,0 +1,28 @@
+# /etc/sudoers.d/claudriel-codex
+#
+# Minimal example for a Codex/Claudriel development workstation.
+# Replace `fsd42` with the local user that runs Codex.
+# Validate with: sudo visudo -cf /etc/sudoers.d/claudriel-codex
+#
+# Goal:
+# - keep package installation and service control available when needed
+# - avoid blanket NOPASSWD sudo
+# - allow only the small set of administrative commands that recur in this repo
+
+User_Alias CLAUDRIEL_CODEX = fsd42
+
+Cmnd_Alias CLAUDRIEL_APT = \
+    /usr/bin/apt-get update, \
+    /usr/bin/apt-get install *
+
+Cmnd_Alias CLAUDRIEL_SERVICES = \
+    /usr/bin/systemctl status caddy, \
+    /usr/bin/systemctl restart caddy, \
+    /usr/bin/systemctl status docker, \
+    /usr/bin/systemctl restart docker
+
+Cmnd_Alias CLAUDRIEL_LOGS = \
+    /usr/bin/journalctl -u caddy, \
+    /usr/bin/journalctl -u docker
+
+CLAUDRIEL_CODEX ALL=(root) NOPASSWD: CLAUDRIEL_APT, CLAUDRIEL_SERVICES, CLAUDRIEL_LOGS

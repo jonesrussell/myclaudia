@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+TEMPLATE_PATH="${REPO_ROOT}/docs/ops/codex-sudoers.example"
+TARGET_PATH="/etc/sudoers.d/claudriel-codex"
+TARGET_USER="${1:-${SUDO_USER:-${USER}}}"
+TMP_FILE=""
+
+cleanup() {
+  if [[ -n "${TMP_FILE}" && -f "${TMP_FILE}" ]]; then
+    rm -f "${TMP_FILE}"
+  fi
+}
+
+trap cleanup EXIT
+
+if [[ ! -f "${TEMPLATE_PATH}" ]]; then
+  echo "Missing template: ${TEMPLATE_PATH}" >&2
+  exit 1
+fi
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run with sudo: sudo ${0} [username]" >&2
+  exit 1
+fi
+
+if ! command -v visudo >/dev/null 2>&1; then
+  echo "visudo is required but not installed." >&2
+  exit 1
+fi
+
+mkdir -p /etc/sudoers.d
+TMP_FILE="$(mktemp /tmp/claudriel-codex-sudoers.XXXXXX)"
+
+sed "s/^User_Alias CLAUDRIEL_CODEX = .*/User_Alias CLAUDRIEL_CODEX = ${TARGET_USER}/" "${TEMPLATE_PATH}" > "${TMP_FILE}"
+
+visudo -cf "${TMP_FILE}"
+install -m 0440 "${TMP_FILE}" "${TARGET_PATH}"
+visudo -cf "${TARGET_PATH}"
+
+echo "Installed ${TARGET_PATH} for user ${TARGET_USER}"
