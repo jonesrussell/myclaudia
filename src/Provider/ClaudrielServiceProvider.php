@@ -11,6 +11,7 @@ use Claudriel\Command\RecategorizeEventsCommand;
 use Claudriel\Command\SkillsCommand;
 use Claudriel\Command\WorkspaceCreateCommand;
 use Claudriel\Command\WorkspacesCommand;
+use Claudriel\Controller\Audit\CommitmentExtractionAuditController;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
@@ -265,6 +266,26 @@ final class ClaudrielServiceProvider extends ServiceProvider
             ->build();
         $deleteRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.api.workspaces.delete', $deleteRoute);
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction',
+            RouteBuilder::create('/audit/commitment-extraction')
+                ->controller(CommitmentExtractionAuditController::class.'::index')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.audit.commitment_extraction.show',
+            RouteBuilder::create('/audit/commitment-extraction/log/{id}')
+                ->controller(CommitmentExtractionAuditController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
 
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.

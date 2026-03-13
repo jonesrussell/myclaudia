@@ -1,0 +1,120 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Commitment Extraction Log #{{ log.id }}{% endblock %}
+
+{% block styles %}
+  .audit-detail {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+  .detail-card {
+    background: linear-gradient(180deg, rgba(33,35,47,0.98) 0%, rgba(24,26,36,0.98) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    padding: 1.2rem;
+  }
+  .detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .detail-header h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1.1;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+  .meta-block {
+    background: rgba(15, 17, 23, 0.45);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 0.9rem;
+  }
+  .meta-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+  }
+  .meta-value {
+    margin-top: 0.35rem;
+    font-size: 1rem;
+  }
+  details {
+    margin-top: 1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: rgba(15, 17, 23, 0.45);
+  }
+  summary {
+    cursor: pointer;
+    padding: 0.85rem 1rem;
+    font-weight: 600;
+  }
+  pre {
+    margin: 0;
+    padding: 0 1rem 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #d6deff;
+  }
+  .back-link {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+  .back-link:hover {
+    text-decoration: underline;
+  }
+{% endblock %}
+
+{% block content %}
+  <main class="audit-detail">
+    <div class="detail-card">
+      <div class="detail-header">
+        <div>
+          <a class="back-link" href="/audit/commitment-extraction">Back to audit dashboard</a>
+          <h1>Log #{{ log.id }}</h1>
+        </div>
+      </div>
+
+      <section class="meta-grid">
+        <article class="meta-block">
+          <div class="meta-label">Confidence</div>
+          <div class="meta-value">{{ (log.confidence * 100)|round(1) }}%</div>
+        </article>
+        <article class="meta-block">
+          <div class="meta-label">Sender</div>
+          <div class="meta-value">{{ log.sender ?? 'unknown' }}</div>
+        </article>
+        <article class="meta-block">
+          <div class="meta-label">McEvent ID</div>
+          <div class="meta-value">{{ log.mc_event_id ?? 'n/a' }}</div>
+        </article>
+        <article class="meta-block">
+          <div class="meta-label">Created At</div>
+          <div class="meta-value">{{ log.created_at ?? 'n/a' }}</div>
+        </article>
+      </section>
+
+      <details open>
+        <summary>Raw Event Payload</summary>
+        <pre>{{ log.raw_event_payload }}</pre>
+      </details>
+
+      <details>
+        <summary>Extracted Commitment Payload</summary>
+        <pre>{{ log.extracted_commitment_payload ?? 'null' }}</pre>
+      </details>
+    </div>
+  </main>
+{% endblock %}
