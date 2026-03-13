@@ -1,13 +1,13 @@
 ---
 name: codex-environment-core
-description: Load this at the start of any Claudriel task to establish the canonical WSL2 environment, deployment model, production boundaries, and safety rules.
+description: Use at the start of any Claudriel task to establish the canonical WSL2 environment, deployment model, production boundaries, and safety rules.
 ---
 
 # Codex Environment Core
 
 Use this skill as the default operating environment for all Claudriel work.
 
-## 1. Environment Assumptions
+## Environment Assumptions
 
 - Codex runs inside WSL2 on the developer machine.
 - Project root: `/home/jones/dev/claudriel/`
@@ -17,7 +17,7 @@ Use this skill as the default operating environment for all Claudriel work.
 - GitHub Actions deploys on push to `main`.
 - Codex may use SSH for production hotfixes, but canonical deployment is via GitHub Actions.
 
-## 2. Allowed Actions
+## Allowed Actions
 
 - Read, write, and modify files in the repo.
 - Create branches, commit, and push.
@@ -25,7 +25,7 @@ Use this skill as the default operating environment for all Claudriel work.
 - SSH into production only when explicitly instructed.
 - Never modify server config outside the defined Claudriel paths.
 
-## 3. Directory Map
+## Directory Map
 
 - Repo: `/home/jones/dev/claudriel/`
 - Production app: `/home/deployer/claudriel/`
@@ -35,7 +35,7 @@ Use this skill as the default operating environment for all Claudriel work.
 - GitHub Actions CI workflow: `/home/jones/dev/claudriel/.github/workflows/ci.yml`
 - GitHub Actions deploy workflow: `/home/jones/dev/claudriel/.github/workflows/deploy.yml`
 
-## 4. Deployment Rules
+## Deployment Rules
 
 - All normal work must go through PR -> merge -> GitHub Actions -> production.
 - Sidecar container must be rebuilt on every deploy.
@@ -45,7 +45,7 @@ Use this skill as the default operating environment for all Claudriel work.
   - validating the Caddyfile or reading logs
 - If a hotfix is applied over SSH, the equivalent repo change must follow before the next normal deploy.
 
-## 5. Safety Constraints
+## Safety Constraints
 
 - Never delete files outside the repo.
 - Never modify unrelated server config.
