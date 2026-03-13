@@ -33,6 +33,7 @@ final class ChatSystemPromptBuilderTest extends TestCase
         $this->assertStringContainsString('Claudriel web dashboard', $prompt);
         $this->assertStringContainsString('interpret that as a Claudriel workspace', $prompt);
         $this->assertStringContainsString('Do not drift into generic interpretations like git worktrees', $prompt);
+        $this->assertStringContainsString('interpret that as a git worktree by default', $prompt);
     }
 
     #[Test]
