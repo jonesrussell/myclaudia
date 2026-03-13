@@ -55,6 +55,7 @@ use Claudriel\Entity\Operation;
 use Claudriel\Entity\Person;
 use Claudriel\Entity\ScheduleEntry;
 use Claudriel\Entity\Skill;
+use Claudriel\Entity\TemporalNotification;
 use Claudriel\Entity\TriageEntry;
 use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
@@ -173,6 +174,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Operation',
             class: Operation::class,
             keys: ['id' => 'opid', 'uuid' => 'uuid'],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'temporal_notification',
+            label: 'Temporal Notification',
+            class: TemporalNotification::class,
+            keys: ['id' => 'tnid', 'uuid' => 'uuid'],
         ));
     }
 
