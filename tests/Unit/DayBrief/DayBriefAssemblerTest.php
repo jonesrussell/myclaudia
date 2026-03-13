@@ -96,6 +96,34 @@ final class DayBriefAssemblerTest extends TestCase
         self::assertEmpty($brief['people']);
     }
 
+    public function test_deduplicates_schedule_events_with_same_title_and_time(): void
+    {
+        $payload = json_encode(['title' => 'Team standup', 'start_time' => '2026-03-10T09:00:00', 'end_time' => '2026-03-10T09:30:00']);
+
+        $this->eventRepo->save(new McEvent([
+            'source' => 'google-calendar',
+            'type' => 'calendar.event',
+            'category' => 'schedule',
+            'payload' => $payload,
+            'occurred' => (new \DateTimeImmutable('-1 hour'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+        ]));
+        $this->eventRepo->save(new McEvent([
+            'source' => 'google-calendar',
+            'type' => 'calendar.event',
+            'category' => 'schedule',
+            'payload' => $payload,
+            'occurred' => (new \DateTimeImmutable('-50 minutes'))->format('Y-m-d H:i:s'),
+            'tenant_id' => 'user-1',
+        ]));
+
+        $brief = $this->assembler->assemble('user-1', new \DateTimeImmutable('-24 hours'));
+
+        self::assertCount(1, $brief['schedule']);
+        self::assertSame('Team standup', $brief['schedule'][0]['title']);
+        self::assertSame('2026-03-10T09:00:00', $brief['schedule'][0]['start_time']);
+    }
+
     public function test_groups_job_hunt_events(): void
     {
         $event = new McEvent([

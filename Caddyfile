@@ -7,6 +7,9 @@ claudriel.northcloud.one {
     }
   }
 
+  # Keep browsers on HTTP/2 or HTTP/1.1 for SSE; QUIC has been flaky for EventSource.
+  header Alt-Svc "clear"
+
   @not_ingest {
     not path /api/ingest
   }

@@ -75,6 +75,8 @@ final class DayBriefAssembler
             };
         }
 
+        $schedule = $this->deduplicateSchedule($schedule);
+
         $allCommitments = $this->commitmentRepo->findBy([]);
         $pending = array_values(array_filter(
             $allCommitments,
@@ -107,6 +109,32 @@ final class DayBriefAssembler
             'matched_skills' => $this->matchSkillsToEvents($recentEvents),
             'workspaces' => $this->buildWorkspaceData($recentEvents),
         ];
+    }
+
+    /**
+     * @param  list<array{title: mixed, start_time: mixed, end_time: mixed, source: mixed}>  $schedule
+     * @return list<array{title: mixed, start_time: mixed, end_time: mixed, source: mixed}>
+     */
+    private function deduplicateSchedule(array $schedule): array
+    {
+        $unique = [];
+
+        foreach ($schedule as $item) {
+            $fingerprint = implode('|', [
+                mb_strtolower(trim((string) ($item['title'] ?? ''))),
+                trim((string) ($item['start_time'] ?? '')),
+                trim((string) ($item['end_time'] ?? '')),
+                mb_strtolower(trim((string) ($item['source'] ?? ''))),
+            ]);
+
+            if (isset($unique[$fingerprint])) {
+                continue;
+            }
+
+            $unique[$fingerprint] = $item;
+        }
+
+        return array_values($unique);
     }
 
     private function buildWorkspaceData(array $recentEvents): array
