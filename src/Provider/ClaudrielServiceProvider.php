@@ -227,6 +227,16 @@ final class ClaudrielServiceProvider extends ServiceProvider
         );
 
         $router->addRoute(
+            'claudriel.app',
+            RouteBuilder::create('/app')
+                ->controller(DashboardController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
             'claudriel.public.signup_form',
             RouteBuilder::create('/signup')
                 ->controller(PublicAccountController::class.'::signupForm')
