@@ -38,6 +38,7 @@ use Claudriel\Controller\IngestController;
 use Claudriel\Controller\NotFoundController;
 use Claudriel\Controller\PeopleApiController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
+use Claudriel\Controller\PublicAccountController;
 use Claudriel\Controller\ScheduleApiController;
 use Claudriel\Controller\TemporalNotificationApiController;
 use Claudriel\Controller\TriageApiController;
@@ -45,6 +46,7 @@ use Claudriel\Controller\WorkspaceApiController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Claudriel\Entity\Account;
+use Claudriel\Entity\AccountVerificationToken;
 use Claudriel\Entity\Artifact;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
@@ -84,6 +86,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Account',
             class: Account::class,
             keys: ['id' => 'aid', 'uuid' => 'uuid', 'label' => 'name'],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'account_verification_token',
+            label: 'Account Verification Token',
+            class: AccountVerificationToken::class,
+            keys: ['id' => 'avtid', 'uuid' => 'uuid'],
         ));
 
         $this->entityType(new EntityType(
@@ -192,6 +201,63 @@ final class ClaudrielServiceProvider extends ServiceProvider
             'claudriel.dashboard',
             RouteBuilder::create('/')
                 ->controller(DashboardController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.public.signup_form',
+            RouteBuilder::create('/signup')
+                ->controller(PublicAccountController::class.'::signupForm')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.public.signup_check_email',
+            RouteBuilder::create('/signup/check-email')
+                ->controller(PublicAccountController::class.'::checkEmail')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $signupRoute = RouteBuilder::create('/signup')
+            ->controller(PublicAccountController::class.'::signup')
+            ->allowAll()
+            ->methods('POST')
+            ->render()
+            ->build();
+        $router->addRoute('claudriel.public.signup_submit', $signupRoute);
+
+        $router->addRoute(
+            'claudriel.public.verify_email',
+            RouteBuilder::create('/verify-email/{token}')
+                ->controller(PublicAccountController::class.'::verifyEmail')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.public.verification_result',
+            RouteBuilder::create('/signup/verification-result')
+                ->controller(PublicAccountController::class.'::verificationResult')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.public.onboarding_bootstrap',
+            RouteBuilder::create('/onboarding/bootstrap')
+                ->controller(PublicAccountController::class.'::onboardingBootstrap')
                 ->allowAll()
                 ->methods('GET')
                 ->render()
@@ -740,7 +806,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {
