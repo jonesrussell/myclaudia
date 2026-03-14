@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Tests\Unit\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Controller\PublicAccountController;
 use Claudriel\Entity\Account;
 use Claudriel\Entity\AccountVerificationToken;
@@ -34,6 +35,23 @@ final class PublicAccountControllerTest extends TestCase
         self::assertSame(200, $response->statusCode);
         self::assertStringContainsString('Create Your Claudriel Account', $response->content);
         self::assertStringContainsString('Create account', $response->content);
+    }
+
+    public function test_signup_form_redirects_authenticated_account_into_app_shell(): void
+    {
+        $controller = $this->controller();
+        $account = new Account([
+            'name' => 'Ready User',
+            'email' => 'ready@example.com',
+            'status' => 'active',
+            'email_verified_at' => '2026-03-14T15:00:00+00:00',
+            'tenant_id' => 'tenant-123',
+        ]);
+
+        $response = $controller->signupForm(account: new AuthenticatedAccount($account));
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/app?tenant_id=tenant-123', $response->getTargetUrl());
     }
 
     public function test_signup_creates_pending_account_and_sends_verification_delivery(): void
@@ -139,9 +157,8 @@ final class PublicAccountControllerTest extends TestCase
             'tenant' => (string) $tenant->get('uuid'),
             'workspace' => (string) $workspace->get('uuid'),
         ]);
-        self::assertStringContainsString('Tenant ready', $onboarding->content);
-        self::assertStringContainsString('Workspace ready', $onboarding->content);
-        self::assertStringContainsString('Sidecar ready: created', $onboarding->content);
+        self::assertInstanceOf(RedirectResponse::class, $onboarding);
+        self::assertSame('/app?verified=1&tenant_id='.$tenant->get('uuid').'&workspace_uuid='.$workspace->get('uuid'), $onboarding->getTargetUrl());
 
         $second = $controller->verifyEmail(['token' => $token]);
         self::assertSame('/signup/verification-result?status=invalid', $second->getTargetUrl());

@@ -1,0 +1,414 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Claudriel | Schedule Intelligence For Real Work{% endblock %}
+
+{% block styles %}
+    .site-nav {
+        background: transparent;
+        border-bottom: 0;
+        position: relative;
+        z-index: 2;
+    }
+    body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at top left, rgba(107, 155, 255, 0.22), transparent 30%),
+            radial-gradient(circle at 80% 20%, rgba(45, 212, 191, 0.18), transparent 28%),
+            linear-gradient(180deg, #0b0d12 0%, #111521 52%, #0f1117 100%);
+    }
+    .home-shell {
+        position: relative;
+        overflow: hidden;
+    }
+    .home-shell::before {
+        content: "";
+        position: absolute;
+        inset: 6rem auto auto 52%;
+        width: 34rem;
+        height: 34rem;
+        border-radius: 999px;
+        background: radial-gradient(circle, rgba(240, 176, 64, 0.16), rgba(240, 176, 64, 0));
+        filter: blur(10px);
+        pointer-events: none;
+    }
+    .hero {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 2.75rem 1.4rem 4rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        gap: 2rem;
+        align-items: center;
+    }
+    .hero-copy {
+        padding: 3rem 0 2rem;
+    }
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent-teal);
+        margin-bottom: 1rem;
+    }
+    .eyebrow::before {
+        content: "";
+        width: 2.4rem;
+        height: 1px;
+        background: linear-gradient(90deg, var(--accent-teal), rgba(45, 212, 191, 0));
+    }
+    .hero h1 {
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 7vw, 5.9rem);
+        line-height: 0.94;
+        letter-spacing: -0.045em;
+        max-width: 10ch;
+        margin-bottom: 1rem;
+    }
+    .hero p.lead {
+        max-width: 36rem;
+        font-size: 1.08rem;
+        color: #ccd0de;
+    }
+    .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        margin-top: 1.6rem;
+    }
+    .cta-row a {
+        text-decoration: none;
+        border-radius: 999px;
+        padding: 0.95rem 1.35rem;
+        font-weight: 600;
+        transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+    .cta-primary {
+        background: linear-gradient(135deg, #f0b040 0%, #d46337 100%);
+        color: #15120e;
+        box-shadow: 0 16px 40px rgba(212, 99, 55, 0.26);
+    }
+    .cta-secondary {
+        color: var(--text-primary);
+        border: 1px solid rgba(240, 240, 245, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .cta-row a:hover {
+        transform: translateY(-1px);
+    }
+    .proof-grid {
+        display: grid;
+        gap: 0.9rem;
+        margin-top: 1.6rem;
+        max-width: 42rem;
+    }
+    .proof-chip {
+        display: flex;
+        gap: 0.85rem;
+        align-items: flex-start;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 1rem;
+        padding: 0.95rem 1rem;
+    }
+    .proof-chip span {
+        width: 0.62rem;
+        height: 0.62rem;
+        margin-top: 0.42rem;
+        border-radius: 999px;
+        background: var(--accent-teal);
+        box-shadow: 0 0 0 6px rgba(45, 212, 191, 0.12);
+        flex: 0 0 auto;
+    }
+    .product-card {
+        position: relative;
+        border-radius: 1.7rem;
+        padding: 1.25rem;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+            rgba(14, 17, 26, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.32);
+    }
+    .product-card::after {
+        content: "";
+        position: absolute;
+        inset: auto 1.2rem -1.2rem;
+        height: 1.4rem;
+        background: radial-gradient(circle, rgba(107, 155, 255, 0.22), rgba(107, 155, 255, 0));
+        filter: blur(12px);
+        pointer-events: none;
+    }
+    .product-frame {
+        border-radius: 1.2rem;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: #0f1117;
+    }
+    .frame-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        background: #171b28;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+    }
+    .frame-grid {
+        display: grid;
+        grid-template-columns: 190px 1fr;
+        min-height: 24rem;
+    }
+    .frame-sidebar {
+        background: #141824;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 1rem;
+        display: grid;
+        gap: 0.8rem;
+        align-content: start;
+    }
+    .mini-panel {
+        border-radius: 0.95rem;
+        padding: 0.9rem;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .mini-panel h3 {
+        font-size: 0.76rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.55rem;
+    }
+    .mini-panel strong {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+    }
+    .frame-main {
+        padding: 1rem;
+        display: grid;
+        gap: 0.9rem;
+        background:
+            linear-gradient(180deg, rgba(107, 155, 255, 0.06), rgba(107, 155, 255, 0)),
+            #0f1117;
+    }
+    .status-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        padding: 0.9rem 1rem;
+        border-radius: 1rem;
+        background: rgba(107, 155, 255, 0.08);
+        border: 1px solid rgba(107, 155, 255, 0.18);
+    }
+    .status-row strong {
+        display: block;
+        font-size: 1rem;
+    }
+    .status-row span {
+        color: #c5d4ff;
+        font-size: 0.92rem;
+    }
+    .thread-card,
+    .timeline-card {
+        border-radius: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .thread-card h3,
+    .timeline-card h3 {
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 0.6rem;
+    }
+    .thread-bubble {
+        border-radius: 1rem 1rem 1rem 0.4rem;
+        padding: 0.8rem 0.9rem;
+        background: rgba(240, 240, 245, 0.06);
+        color: #e6e8f0;
+        margin-bottom: 0.65rem;
+    }
+    .thread-bubble.assistant {
+        background: rgba(45, 212, 191, 0.08);
+        border: 1px solid rgba(45, 212, 191, 0.14);
+    }
+    .timeline-list {
+        display: grid;
+        gap: 0.7rem;
+    }
+    .timeline-row {
+        display: grid;
+        grid-template-columns: 5.3rem 1fr;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    .timeline-row time {
+        color: var(--accent-amber);
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+    .timeline-row div {
+        border-radius: 0.85rem;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 0.7rem 0.85rem;
+    }
+    .value-strip {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 1.4rem 4.5rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+    }
+    .value-card {
+        padding: 1.1rem;
+        border-radius: 1.1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .value-card h3 {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        margin-bottom: 0.4rem;
+    }
+    .value-card p {
+        color: #c6cad7;
+    }
+    @media (max-width: 980px) {
+        .hero {
+            grid-template-columns: 1fr;
+            padding-top: 1.2rem;
+        }
+        .hero-copy {
+            padding-top: 1.2rem;
+        }
+        .hero h1 {
+            max-width: none;
+        }
+        .value-strip {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 720px) {
+        .frame-grid {
+            grid-template-columns: 1fr;
+        }
+        .frame-sidebar {
+            border-right: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .cta-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .cta-row a {
+            text-align: center;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+    <main class="home-shell">
+        <section class="hero">
+            <div class="hero-copy">
+                <div class="eyebrow">Public Entry Surface</div>
+                <h1>{{ headline }}</h1>
+                <p class="lead">{{ subheadline }}</p>
+
+                <div class="cta-row">
+                    <a class="cta-primary" href="{{ primary_cta_href }}">Create your account</a>
+                    <a class="cta-secondary" href="{{ secondary_cta_href }}">Log in</a>
+                </div>
+
+                <div class="proof-grid">
+                    {% for point in proof_points %}
+                        <div class="proof-chip">
+                            <span aria-hidden="true"></span>
+                            <div>{{ point }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-frame">
+                    <div class="frame-topbar">
+                        <div>Claudriel / operating surface</div>
+                        <div>Signup -&gt; verify -&gt; app</div>
+                    </div>
+                    <div class="frame-grid">
+                        <aside class="frame-sidebar">
+                            <div class="mini-panel">
+                                <h3>Today</h3>
+                                <strong>3</strong>
+                                <div>high-signal moments already surfaced</div>
+                            </div>
+                            <div class="mini-panel">
+                                <h3>Entry flow</h3>
+                                <div>Public homepage</div>
+                                <div>Signup and login</div>
+                                <div>Tenant bootstrap</div>
+                            </div>
+                        </aside>
+
+                        <div class="frame-main">
+                            <div class="status-row">
+                                <div>
+                                    <strong>Prepare for next block</strong>
+                                    <span>Claudriel turns signup into a ready workspace instead of a dead-end account record.</span>
+                                </div>
+                                <div>12 min</div>
+                            </div>
+
+                            <div class="timeline-card">
+                                <h3>What the product does</h3>
+                                <div class="timeline-list">
+                                    <div class="timeline-row">
+                                        <time>09:00</time>
+                                        <div>Show the day clearly and flag the next important block.</div>
+                                    </div>
+                                    <div class="timeline-row">
+                                        <time>11:30</time>
+                                        <div>Keep commitments, drift, and workspace actions in one tenant-aware shell.</div>
+                                    </div>
+                                    <div class="timeline-row">
+                                        <time>15:10</time>
+                                        <div>Let chat, brief, and schedule guidance stay in sync as work moves.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="thread-card">
+                                <h3>Why this matters</h3>
+                                <div class="thread-bubble">Give me my day without making me rebuild the context every morning.</div>
+                                <div class="thread-bubble assistant">Claudriel keeps the schedule, workspace, and active commitments in one operating surface so the next move is obvious.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="value-strip">
+            <article class="value-card">
+                <h3>Public first</h3>
+                <p>New visitors land on a real homepage that explains the product and gives them a clear path into signup or login.</p>
+            </article>
+            <article class="value-card">
+                <h3>Ready on arrival</h3>
+                <p>Verification bootstraps the tenant and default workspace so the account lands inside a usable product, not an empty shell.</p>
+            </article>
+            <article class="value-card">
+                <h3>One operating surface</h3>
+                <p>The app keeps schedule intelligence, proactive guidance, chat, and workspace actions together after the user enters.</p>
+            </article>
+        </section>
+    </main>
+{% endblock %}

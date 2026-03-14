@@ -11,13 +11,30 @@ final class PublicAccountDeployValidationScript
         $normalizedBaseUrl = rtrim($baseUrl, '/');
 
         return strtr(<<<'BASH'
+homepage_file=$(mktemp)
 signup_form_file=$(mktemp)
 signup_probe_file=$(mktemp)
 login_form_file=$(mktemp)
 login_probe_file=$(mktemp)
+app_entry_headers=$(mktemp)
 signup_cookie_jar=$(mktemp)
 login_cookie_jar=$(mktemp)
-trap 'rm -f "$signup_form_file" "$signup_probe_file" "$login_form_file" "$login_probe_file" "$signup_cookie_jar" "$login_cookie_jar"' EXIT
+trap 'rm -f "$homepage_file" "$signup_form_file" "$signup_probe_file" "$login_form_file" "$login_probe_file" "$app_entry_headers" "$signup_cookie_jar" "$login_cookie_jar"' EXIT
+
+curl --silent --show-error --fail \
+  __BASE_URL__/ > "$homepage_file"
+
+grep -q 'Create your account' "$homepage_file"
+grep -q 'href="/signup"' "$homepage_file"
+grep -q 'href="/login"' "$homepage_file"
+
+curl --silent --show-error \
+  --output /dev/null \
+  --dump-header "$app_entry_headers" \
+  __BASE_URL__/app
+
+grep -q '302' "$app_entry_headers"
+grep -q 'Location: /login' "$app_entry_headers"
 
 curl --silent --show-error --fail \
   --cookie-jar "$signup_cookie_jar" \

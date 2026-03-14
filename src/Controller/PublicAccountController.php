@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Entity\Account;
 use Claudriel\Entity\Workspace;
 use Claudriel\Service\Mail\MailTransportInterface;
@@ -29,8 +30,12 @@ final class PublicAccountController
         private readonly ?SidecarWorkspaceBootstrapService $sidecarWorkspaceBootstrapService = null,
     ) {}
 
-    public function signupForm(array $params = [], array $query = []): SsrResponse
+    public function signupForm(array $params = [], array $query = [], mixed $account = null): RedirectResponse|SsrResponse
     {
+        if ($account instanceof AuthenticatedAccount) {
+            return new RedirectResponse($this->appUrl((string) $account->getTenantId()), 302);
+        }
+
         return $this->render('public/signup.twig', [
             'csrf_token' => CsrfMiddleware::token(),
             'email' => (string) ($query['email'] ?? ''),
@@ -119,7 +124,7 @@ final class PublicAccountController
         ]);
     }
 
-    public function onboardingBootstrap(array $params = [], array $query = []): SsrResponse
+    public function onboardingBootstrap(array $params = [], array $query = []): RedirectResponse|SsrResponse
     {
         $account = $this->findAccountByUuid((string) ($query['account'] ?? ''));
         $tenant = $this->tenantBootstrapService()->findByUuid((string) ($query['tenant'] ?? ''));
@@ -133,6 +138,19 @@ final class PublicAccountController
             if (is_array($workspaceMetadata) && isset($workspaceMetadata['sidecar_bootstrap'])) {
                 $workspaceSidecarState = $workspaceMetadata['sidecar_bootstrap'];
             }
+        }
+
+        if (((string) ($query['verified'] ?? '0')) === '1'
+            && $account instanceof Account
+            && $tenant !== null
+            && $workspace instanceof Workspace) {
+            $redirectQuery = [
+                'verified' => '1',
+                'tenant_id' => (string) $tenant->get('uuid'),
+                'workspace_uuid' => (string) $workspace->get('uuid'),
+            ];
+
+            return new RedirectResponse('/app?'.http_build_query($redirectQuery), 302);
         }
 
         return $this->render('public/verification-result.twig', [
@@ -167,6 +185,15 @@ final class PublicAccountController
     private function sidecarWorkspaceBootstrapService(): SidecarWorkspaceBootstrapService
     {
         return $this->sidecarWorkspaceBootstrapService ?? new SidecarWorkspaceBootstrapService;
+    }
+
+    private function appUrl(string $tenantId): string
+    {
+        if ($tenantId === '') {
+            return '/app';
+        }
+
+        return '/app?'.http_build_query(['tenant_id' => $tenantId]);
     }
 
     private function findAccountByUuid(string $uuid): ?Account

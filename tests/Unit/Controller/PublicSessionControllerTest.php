@@ -40,6 +40,23 @@ final class PublicSessionControllerTest extends TestCase
         self::assertStringContainsString('Log in to Claudriel', $response->content);
     }
 
+    public function test_login_form_redirects_authenticated_session_into_app_shell(): void
+    {
+        $entityTypeManager = $this->buildEntityTypeManager();
+        $account = $this->seedVerifiedAccount($entityTypeManager);
+        $entityTypeManager->getStorage('tenant')->save(new Tenant([
+            'uuid' => 'tenant-123',
+            'name' => 'Tenant One',
+            'metadata' => ['default_workspace_uuid' => 'workspace-abc'],
+        ]));
+        $_SESSION['claudriel_account_uuid'] = $account->get('uuid');
+
+        $response = $this->controller($entityTypeManager)->loginForm();
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/app?tenant_id=tenant-123&workspace_uuid=workspace-abc', $response->getTargetUrl());
+    }
+
     public function test_verified_account_can_log_in_and_logout(): void
     {
         $entityTypeManager = $this->buildEntityTypeManager();
@@ -59,7 +76,7 @@ final class PublicSessionControllerTest extends TestCase
         );
 
         self::assertInstanceOf(RedirectResponse::class, $login);
-        self::assertSame('/?login=1&tenant_id=tenant-123&workspace_uuid=workspace-abc', $login->getTargetUrl());
+        self::assertSame('/app?login=1&tenant_id=tenant-123&workspace_uuid=workspace-abc', $login->getTargetUrl());
         self::assertSame($account->get('uuid'), $_SESSION['claudriel_account_uuid'] ?? null);
 
         $sessionState = $controller->sessionState(account: new AuthenticatedAccount($account));
@@ -68,7 +85,7 @@ final class PublicSessionControllerTest extends TestCase
         self::assertStringContainsString('workspace-abc', $sessionState->content);
 
         $logout = $controller->logout();
-        self::assertSame('/login?logged_out=1', $logout->getTargetUrl());
+        self::assertSame('/?logged_out=1', $logout->getTargetUrl());
         self::assertArrayNotHasKey('claudriel_account_uuid', $_SESSION);
     }
 

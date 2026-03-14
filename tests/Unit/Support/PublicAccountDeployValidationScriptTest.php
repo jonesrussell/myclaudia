@@ -13,10 +13,14 @@ final class PublicAccountDeployValidationScriptTest extends TestCase
     {
         $script = (new PublicAccountDeployValidationScript)->build('https://claudriel.northcloud.one');
 
+        self::assertStringContainsString('__BASE_URL__/', str_replace('https://claudriel.northcloud.one', '__BASE_URL__', $script));
+        self::assertStringContainsString('/app', $script);
         self::assertStringContainsString('/signup', $script);
         self::assertStringContainsString('/login', $script);
+        self::assertStringContainsString('Create your account', $script);
         self::assertStringContainsString('Create Your Claudriel Account', $script);
         self::assertStringContainsString('Log in to Claudriel', $script);
+        self::assertStringContainsString('Location: /login', $script);
         self::assertStringContainsString('Name, email, and password are required.', $script);
         self::assertStringContainsString('Invalid credentials.', $script);
     }

@@ -21,8 +21,12 @@ final class PublicSessionController
         private readonly ?Environment $twig = null,
     ) {}
 
-    public function loginForm(array $params = [], array $query = []): SsrResponse
+    public function loginForm(array $params = [], array $query = []): RedirectResponse|SsrResponse
     {
+        if ($account = $this->authenticatedAccountFromSession()) {
+            return new RedirectResponse($this->appUrl((string) $account->getTenantId(), $this->defaultWorkspaceUuidForTenant((string) $account->getTenantId())), 302);
+        }
+
         return $this->render('public/login.twig', [
             'csrf_token' => CsrfMiddleware::token(),
             'email' => (string) ($query['email'] ?? ''),
@@ -71,7 +75,7 @@ final class PublicSessionController
             $query['workspace_uuid'] = $workspaceUuid;
         }
 
-        return new RedirectResponse('/?'.http_build_query($query), 302);
+        return new RedirectResponse('/app?'.http_build_query($query), 302);
     }
 
     public function logout(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse
@@ -84,7 +88,7 @@ final class PublicSessionController
         session_regenerate_id(true);
         CsrfMiddleware::regenerate();
 
-        return new RedirectResponse('/login?logged_out=1', 302);
+        return new RedirectResponse('/?logged_out=1', 302);
     }
 
     public function sessionState(array $params = [], array $query = [], mixed $account = null): SsrResponse
@@ -184,5 +188,46 @@ final class PublicSessionController
             statusCode: $statusCode,
             headers: ['Content-Type' => 'text/html; charset=UTF-8'],
         );
+    }
+
+    private function authenticatedAccountFromSession(): ?AuthenticatedAccount
+    {
+        if (session_status() !== \PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $accountUuid = $_SESSION['claudriel_account_uuid'] ?? null;
+        if (! is_string($accountUuid) || $accountUuid === '') {
+            return null;
+        }
+
+        $ids = $this->entityTypeManager->getStorage('account')->getQuery()
+            ->condition('uuid', $accountUuid)
+            ->range(0, 1)
+            ->execute();
+
+        if ($ids === []) {
+            return null;
+        }
+
+        $account = $this->entityTypeManager->getStorage('account')->load(reset($ids));
+        if (! $account instanceof Account || ! $account->isVerified()) {
+            return null;
+        }
+
+        return new AuthenticatedAccount($account);
+    }
+
+    private function appUrl(string $tenantId, ?string $workspaceUuid): string
+    {
+        $query = [];
+        if ($tenantId !== '') {
+            $query['tenant_id'] = $tenantId;
+        }
+        if ($workspaceUuid !== null && $workspaceUuid !== '') {
+            $query['workspace_uuid'] = $workspaceUuid;
+        }
+
+        return '/app'.($query === [] ? '' : '?'.http_build_query($query));
     }
 }

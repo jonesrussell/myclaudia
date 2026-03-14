@@ -24,6 +24,7 @@ use Claudriel\Controller\Ai\ExtractionImprovementSuggestionController;
 use Claudriel\Controller\Ai\ExtractionSelfAssessmentController;
 use Claudriel\Controller\Ai\ModelUpdateBatchController;
 use Claudriel\Controller\Ai\TrainingExportController;
+use Claudriel\Controller\AppShellController;
 use Claudriel\Controller\Audit\CommitmentExtractionAuditController;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\ChatController;
@@ -39,6 +40,7 @@ use Claudriel\Controller\NotFoundController;
 use Claudriel\Controller\PeopleApiController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\PublicAccountController;
+use Claudriel\Controller\PublicHomepageController;
 use Claudriel\Controller\PublicPasswordResetController;
 use Claudriel\Controller\PublicSessionController;
 use Claudriel\Controller\ScheduleApiController;
@@ -214,11 +216,21 @@ final class ClaudrielServiceProvider extends ServiceProvider
 
     public function routes(WaaseyaaRouter $router): void
     {
-        // Dashboard (replaces separate brief and chat pages)
+        // Public homepage
         $router->addRoute(
-            'claudriel.dashboard',
+            'claudriel.homepage',
             RouteBuilder::create('/')
-                ->controller(DashboardController::class.'::show')
+                ->controller(PublicHomepageController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.app',
+            RouteBuilder::create('/app')
+                ->controller(AppShellController::class.'::show')
                 ->allowAll()
                 ->methods('GET')
                 ->render()
