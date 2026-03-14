@@ -16,29 +16,12 @@ jobs:
         with:
           path: claudriel
 
-      - name: Checkout waaseyaa framework
-        uses: actions/checkout@v4
-        with:
-          repository: waaseyaa/framework
-          ref: v0.1.0-alpha.1
-          path: waaseyaa
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: pdo_sqlite, sqlite3, mbstring, xml
           coverage: none
-
-      - name: Rewrite Composer path repositories for CI
-        working-directory: claudriel
-        run: |
-          php -r "
-            \$c = json_decode(file_get_contents('composer.json'), true);
-            \$c['repositories'] = [['type' => 'path', 'url' => '../waaseyaa/packages/*']];
-            file_put_contents('composer.json', json_encode(\$c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . \"\\n\");
-          "
-          rm -f composer.lock
 
       - name: Install dependencies
         working-directory: claudriel
@@ -61,29 +44,12 @@ jobs:
         with:
           path: claudriel
 
-      - name: Checkout waaseyaa framework
-        uses: actions/checkout@v4
-        with:
-          repository: waaseyaa/framework
-          ref: v0.1.0-alpha.1
-          path: waaseyaa
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: pdo_sqlite, sqlite3, mbstring, xml
           coverage: none
-
-      - name: Rewrite Composer path repositories for CI
-        working-directory: claudriel
-        run: |
-          php -r "
-            \$c = json_decode(file_get_contents('composer.json'), true);
-            \$c['repositories'] = [['type' => 'path', 'url' => '../waaseyaa/packages/*']];
-            file_put_contents('composer.json', json_encode(\$c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . \"\\n\");
-          "
-          rm -f composer.lock
 
       - name: Install dependencies
         working-directory: claudriel
