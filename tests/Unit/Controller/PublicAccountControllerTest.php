@@ -7,6 +7,7 @@ namespace Claudriel\Tests\Unit\Controller;
 use Claudriel\Controller\PublicAccountController;
 use Claudriel\Entity\Account;
 use Claudriel\Entity\AccountVerificationToken;
+use Claudriel\Entity\Tenant;
 use Claudriel\Service\Mail\MailTransportInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -72,7 +73,7 @@ final class PublicAccountControllerTest extends TestCase
         self::assertStringContainsString('/verify-email/', (string) $transport->messages[0]['verification_url']);
     }
 
-    public function test_verification_link_is_single_use_and_redirects_to_onboarding(): void
+    public function test_verification_link_bootstraps_tenant_once_and_redirects_to_onboarding(): void
     {
         $transport = new InMemoryMailTransport;
         $entityTypeManager = $this->buildEntityTypeManager();
@@ -91,7 +92,7 @@ final class PublicAccountControllerTest extends TestCase
 
         $first = $controller->verifyEmail(['token' => $token]);
         self::assertInstanceOf(RedirectResponse::class, $first);
-        self::assertSame('/onboarding/bootstrap?verified=1', $first->getTargetUrl());
+        self::assertStringStartsWith('/onboarding/bootstrap?verified=1&account=', $first->getTargetUrl());
 
         $accounts = $entityTypeManager->getStorage('account')->loadMultiple(
             $entityTypeManager->getStorage('account')->getQuery()->execute(),
@@ -100,9 +101,27 @@ final class PublicAccountControllerTest extends TestCase
         self::assertInstanceOf(Account::class, $account);
         self::assertSame('active', $account->get('status'));
         self::assertNotNull($account->get('email_verified_at'));
+        self::assertContains('tenant_owner', $account->getRoles());
+        self::assertNotNull($account->get('tenant_id'));
+
+        $tenantStorage = $entityTypeManager->getStorage('tenant');
+        $tenants = $tenantStorage->loadMultiple($tenantStorage->getQuery()->execute());
+        $tenant = array_values($tenants)[0] ?? null;
+        self::assertInstanceOf(Tenant::class, $tenant);
+        self::assertSame($account->get('uuid'), $tenant->get('owner_account_uuid'));
+        self::assertSame($tenant->get('uuid'), $account->get('tenant_id'));
+        self::assertSame('tenant_ready', $tenant->get('metadata')['bootstrap_state']);
+
+        $onboarding = $controller->onboardingBootstrap(query: [
+            'verified' => '1',
+            'account' => (string) $account->get('uuid'),
+            'tenant' => (string) $tenant->get('uuid'),
+        ]);
+        self::assertStringContainsString('Tenant ready', $onboarding->content);
 
         $second = $controller->verifyEmail(['token' => $token]);
         self::assertSame('/signup/verification-result?status=invalid', $second->getTargetUrl());
+        self::assertCount(1, $tenantStorage->getQuery()->execute());
     }
 
     private function controller(?EntityTypeManager $entityTypeManager = null, ?MailTransportInterface $transport = null): PublicAccountController
@@ -137,6 +156,12 @@ final class PublicAccountControllerTest extends TestCase
             label: 'Account Verification Token',
             class: AccountVerificationToken::class,
             keys: ['id' => 'avtid', 'uuid' => 'uuid'],
+        ));
+        $entityTypeManager->registerEntityType(new EntityType(
+            id: 'tenant',
+            label: 'Tenant',
+            class: Tenant::class,
+            keys: ['id' => 'tid', 'uuid' => 'uuid', 'label' => 'name'],
         ));
 
         return $entityTypeManager;

@@ -8,6 +8,9 @@
 <body>
     <main>
         <h1>Email verification {{ status }}</h1>
+        {% if tenant %}
+            <p>Tenant ready: {{ tenant.get('name') }}</p>
+        {% endif %}
     </main>
 </body>
 </html>

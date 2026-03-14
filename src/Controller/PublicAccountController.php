@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Entity\Account;
 use Claudriel\Service\Mail\MailTransportInterface;
 use Claudriel\Service\PublicAccountSignupService;
+use Claudriel\Service\TenantBootstrapService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
@@ -93,9 +95,11 @@ final class PublicAccountController
             return new RedirectResponse('/signup/verification-result?status=invalid', 302);
         }
 
+        $account = $result['account'];
+        $tenant = $this->tenantBootstrapService()->bootstrapForAccount($account);
         $redirect = $result['redirect_path'];
 
-        return new RedirectResponse($redirect.'?verified=1', 302);
+        return new RedirectResponse($redirect.'?verified=1&account='.rawurlencode((string) $account->get('uuid')).'&tenant='.rawurlencode((string) $tenant->get('uuid')), 302);
     }
 
     public function verificationResult(array $params = [], array $query = []): SsrResponse
@@ -107,8 +111,13 @@ final class PublicAccountController
 
     public function onboardingBootstrap(array $params = [], array $query = []): SsrResponse
     {
+        $account = $this->findAccountByUuid((string) ($query['account'] ?? ''));
+        $tenant = $this->tenantBootstrapService()->findByUuid((string) ($query['tenant'] ?? ''));
+
         return $this->render('public/verification-result.twig', [
             'status' => ((string) ($query['verified'] ?? '0')) === '1' ? 'verified' : 'pending',
+            'account' => $account,
+            'tenant' => $tenant,
         ]);
     }
 
@@ -120,6 +129,27 @@ final class PublicAccountController
             appUrl: $this->appUrl,
             storageDir: $this->storageDir,
         );
+    }
+
+    private function tenantBootstrapService(): TenantBootstrapService
+    {
+        return new TenantBootstrapService($this->entityTypeManager);
+    }
+
+    private function findAccountByUuid(string $uuid): ?Account
+    {
+        $ids = $this->entityTypeManager->getStorage('account')->getQuery()
+            ->condition('uuid', $uuid)
+            ->range(0, 1)
+            ->execute();
+
+        if ($ids === []) {
+            return null;
+        }
+
+        $account = $this->entityTypeManager->getStorage('account')->load(reset($ids));
+
+        return $account instanceof Account ? $account : null;
     }
 
     /**

@@ -59,6 +59,7 @@ use Claudriel\Entity\Person;
 use Claudriel\Entity\ScheduleEntry;
 use Claudriel\Entity\Skill;
 use Claudriel\Entity\TemporalNotification;
+use Claudriel\Entity\Tenant;
 use Claudriel\Entity\TriageEntry;
 use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
@@ -93,6 +94,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Account Verification Token',
             class: AccountVerificationToken::class,
             keys: ['id' => 'avtid', 'uuid' => 'uuid'],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'tenant',
+            label: 'Tenant',
+            class: Tenant::class,
+            keys: ['id' => 'tid', 'uuid' => 'uuid', 'label' => 'name'],
         ));
 
         $this->entityType(new EntityType(
@@ -806,7 +814,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {
