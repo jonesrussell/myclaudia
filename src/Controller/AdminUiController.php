@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Claudriel\Access\AuthenticatedAccount;
-use Claudriel\Support\AdminAccess;
-use Claudriel\Support\AuthenticatedAccountSessionResolver;
+use Claudriel\Admin\Host\ClaudrielAdminHost;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Entity\EntityTypeManager;
@@ -25,15 +24,13 @@ final class AdminUiController
         mixed $account = null,
         ?Request $httpRequest = null,
     ): RedirectResponse|SsrResponse {
-        $resolvedAccount = $account instanceof AuthenticatedAccount
-            ? $account
-            : (new AuthenticatedAccountSessionResolver($this->entityTypeManager))->resolve();
+        $resolvedAccount = $this->host()->resolveAuthenticatedAccount($account);
 
         if (! $resolvedAccount instanceof AuthenticatedAccount) {
-            return new RedirectResponse('/login?redirect='.rawurlencode($this->requestedPath($httpRequest)), 302);
+            return new RedirectResponse($this->host()->loginUrl($this->requestedPath($httpRequest)), 302);
         }
 
-        if (! AdminAccess::allows($resolvedAccount)) {
+        if (! $this->host()->allowsAdminAccess($resolvedAccount)) {
             return new SsrResponse(
                 content: 'Admin access is required.',
                 statusCode: 403,
@@ -41,7 +38,7 @@ final class AdminUiController
             );
         }
 
-        if (($resolvedAccount->getTenantId() ?? '') === '') {
+        if (! $this->host()->hasTenantContext($resolvedAccount)) {
             return new SsrResponse(
                 content: 'Tenant context is required for admin access.',
                 statusCode: 409,
@@ -74,5 +71,10 @@ final class AdminUiController
         $path = $request->getPathInfo();
 
         return $path !== '' ? $path : '/admin';
+    }
+
+    private function host(): ClaudrielAdminHost
+    {
+        return new ClaudrielAdminHost($this->entityTypeManager);
     }
 }

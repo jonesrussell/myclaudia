@@ -1,106 +1,108 @@
-// packages/admin/tests/unit/composables/useAuth.test.ts
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '~/composables/useAuth'
 
+function resetAuthState() {
+  useState('claudriel.admin.session.user').value = null
+  useState('claudriel.admin.session.checked').value = false
+  useState('claudriel.admin.session.tenant').value = null
+  useState('claudriel.admin.session.entity-types').value = []
+}
+
 describe('useAuth', () => {
+  beforeEach(() => {
+    resetAuthState()
+  })
+
   it('isAuthenticated is false when no user is loaded', () => {
     const { isAuthenticated } = useAuth()
     expect(isAuthenticated.value).toBe(false)
   })
 
-  it('fetchMe sets currentUser and isAuthenticated on success', async () => {
+  it('fetchSession populates the current session on success', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
-      data: { id: 1, name: 'alice', email: 'alice@example.com', roles: ['admin'] },
+      account: { uuid: 'account-1', email: 'alice@example.com', tenant_id: 'tenant-1', roles: ['admin'] },
+      tenant: { uuid: 'tenant-1', name: 'Tenant One', default_workspace_uuid: 'workspace-1' },
+      entity_types: [{ id: 'workspace', label: 'Workspace', keys: { uuid: 'uuid' }, group: 'structure', disabled: false }],
     })
     vi.stubGlobal('$fetch', mockFetch)
 
-    const { fetchMe, isAuthenticated, currentUser } = useAuth()
-    await fetchMe()
+    const { fetchSession, isAuthenticated, currentUser, tenant, entityTypes } = useAuth()
+    await fetchSession()
 
     expect(isAuthenticated.value).toBe(true)
-    expect(currentUser.value?.name).toBe('alice')
-    expect(mockFetch).toHaveBeenCalledWith('/api/user/me')
+    expect(currentUser.value).toEqual({
+      id: 'account-1',
+      email: 'alice@example.com',
+      tenantId: 'tenant-1',
+      roles: ['admin'],
+    })
+    expect(tenant.value).toEqual({ uuid: 'tenant-1', name: 'Tenant One', default_workspace_uuid: 'workspace-1' })
+    expect(entityTypes.value).toEqual([{ id: 'workspace', label: 'Workspace', keys: { uuid: 'uuid' }, group: 'structure', disabled: false }])
+    expect(mockFetch).toHaveBeenCalledWith('/admin/session')
   })
 
-  it('fetchMe leaves isAuthenticated false on 401', async () => {
+  it('fetchSession clears session state when bootstrap fails', async () => {
     const mockFetch = vi.fn().mockRejectedValue(Object.assign(new Error('Unauthorized'), { status: 401 }))
     vi.stubGlobal('$fetch', mockFetch)
 
-    const { fetchMe, isAuthenticated } = useAuth()
-    await fetchMe()
+    const { fetchSession, isAuthenticated, currentUser, entityTypes } = useAuth()
+    await fetchSession()
 
     expect(isAuthenticated.value).toBe(false)
+    expect(currentUser.value).toBeNull()
+    expect(entityTypes.value).toEqual([])
   })
 
-  it('login calls POST /api/auth/login with credentials', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      data: { id: 2, name: 'bob', email: 'bob@example.com', roles: [] },
-    })
-    vi.stubGlobal('$fetch', mockFetch)
-
-    const { login, isAuthenticated, currentUser } = useAuth()
-    await login('bob', 'secret')
-
-    expect(mockFetch).toHaveBeenCalledWith('/api/auth/login', {
-      method: 'POST',
-      body: { username: 'bob', password: 'secret' },
-    })
-    expect(isAuthenticated.value).toBe(true)
-    expect(currentUser.value?.name).toBe('bob')
+  it('loginUrl keeps the current public login handoff behavior', () => {
+    const { loginUrl } = useAuth()
+    expect(loginUrl('/admin/commitment')).toBe('/login?redirect=%2Fadmin%2Fcommitment')
   })
 
-  it('login throws on failed credentials', async () => {
-    const mockFetch = vi.fn().mockRejectedValue(Object.assign(new Error('Unauthorized'), { status: 401 }))
-    vi.stubGlobal('$fetch', mockFetch)
-
-    const { login } = useAuth()
-    await expect(login('bad', 'creds')).rejects.toThrow()
-  })
-
-  it('logout calls POST /api/auth/logout and clears user', async () => {
+  it('logout calls /admin/logout and clears client-side session state', async () => {
     const mockFetch = vi.fn()
-      .mockResolvedValueOnce({ data: { id: 1, name: 'alice', email: '', roles: [] } })
-      .mockResolvedValueOnce({ meta: { message: 'Logged out.' } })
+      .mockResolvedValueOnce({
+        account: { uuid: 'account-1', email: 'alice@example.com', tenant_id: 'tenant-1', roles: ['admin'] },
+        tenant: { uuid: 'tenant-1', name: 'Tenant One' },
+        entity_types: [],
+      })
+      .mockResolvedValueOnce({ logged_out: true })
     vi.stubGlobal('$fetch', mockFetch)
 
-    const { fetchMe, logout, isAuthenticated } = useAuth()
-    await fetchMe()
+    const { fetchSession, logout, isAuthenticated, currentUser } = useAuth()
+    await fetchSession()
     expect(isAuthenticated.value).toBe(true)
 
     await logout()
-    expect(mockFetch).toHaveBeenLastCalledWith('/api/auth/logout', { method: 'POST' })
+    expect(mockFetch).toHaveBeenLastCalledWith('/admin/logout', { method: 'POST' })
     expect(isAuthenticated.value).toBe(false)
+    expect(currentUser.value).toBeNull()
   })
 
-  it('checkAuth calls fetchMe only once across multiple invocations', async () => {
+  it('checkAuth calls /admin/session only once until logout resets the checked flag', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
-      data: { id: 3, name: 'dave', email: '', roles: [] },
+      account: { uuid: 'account-3', email: 'dave@example.com', tenant_id: 'tenant-1', roles: [] },
+      tenant: null,
+      entity_types: [],
     })
     vi.stubGlobal('$fetch', mockFetch)
 
-    const { checkAuth } = useAuth()
-    await checkAuth()
-    await checkAuth()
-    await checkAuth()
-
-    // fetchMe should only be called once — subsequent checkAuth calls are no-ops
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-  })
-
-  it('checkAuth calls fetchMe again after logout resets the checked flag', async () => {
-    // authChecked may already be true from the previous test (useState persists).
-    // This test specifically verifies that logout() resets the flag so the next
-    // checkAuth() triggers a fresh fetchMe call.
-    const mockFetch = vi.fn()
-      .mockResolvedValueOnce({ meta: { message: 'Logged out.' } })
-      .mockResolvedValueOnce({ data: { id: 3, name: 'dave', email: '', roles: [] } })
-    vi.stubGlobal('$fetch', mockFetch)
-
     const { checkAuth, logout } = useAuth()
-    await logout()     // resets authChecked to false
-    await checkAuth()  // should now call fetchMe since flag was reset
+    await checkAuth()
+    await checkAuth()
+    expect(mockFetch).toHaveBeenCalledTimes(1)
 
-    expect(mockFetch).toHaveBeenCalledTimes(2)
-    expect(mockFetch).toHaveBeenLastCalledWith('/api/user/me')
+    mockFetch.mockResolvedValueOnce({ logged_out: true })
+    mockFetch.mockResolvedValueOnce({
+      account: { uuid: 'account-3', email: 'dave@example.com', tenant_id: 'tenant-1', roles: [] },
+      tenant: null,
+      entity_types: [],
+    })
+
+    await logout()
+    await checkAuth()
+
+    expect(mockFetch).toHaveBeenCalledTimes(3)
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/admin/logout', { method: 'POST' })
+    expect(mockFetch).toHaveBeenNthCalledWith(3, '/admin/session')
   })
 })

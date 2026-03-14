@@ -1,11 +1,5 @@
-// packages/admin/tests/unit/composables/useEntity.test.ts
 import { describe, it, expect, vi } from 'vitest'
 import { useEntity } from '~/composables/useEntity'
-import type { JsonApiDocument } from '~/composables/useEntity'
-
-function makeDoc(data: any): JsonApiDocument {
-  return { jsonapi: { version: '1.0' }, data }
-}
 
 describe('useEntity.search', () => {
   it('returns empty array when query is less than 2 characters', async () => {
@@ -18,113 +12,91 @@ describe('useEntity.search', () => {
   })
 
   it('calls $fetch with correct filter params when query is 2+ chars', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc([]))
+    const mockFetch = vi.fn().mockResolvedValue({ people: [{ uuid: 'person-1', name: 'John' }] })
     vi.stubGlobal('$fetch', mockFetch)
     const { search } = useEntity()
-    await search('user', 'name', 'jo')
-    const calledUrl = mockFetch.mock.calls[0][0] as string
-    const decoded = decodeURIComponent(calledUrl)
-    expect(decoded).toContain('filter[name][operator]=STARTS_WITH')
-    expect(decoded).toContain('filter[name][value]=jo')
+    const result = await search('person', 'name', 'jo')
+    expect(mockFetch).toHaveBeenCalledWith('/api/people')
+    expect(result).toHaveLength(1)
   })
 })
 
 describe('useEntity.list', () => {
-  it('calls /api/:type with no query string when no options given', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc([]))
+  it('calls the Claudriel collection endpoint for the requested entity type', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ people: [] })
     vi.stubGlobal('$fetch', mockFetch)
     const { list } = useEntity()
-    await list('node')
-    expect(mockFetch).toHaveBeenCalledWith('/api/node')
+    await list('person')
+    expect(mockFetch).toHaveBeenCalledWith('/api/people')
   })
 
-  it('appends page[offset] and page[limit] from query.page', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc([]))
-    vi.stubGlobal('$fetch', mockFetch)
-    const { list } = useEntity()
-    await list('node', { page: { offset: 25, limit: 10 } })
-    const calledUrl = mockFetch.mock.calls[0][0] as string
-    const decoded = decodeURIComponent(calledUrl)
-    expect(decoded).toContain('page[offset]=25')
-    expect(decoded).toContain('page[limit]=10')
-  })
-
-  it('returns data array and meta from response', async () => {
-    const resource = { type: 'node', id: '1', attributes: { title: 'Hello' } }
+  it('returns normalized resources plus derived pagination meta', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
-      jsonapi: { version: '1.0' },
-      data: [resource],
-      meta: { total: 1 },
-      links: {},
+      commitments: [{ uuid: 'commitment-1', title: 'Hello' }],
     })
     vi.stubGlobal('$fetch', mockFetch)
     const { list } = useEntity()
-    const result = await list('node')
-    expect(result.data).toEqual([resource])
-    expect(result.meta).toEqual({ total: 1 })
+    const result = await list('commitment', { page: { offset: 25, limit: 10 } })
+    expect(result.data).toEqual([{ type: 'commitment', id: 'commitment-1', attributes: { uuid: 'commitment-1', title: 'Hello' } }])
+    expect(result.meta).toEqual({ total: 1, offset: 25, limit: 10 })
+    expect(result.links).toEqual({})
   })
 })
 
 describe('useEntity.create', () => {
-  it('sends POST with JSON:API body structure', async () => {
-    const resource = { type: 'node', id: '1', attributes: { title: 'New' } }
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc(resource))
+  it('sends POST to the Claudriel entity endpoint with raw attributes', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ commitment: { uuid: '1', title: 'New' } })
     vi.stubGlobal('$fetch', mockFetch)
     const { create } = useEntity()
-    await create('node', { title: 'New' })
-    expect(mockFetch).toHaveBeenCalledWith('/api/node', expect.objectContaining({
+    await create('commitment', { title: 'New' })
+    expect(mockFetch).toHaveBeenCalledWith('/api/commitments', expect.objectContaining({
       method: 'POST',
-      body: { data: { type: 'node', attributes: { title: 'New' } } },
+      body: { title: 'New' },
     }))
   })
 })
 
 describe('useEntity.get', () => {
-  it('calls /api/:type/:id and returns the resource', async () => {
-    const resource = { type: 'user', id: '7', attributes: { name: 'alice' } }
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc(resource))
+  it('calls the mapped item endpoint and returns the normalized resource', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ person: { uuid: '7', name: 'alice' } })
     vi.stubGlobal('$fetch', mockFetch)
     const { get } = useEntity()
-    const result = await get('user', '7')
-    expect(mockFetch).toHaveBeenCalledWith('/api/user/7')
-    expect(result).toEqual(resource)
+    const result = await get('person', '7')
+    expect(mockFetch).toHaveBeenCalledWith('/api/people/7')
+    expect(result).toEqual({ type: 'person', id: '7', attributes: { uuid: '7', name: 'alice' } })
   })
 })
 
 describe('useEntity.update', () => {
-  it('sends PATCH with JSON:API body including id', async () => {
-    const resource = { type: 'node', id: '3', attributes: { title: 'Updated' } }
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc(resource))
+  it('sends PATCH to the mapped item endpoint', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({ workspace: { uuid: '3', name: 'Updated' } })
     vi.stubGlobal('$fetch', mockFetch)
     const { update } = useEntity()
-    await update('node', '3', { title: 'Updated' })
-    expect(mockFetch).toHaveBeenCalledWith('/api/node/3', expect.objectContaining({
+    await update('workspace', '3', { name: 'Updated' })
+    expect(mockFetch).toHaveBeenCalledWith('/api/workspaces/3', expect.objectContaining({
       method: 'PATCH',
-      body: { data: { type: 'node', id: '3', attributes: { title: 'Updated' } } },
+      body: { name: 'Updated' },
     }))
   })
 })
 
 describe('useEntity.remove', () => {
-  it('sends DELETE to /api/:type/:id', async () => {
+  it('sends DELETE to the mapped item endpoint', async () => {
     const mockFetch = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('$fetch', mockFetch)
     const { remove } = useEntity()
-    await remove('node', '5')
-    expect(mockFetch).toHaveBeenCalledWith('/api/node/5', expect.objectContaining({
+    await remove('triage_entry', '5')
+    expect(mockFetch).toHaveBeenCalledWith('/api/triage/5', expect.objectContaining({
       method: 'DELETE',
     }))
   })
 })
 
-describe('useEntity.list with sort', () => {
-  it('appends sort param when query.sort is provided', async () => {
-    const mockFetch = vi.fn().mockResolvedValue(makeDoc([]))
-    vi.stubGlobal('$fetch', mockFetch)
+describe('useEntity unsupported types', () => {
+  it('throws when the host adapter has no mapping for the entity type', async () => {
+    vi.stubGlobal('$fetch', vi.fn())
     const { list } = useEntity()
-    await list('node', { sort: '-title' })
-    const calledUrl = mockFetch.mock.calls[0][0] as string
-    expect(calledUrl).toContain('sort=-title')
+    await expect(list('node')).rejects.toThrow('Unsupported admin entity type: node')
   })
 })
 

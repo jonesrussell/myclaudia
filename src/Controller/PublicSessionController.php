@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Claudriel\Access\AuthenticatedAccount;
+use Claudriel\Admin\Host\ClaudrielAdminHost;
 use Claudriel\Entity\Account;
-use Claudriel\Entity\Tenant;
 use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,10 +24,10 @@ final class PublicSessionController
 
     public function loginForm(array $params = [], array $query = []): RedirectResponse|SsrResponse
     {
-        $redirect = $this->sanitizeRedirectTarget($query['redirect'] ?? null);
+        $redirect = $this->host()->sanitizeRedirectTarget($query['redirect'] ?? null);
 
         if ($account = $this->authenticatedAccountFromSession()) {
-            return new RedirectResponse($redirect ?? $this->appUrl((string) $account->getTenantId(), $this->defaultWorkspaceUuidForTenant((string) $account->getTenantId())), 302);
+            return new RedirectResponse($this->host()->loginFormRedirect($account, $redirect), 302);
         }
 
         return $this->render('public/login.twig', [
@@ -43,7 +43,7 @@ final class PublicSessionController
         $request = $httpRequest ?? Request::create('/login', 'POST');
         $email = strtolower(trim((string) $request->request->get('email', '')));
         $password = (string) $request->request->get('password', '');
-        $redirect = $this->sanitizeRedirectTarget($request->request->get('redirect'));
+        $redirect = $this->host()->sanitizeRedirectTarget($request->request->get('redirect'));
 
         if ($email === '' || $password === '') {
             return $this->render('public/login.twig', [
@@ -72,31 +72,12 @@ final class PublicSessionController
         session_regenerate_id(true);
         CsrfMiddleware::regenerate();
 
-        $tenantId = (string) ($resolvedAccount->get('tenant_id') ?? '');
-        $workspaceUuid = $this->defaultWorkspaceUuidForTenant($tenantId);
-        $query = ['login' => '1'];
-        if ($tenantId !== '') {
-            $query['tenant_id'] = $tenantId;
-        }
-        if ($workspaceUuid !== null) {
-            $query['workspace_uuid'] = $workspaceUuid;
-        }
-
-        if ($redirect !== null) {
-            return new RedirectResponse($redirect, 302);
-        }
-
-        return new RedirectResponse('/app?'.http_build_query($query), 302);
+        return new RedirectResponse($this->host()->postLoginRedirect($resolvedAccount, $redirect), 302);
     }
 
     public function logout(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse
     {
-        if (session_status() !== \PHP_SESSION_ACTIVE) {
-            session_start();
-        }
-
-        unset($_SESSION['claudriel_account_uuid']);
-        session_regenerate_id(true);
+        $this->host()->clearAuthenticatedSession();
         CsrfMiddleware::regenerate();
 
         return new RedirectResponse('/?logged_out=1', 302);
@@ -123,7 +104,7 @@ final class PublicSessionController
                     'email' => $resolvedAccount->getEmail(),
                     'tenant_id' => $resolvedAccount->getTenantId(),
                     'roles' => $resolvedAccount->getRoles(),
-                    'default_workspace_uuid' => $this->defaultWorkspaceUuidForTenant((string) $resolvedAccount->getTenantId()),
+                    'default_workspace_uuid' => $this->host()->defaultWorkspaceUuidForTenant((string) $resolvedAccount->getTenantId()),
                 ],
             ], JSON_THROW_ON_ERROR),
             statusCode: 200,
@@ -146,43 +127,6 @@ final class PublicSessionController
         $account = $this->entityTypeManager->getStorage('account')->load(reset($ids));
 
         return $account instanceof Account ? $account : null;
-    }
-
-    private function defaultWorkspaceUuidForTenant(string $tenantId): ?string
-    {
-        if ($tenantId === '') {
-            return null;
-        }
-
-        $tenant = $this->findTenantByUuid($tenantId);
-        if (! $tenant instanceof Tenant) {
-            return null;
-        }
-
-        $metadata = $tenant->get('metadata');
-        if (! is_array($metadata)) {
-            return null;
-        }
-
-        $workspaceUuid = $metadata['default_workspace_uuid'] ?? null;
-
-        return is_string($workspaceUuid) && $workspaceUuid !== '' ? $workspaceUuid : null;
-    }
-
-    private function findTenantByUuid(string $tenantId): ?Tenant
-    {
-        $ids = $this->entityTypeManager->getStorage('tenant')->getQuery()
-            ->condition('uuid', $tenantId)
-            ->range(0, 1)
-            ->execute();
-
-        if ($ids === []) {
-            return null;
-        }
-
-        $tenant = $this->entityTypeManager->getStorage('tenant')->load(reset($ids));
-
-        return $tenant instanceof Tenant ? $tenant : null;
     }
 
     /**
@@ -210,34 +154,8 @@ final class PublicSessionController
         return (new AuthenticatedAccountSessionResolver($this->entityTypeManager))->resolve();
     }
 
-    private function appUrl(string $tenantId, ?string $workspaceUuid): string
+    private function host(): ClaudrielAdminHost
     {
-        $query = [];
-        if ($tenantId !== '') {
-            $query['tenant_id'] = $tenantId;
-        }
-        if ($workspaceUuid !== null && $workspaceUuid !== '') {
-            $query['workspace_uuid'] = $workspaceUuid;
-        }
-
-        return '/app'.($query === [] ? '' : '?'.http_build_query($query));
-    }
-
-    private function sanitizeRedirectTarget(mixed $value): ?string
-    {
-        if (! is_string($value)) {
-            return null;
-        }
-
-        $candidate = trim($value);
-        if ($candidate === '' || ! str_starts_with($candidate, '/')) {
-            return null;
-        }
-
-        if (str_starts_with($candidate, '//')) {
-            return null;
-        }
-
-        return $candidate;
+        return new ClaudrielAdminHost($this->entityTypeManager);
     }
 }

@@ -84,3 +84,29 @@ jobs:
 
       - name: Test (pytest)
         run: pytest
+
+  admin-build:
+    name: Admin Bundle Build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: claudriel/frontend/admin
+    steps:
+      - name: Checkout claudriel
+        uses: actions/checkout@v4
+        with:
+          path: claudriel
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: claudriel/frontend/admin/package-lock.json
+
+      - name: Install frontend/admin dependencies
+        run: npm ci
+
+      - name: Build vendored admin bundle
+        run: npm run build

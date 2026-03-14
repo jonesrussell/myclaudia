@@ -1,28 +1,8 @@
 import type { EntityTypeInfo } from '~/composables/useNavGroups'
+import { useHostAdapter } from '~/host/useHostAdapter'
+import type { AuthUser, TenantContext } from '~/host/types'
 
-export interface AuthUser {
-  id: string
-  email: string
-  tenantId: string
-  roles: string[]
-}
-
-interface TenantContext {
-  uuid: string
-  name: string
-  default_workspace_uuid?: string | null
-}
-
-interface AdminSessionResponse {
-  account: {
-    uuid: string
-    email: string
-    tenant_id: string
-    roles: string[]
-  }
-  tenant: TenantContext | null
-  entity_types: EntityTypeInfo[]
-}
+export type { AuthUser } from '~/host/types'
 
 const STATE_KEY = 'claudriel.admin.session.user'
 const CHECKED_KEY = 'claudriel.admin.session.checked'
@@ -30,6 +10,7 @@ const TENANT_KEY = 'claudriel.admin.session.tenant'
 const ENTITY_TYPES_KEY = 'claudriel.admin.session.entity-types'
 
 export function useAuth() {
+  const host = useHostAdapter()
   const currentUser = useState<AuthUser | null>(STATE_KEY, () => null)
   const authChecked = useState<boolean>(CHECKED_KEY, () => false)
   const tenant = useState<TenantContext | null>(TENANT_KEY, () => null)
@@ -37,21 +18,17 @@ export function useAuth() {
   const isAuthenticated = computed(() => currentUser.value !== null)
 
   async function fetchSession(): Promise<void> {
-    try {
-      const response = await $fetch<AdminSessionResponse>('/admin/session')
-      currentUser.value = {
-        id: response.account.uuid,
-        email: response.account.email,
-        tenantId: response.account.tenant_id,
-        roles: response.account.roles ?? [],
-      }
-      tenant.value = response.tenant ?? null
-      entityTypes.value = Array.isArray(response.entity_types) ? response.entity_types : []
-    } catch {
+    const session = await host.fetchSession()
+    if (session === null) {
       currentUser.value = null
       tenant.value = null
       entityTypes.value = []
+      return
     }
+
+    currentUser.value = session.currentUser
+    tenant.value = session.tenant
+    entityTypes.value = await host.loadEntityCatalog(session)
   }
 
   async function checkAuth(): Promise<void> {
@@ -64,11 +41,11 @@ export function useAuth() {
   }
 
   function loginUrl(path: string = '/admin'): string {
-    return `/login?redirect=${encodeURIComponent(path)}`
+    return host.loginUrl(path)
   }
 
   async function logout(): Promise<void> {
-    await $fetch('/admin/logout', { method: 'POST' })
+    await host.logout()
     currentUser.value = null
     authChecked.value = false
     tenant.value = null
