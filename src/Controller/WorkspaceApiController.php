@@ -21,7 +21,11 @@ final class WorkspaceApiController
     public function list(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
-        $scope = $resolver->resolve($query, $account);
+        try {
+            $scope = $resolver->resolve($query, $account);
+        } catch (RequestScopeViolation $exception) {
+            return $this->json(['error' => $exception->getMessage()], $exception->statusCode());
+        }
         $storage = $this->entityTypeManager->getStorage('workspace');
         $entityQuery = $storage->getQuery();
         $ids = $entityQuery->execute();
@@ -69,7 +73,11 @@ final class WorkspaceApiController
     public function show(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
-        $scope = $resolver->resolve($query, $account);
+        try {
+            $scope = $resolver->resolve($query, $account);
+        } catch (RequestScopeViolation $exception) {
+            return $this->json(['error' => $exception->getMessage()], $exception->statusCode());
+        }
         $workspace = $this->findByUuid($params['uuid'] ?? '', $scope->tenantId);
         if ($workspace === null) {
             return $this->json(['error' => 'Workspace not found.'], 404);

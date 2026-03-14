@@ -6,6 +6,7 @@ namespace Claudriel\Controller;
 
 use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Entity\Account;
+use Claudriel\Entity\Tenant;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
@@ -60,7 +61,17 @@ final class PublicSessionController
         session_regenerate_id(true);
         CsrfMiddleware::regenerate();
 
-        return new RedirectResponse('/?login=1', 302);
+        $tenantId = (string) ($resolvedAccount->get('tenant_id') ?? '');
+        $workspaceUuid = $this->defaultWorkspaceUuidForTenant($tenantId);
+        $query = ['login' => '1'];
+        if ($tenantId !== '') {
+            $query['tenant_id'] = $tenantId;
+        }
+        if ($workspaceUuid !== null) {
+            $query['workspace_uuid'] = $workspaceUuid;
+        }
+
+        return new RedirectResponse('/?'.http_build_query($query), 302);
     }
 
     public function logout(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse
@@ -93,6 +104,7 @@ final class PublicSessionController
                     'email' => $account->getEmail(),
                     'tenant_id' => $account->getTenantId(),
                     'roles' => $account->getRoles(),
+                    'default_workspace_uuid' => $this->defaultWorkspaceUuidForTenant((string) $account->getTenantId()),
                 ],
             ], JSON_THROW_ON_ERROR),
             statusCode: 200,
@@ -115,6 +127,43 @@ final class PublicSessionController
         $account = $this->entityTypeManager->getStorage('account')->load(reset($ids));
 
         return $account instanceof Account ? $account : null;
+    }
+
+    private function defaultWorkspaceUuidForTenant(string $tenantId): ?string
+    {
+        if ($tenantId === '') {
+            return null;
+        }
+
+        $tenant = $this->findTenantByUuid($tenantId);
+        if (! $tenant instanceof Tenant) {
+            return null;
+        }
+
+        $metadata = $tenant->get('metadata');
+        if (! is_array($metadata)) {
+            return null;
+        }
+
+        $workspaceUuid = $metadata['default_workspace_uuid'] ?? null;
+
+        return is_string($workspaceUuid) && $workspaceUuid !== '' ? $workspaceUuid : null;
+    }
+
+    private function findTenantByUuid(string $tenantId): ?Tenant
+    {
+        $ids = $this->entityTypeManager->getStorage('tenant')->getQuery()
+            ->condition('uuid', $tenantId)
+            ->range(0, 1)
+            ->execute();
+
+        if ($ids === []) {
+            return null;
+        }
+
+        $tenant = $this->entityTypeManager->getStorage('tenant')->load(reset($ids));
+
+        return $tenant instanceof Tenant ? $tenant : null;
     }
 
     /**

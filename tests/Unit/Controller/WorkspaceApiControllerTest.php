@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Claudriel\Tests\Unit\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Controller\WorkspaceApiController;
+use Claudriel\Entity\Account;
 use Claudriel\Entity\Workspace;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -52,6 +54,32 @@ final class WorkspaceApiControllerTest extends TestCase
 
         $show = $controller->show(params: ['uuid' => $payload['workspace']['uuid']], query: ['tenant_id' => 'tenant-b']);
         self::assertSame(404, $show->statusCode);
+    }
+
+    public function test_workspace_read_routes_return_403_for_authenticated_tenant_mismatch(): void
+    {
+        $controller = new WorkspaceApiController($this->buildEntityTypeManager());
+        $create = $controller->create(httpRequest: Request::create(
+            '/api/workspaces',
+            'POST',
+            server: ['CONTENT_TYPE' => 'application/json', 'HTTP_X_TENANT_ID' => 'tenant-a'],
+            content: json_encode(['name' => 'Workspace A'], JSON_THROW_ON_ERROR),
+        ));
+        $payload = json_decode($create->content, true, 512, JSON_THROW_ON_ERROR);
+        $account = new AuthenticatedAccount(new Account([
+            'aid' => 99,
+            'uuid' => 'account-auth-1',
+            'email' => 'auth@example.com',
+            'status' => 'active',
+            'email_verified_at' => '2026-03-14T15:00:00+00:00',
+            'tenant_id' => 'tenant-a',
+        ]));
+
+        $list = $controller->list(query: ['tenant_id' => 'tenant-b'], account: $account);
+        self::assertSame(403, $list->statusCode);
+
+        $show = $controller->show(params: ['uuid' => $payload['workspace']['uuid']], query: ['tenant_id' => 'tenant-b'], account: $account);
+        self::assertSame(403, $show->statusCode);
     }
 
     private function buildEntityTypeManager(): EntityTypeManager

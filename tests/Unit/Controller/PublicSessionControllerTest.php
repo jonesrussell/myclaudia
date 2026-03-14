@@ -7,6 +7,7 @@ namespace Claudriel\Tests\Unit\Controller;
 use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Controller\PublicSessionController;
 use Claudriel\Entity\Account;
+use Claudriel\Entity\Tenant;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -43,6 +44,11 @@ final class PublicSessionControllerTest extends TestCase
     {
         $entityTypeManager = $this->buildEntityTypeManager();
         $account = $this->seedVerifiedAccount($entityTypeManager);
+        $entityTypeManager->getStorage('tenant')->save(new Tenant([
+            'uuid' => 'tenant-123',
+            'name' => 'Tenant One',
+            'metadata' => ['default_workspace_uuid' => 'workspace-abc'],
+        ]));
         $controller = $this->controller($entityTypeManager);
 
         $login = $controller->login(
@@ -53,12 +59,13 @@ final class PublicSessionControllerTest extends TestCase
         );
 
         self::assertInstanceOf(RedirectResponse::class, $login);
-        self::assertSame('/?login=1', $login->getTargetUrl());
+        self::assertSame('/?login=1&tenant_id=tenant-123&workspace_uuid=workspace-abc', $login->getTargetUrl());
         self::assertSame($account->get('uuid'), $_SESSION['claudriel_account_uuid'] ?? null);
 
         $sessionState = $controller->sessionState(account: new AuthenticatedAccount($account));
         self::assertSame(200, $sessionState->statusCode);
         self::assertStringContainsString('test@example.com', $sessionState->content);
+        self::assertStringContainsString('workspace-abc', $sessionState->content);
 
         $logout = $controller->logout();
         self::assertSame('/login?logged_out=1', $logout->getTargetUrl());
@@ -87,6 +94,12 @@ final class PublicSessionControllerTest extends TestCase
             label: 'Account',
             class: Account::class,
             keys: ['id' => 'aid', 'uuid' => 'uuid', 'label' => 'name'],
+        ));
+        $entityTypeManager->registerEntityType(new EntityType(
+            id: 'tenant',
+            label: 'Tenant',
+            class: Tenant::class,
+            keys: ['id' => 'tid', 'uuid' => 'uuid', 'label' => 'name'],
         ));
 
         return $entityTypeManager;
