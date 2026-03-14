@@ -39,6 +39,7 @@ use Claudriel\Controller\NotFoundController;
 use Claudriel\Controller\PeopleApiController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\PublicAccountController;
+use Claudriel\Controller\PublicSessionController;
 use Claudriel\Controller\ScheduleApiController;
 use Claudriel\Controller\TemporalNotificationApiController;
 use Claudriel\Controller\TriageApiController;
@@ -222,6 +223,41 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->allowAll()
                 ->methods('GET')
                 ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.public.login_form',
+            RouteBuilder::create('/login')
+                ->controller(PublicSessionController::class.'::loginForm')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $loginRoute = RouteBuilder::create('/login')
+            ->controller(PublicSessionController::class.'::login')
+            ->allowAll()
+            ->methods('POST')
+            ->render()
+            ->build();
+        $router->addRoute('claudriel.public.login_submit', $loginRoute);
+
+        $logoutRoute = RouteBuilder::create('/logout')
+            ->controller(PublicSessionController::class.'::logout')
+            ->allowAll()
+            ->methods('POST')
+            ->render()
+            ->build();
+        $router->addRoute('claudriel.public.logout', $logoutRoute);
+
+        $router->addRoute(
+            'claudriel.public.session_state',
+            RouteBuilder::create('/account/session')
+                ->controller(PublicSessionController::class.'::sessionState')
+                ->allowAll()
+                ->methods('GET')
                 ->build(),
         );
 
