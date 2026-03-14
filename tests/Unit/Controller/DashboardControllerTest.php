@@ -135,6 +135,38 @@ final class DashboardControllerTest extends TestCase
         self::assertStringContainsString('data-guidance-dismiss="', $response->content);
     }
 
+    public function test_show_renders_persisted_guidance_action_state_in_html(): void
+    {
+        $etm = $this->buildEntityTypeManager();
+        $this->seedWorkspace($etm, 'workspace-dashboard-4', 'Guidance State Workspace');
+        $this->seedUpcomingScheduleEntry($etm, 'Planning');
+
+        $controller = new DashboardController(
+            $etm,
+            new Environment(new FilesystemLoader(dirname(__DIR__, 3).'/templates')),
+        );
+
+        $request = Request::create('/dashboard', 'GET', server: ['HTTP_X_REQUEST_ID' => 'dashboard-guidance-state-req']);
+        $firstResponse = $controller->show(query: ['request_id' => 'dashboard-guidance-state-req'], httpRequest: $request);
+
+        self::assertSame(200, $firstResponse->statusCode);
+
+        $notificationStorage = $etm->getStorage('temporal_notification');
+        $notifications = $notificationStorage->loadMultiple($notificationStorage->getQuery()->execute());
+        $notification = array_values($notifications)[0] ?? null;
+
+        self::assertInstanceOf(TemporalNotification::class, $notification);
+        $notification->set('action_states', ['open_chat' => 'complete']);
+        $notificationStorage->save($notification);
+
+        $secondResponse = $controller->show(query: ['request_id' => 'dashboard-guidance-state-req'], httpRequest: $request);
+
+        self::assertSame(200, $secondResponse->statusCode);
+        self::assertStringContainsString('data-guidance-status="complete"', $secondResponse->content);
+        self::assertStringContainsString('data-state="complete"', $secondResponse->content);
+        self::assertStringContainsString('>Complete</div>', $secondResponse->content);
+    }
+
     private function buildEntityTypeManager(): EntityTypeManager
     {
         $db = PdoDatabase::createSqlite(':memory:');

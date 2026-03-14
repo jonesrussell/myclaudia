@@ -908,6 +908,13 @@
                 <div id="guidancePanel" class="guidance-panel">
                     {% if proactive_guidance.notifications|default([])|length > 0 %}
                         {% for notification in proactive_guidance.notifications|default([]) %}
+                            {% set primary_action = notification.actions|default([])|length > 0 ? notification.actions|first : null %}
+                            {% set primary_action_state = primary_action ? primary_action.state|default('idle') : 'idle' %}
+                            {% set primary_action_status = primary_action_state == 'working'
+                                ? 'Working…'
+                                : (primary_action_state == 'complete'
+                                    ? 'Complete'
+                                    : (primary_action_state == 'failed' ? 'Action failed' : 'Ready')) %}
                             <article class="guidance-card" data-notification-uuid="{{ notification.uuid }}" data-agent-name="{{ notification.agent_name }}" data-workspace-uuid="{{ active_workspace_uuid|default('') }}">
                                 <div class="guidance-card-header">
                                     <div>
@@ -917,8 +924,7 @@
                                 </div>
                                 <div class="guidance-card-summary">{{ notification.summary }}</div>
                                 <div class="guidance-card-actions">
-                                    {% if notification.actions|default([])|length > 0 %}
-                                        {% set primary_action = notification.actions|first %}
+                                    {% if primary_action %}
                                         <button class="guidance-button guidance-button--primary" type="button" data-guidance-open="{{ primary_action.payload.prompt|default('') }}" data-guidance-notification="{{ notification.uuid }}" data-guidance-action="{{ primary_action.type }}">
                                             {{ primary_action.label }}
                                         </button>
@@ -927,7 +933,7 @@
                                     <button class="guidance-button" type="button" data-guidance-dismiss="{{ notification.uuid }}">Dismiss</button>
                                 </div>
                                 <div class="guidance-meta">{{ notification.reason_code|replace({'_': ' '})|title }}</div>
-                                <div class="guidance-status" data-guidance-status="idle">Ready</div>
+                                <div class="guidance-status" data-guidance-status="{{ primary_action_state }}" data-state="{{ primary_action_state }}">{{ primary_action_status }}</div>
                             </article>
                         {% endfor %}
                     {% else %}
@@ -1584,8 +1590,23 @@
                 return;
             }
 
+            statusEl.dataset.guidanceStatus = state;
             statusEl.dataset.state = state;
             statusEl.textContent = message;
+        }
+
+        function guidanceStatusLabel(state) {
+            if (state === 'working') {
+                return 'Working…';
+            }
+            if (state === 'complete') {
+                return 'Complete';
+            }
+            if (state === 'failed') {
+                return 'Action failed';
+            }
+
+            return 'Ready';
         }
 
         function postGuidanceAction(url, body) {
@@ -1713,6 +1734,7 @@
                 } else {
                     guidancePanel.innerHTML = notifications.map(function(notification) {
                         var primaryAction = Array.isArray(notification.actions) && notification.actions.length > 0 ? notification.actions[0] : null;
+                        var primaryState = primaryAction && primaryAction.state ? primaryAction.state : 'idle';
                         return '<article class="guidance-card" data-notification-uuid="' + esc(notification.uuid) + '" data-agent-name="' + esc(notification.agent_name) + '" data-workspace-uuid="' + esc(activeWorkspaceUuid || '') + '">'
                             + '<div class="guidance-card-header"><div><div class="guidance-card-chip">' + esc(String(notification.agent_name || '').replace(/-/g, ' ')) + '</div>'
                             + '<div class="guidance-card-title">' + esc(notification.title || '') + '</div></div></div>'
@@ -1721,7 +1743,7 @@
                             + (primaryAction ? '<button class="guidance-button guidance-button--primary" type="button" data-guidance-open="' + esc(primaryAction.payload && primaryAction.payload.prompt ? primaryAction.payload.prompt : '') + '" data-guidance-notification="' + esc(notification.uuid) + '" data-guidance-action="' + esc(primaryAction.type || '') + '">' + esc(primaryAction.label || 'Open') + '</button>' : '')
                             + '<button class="guidance-button" type="button" data-guidance-snooze="' + esc(notification.uuid) + '" data-guidance-minutes="15">Snooze 15m</button>'
                             + '<button class="guidance-button" type="button" data-guidance-dismiss="' + esc(notification.uuid) + '">Dismiss</button>'
-                            + '</div><div class="guidance-meta">' + esc(String(notification.reason_code || '').replace(/_/g, ' ')) + '</div><div class="guidance-status" data-guidance-status="idle">Ready</div></article>';
+                            + '</div><div class="guidance-meta">' + esc(String(notification.reason_code || '').replace(/_/g, ' ')) + '</div><div class="guidance-status" data-guidance-status="' + esc(primaryState) + '" data-state="' + esc(primaryState) + '">' + esc(guidanceStatusLabel(primaryState)) + '</div></article>';
                     }).join('');
                 }
 

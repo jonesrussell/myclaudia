@@ -4,6 +4,8 @@ This document defines the first product-grade user experience for proactive temp
 
 It assumes the deterministic temporal substrate already exists and focuses on how agent-driven guidance appears, competes for attention, and remains actionable without overwhelming the schedule surface.
 
+For the canonical runtime, delivery, observability, and validation model behind this UX, use [temporal-agents.md](/home/fsd42/dev/claudriel/docs/specs/temporal-agents.md).
+
 ## Goals
 
 - Surface timely schedule intelligence before the user has to ask.

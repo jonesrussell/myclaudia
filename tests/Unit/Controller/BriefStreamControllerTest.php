@@ -95,6 +95,27 @@ final class BriefStreamControllerTest extends TestCase
         self::assertSame('Fallback Workspace', $payload['briefs']['workspaces'][0]['name']);
     }
 
+    public function test_fallback_payload_includes_live_proactive_guidance_when_schedule_has_upcoming_block(): void
+    {
+        $etm = $this->buildEntityTypeManager();
+        $this->seedWorkspace($etm, 'workspace-fallback-2', 'Guidance Workspace', 'user-77');
+        $this->seedUpcomingScheduleEntry($etm, 'Planning');
+
+        $controller = new BriefStreamController($etm);
+        $response = $controller->stream(
+            query: ['transport' => 'fallback'],
+            account: 'user-77',
+            httpRequest: Request::create('/stream/brief', 'GET', server: ['HTTP_X_REQUEST_ID' => 'req-fallback-guidance']),
+        );
+
+        self::assertSame(200, $response->statusCode);
+        $payload = json_decode($response->content, true, 512, JSON_THROW_ON_ERROR);
+        self::assertCount(1, $payload['briefs']['proactive_guidance']['notifications']);
+        self::assertSame('upcoming-block-prep', $payload['briefs']['proactive_guidance']['notifications'][0]['agent_name']);
+        self::assertNotNull($payload['briefs']['proactive_guidance']['ambient_nudge']);
+        self::assertSame('Prepare for next block', $payload['briefs']['proactive_guidance']['notifications'][0]['title']);
+    }
+
     private function buildEntityTypeManager(): EntityTypeManager
     {
         $db = PdoDatabase::createSqlite(':memory:');
@@ -119,6 +140,21 @@ final class BriefStreamControllerTest extends TestCase
             'name' => $name,
             'description' => 'Workspace used in controller coverage',
             'tenant_id' => $tenantId,
+        ]));
+    }
+
+    private function seedUpcomingScheduleEntry(EntityTypeManager $etm, string $title): void
+    {
+        $start = new \DateTimeImmutable('+20 minutes', new \DateTimeZone('UTC'));
+        $end = $start->modify('+45 minutes');
+
+        $etm->getStorage('schedule_entry')->save(new ScheduleEntry([
+            'uuid' => 'brief-stream-upcoming-'.md5($title),
+            'tenant_id' => 'user-77',
+            'title' => $title,
+            'starts_at' => $start->format(\DateTimeInterface::ATOM),
+            'ends_at' => $end->format(\DateTimeInterface::ATOM),
+            'source' => 'manual',
         ]));
     }
 

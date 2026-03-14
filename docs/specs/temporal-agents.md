@@ -6,6 +6,24 @@ This document is the canonical implementation and operations reference for Claud
 
 It complements the UX document in [temporal-agents-proactive-guidance-v1.md](/home/fsd42/dev/claudriel/docs/design/temporal-agents-proactive-guidance-v1.md) by describing the deterministic runtime contract, evaluation order, notification delivery semantics, observability model, and validation workflow that now exist in code.
 
+## Operator Quickstart
+
+Use these entry points when validating or debugging the subsystem on a live branch:
+
+- Guidance UI:
+  - dashboard HTML at `/`
+  - brief fallback JSON at `/stream/brief?transport=fallback`
+- Notification actions:
+  - dismiss endpoint
+  - snooze endpoint
+  - action-state endpoint
+- Observability:
+  - HTML dashboard at `/platform/observability`
+  - JSON payload at `/platform/observability.json`
+- Smoke references:
+  - [TemporalGuidanceSmokeTest.php](/home/fsd42/dev/claudriel/tests/Unit/Temporal/Agent/TemporalGuidanceSmokeTest.php)
+  - [v1.0-smoke-matrix.md](/home/fsd42/dev/claudriel/tests/smoke/v1.0-smoke-matrix.md)
+
 ## Main Components
 
 - Runtime contract:
@@ -275,3 +293,13 @@ If the change alters agent contract or orchestration internals, also run the bro
   - overlap priority expectations
   - observability readability impact
   - smoke coverage expectations
+
+## Debugging Sequence
+
+When a proactive guidance issue is reported, the fastest deterministic debugging order is:
+
+1. Confirm the source schedule and time snapshot in the brief or schedule payload.
+2. Confirm the expected notification exists in the fallback brief payload.
+3. Confirm persisted `temporal_notification` state and `action_states`.
+4. Inspect `/platform/observability.json` for the matching `Proactive agent execution` path.
+5. Re-run the smoke-style temporal tests before widening the investigation.
