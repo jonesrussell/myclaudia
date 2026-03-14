@@ -104,7 +104,16 @@ task('deploy:validate', function (): void {
     $sidecarHealthFile = '{{deploy_path}}/shared/logs/deploy-validation-sidecar-health.json';
 
     writeln('Validating deployed sidecar health');
-    run("curl --silent --show-error --fail http://127.0.0.1:8100/health > {$sidecarHealthFile}");
+    run(<<<BASH
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+  if curl --silent --show-error --fail http://127.0.0.1:8100/health > {$sidecarHealthFile}; then
+    exit 0
+  fi
+  sleep 2
+done
+echo 'Sidecar health endpoint did not become healthy in time' >&2
+exit 1
+BASH);
     run("grep -q '\"status\":\"ok\"' {$sidecarHealthFile}");
 
     try {
