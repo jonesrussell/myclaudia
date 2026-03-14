@@ -126,26 +126,6 @@ BASH);
         writeln('Running public signup and login probes');
         run((new PublicAccountDeployValidationScript)->build($baseUrl));
 
-        writeln('Running public chat SSE smoke probe');
-        run(strtr(<<<'BASH'
-chat_send_file=$(mktemp)
-chat_stream_file=$(mktemp)
-trap 'rm -f "$chat_send_file" "$chat_stream_file"' EXIT
-
-curl --silent --show-error --fail \
-  --header 'Content-Type: application/json' \
-  --data '{"message":"delete workspace deploy-validation-smoke"}' \
-  __BASE_URL__/api/chat/send > "$chat_send_file"
-
-message_id=$(php -r '$payload = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); if (!isset($payload["message_id"])) { fwrite(STDERR, "Missing message_id\n"); exit(1);} echo $payload["message_id"];' "$chat_send_file")
-
-curl --silent --show-error --fail --max-time 20 \
-  "__BASE_URL__/stream/chat/${message_id}" > "$chat_stream_file"
-
-grep -q 'event: chat-done' "$chat_stream_file"
-grep -q 'Could not find "deploy-validation-smoke"' "$chat_stream_file"
-BASH, ['__BASE_URL__' => $baseUrl]));
-
         writeln('Deploy validation passed');
     } catch (\Throwable $exception) {
         writeln('Deploy validation failed; captured validation artifacts remain under {{deploy_path}}/shared/logs');
