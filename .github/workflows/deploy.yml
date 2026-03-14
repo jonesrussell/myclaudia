@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: waaseyaa/framework
+          ref: v0.1.0-alpha.1
           path: waaseyaa
 
       # -------------------------------------------------------------------
@@ -96,6 +97,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: waaseyaa/framework
+          ref: v0.1.0-alpha.1
           path: waaseyaa
 
       - name: Set up PHP 8.4
