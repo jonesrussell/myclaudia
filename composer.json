@@ -45,7 +45,8 @@
     "extra": {
         "waaseyaa": {
             "providers": [
-                "Claudriel\\Provider\\ClaudrielServiceProvider"
+                "Claudriel\\Provider\\ClaudrielServiceProvider",
+                "Claudriel\\Provider\\I18nServiceProvider"
             ]
         }
     },
