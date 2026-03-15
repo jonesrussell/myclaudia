@@ -18,7 +18,7 @@ final class PublicAccountDeployValidationScriptTest extends TestCase
         self::assertStringContainsString('/signup', $script);
         self::assertStringContainsString('/login', $script);
         self::assertStringContainsString('Create your account', $script);
-        self::assertStringContainsString('Create your account', $script);
+        self::assertStringContainsString("'Create your account' \"\$signup_form_file\"", $script);
         self::assertStringContainsString('Pick up where you left off.', $script);
         self::assertStringContainsString('Location: /login', $script);
         self::assertStringContainsString('Name, email, and password are required.', $script);
