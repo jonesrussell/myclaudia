@@ -20,6 +20,16 @@ final class GitOperator
         $this->stdinRunner = $stdinRunner ?? $this->defaultStdinRunner(...);
     }
 
+    public function diff(string $repoPath): string
+    {
+        $this->assertRepoPath($repoPath);
+
+        return $this->run(sprintf(
+            'git -C %s diff HEAD',
+            escapeshellarg($repoPath),
+        ));
+    }
+
     public function getStatus(string $repoPath): string
     {
         $this->assertRepoPath($repoPath);

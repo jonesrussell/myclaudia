@@ -6,8 +6,10 @@ namespace Claudriel\Controller;
 
 use Claudriel\Domain\Chat\AnthropicChatClient;
 use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
+use Claudriel\Domain\Chat\IssueIntentDetector;
 use Claudriel\Domain\Chat\SidecarChatClient;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
+use Claudriel\Domain\IssueOrchestrator;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\Workspace;
 use Claudriel\Routing\RequestScopeViolation;
@@ -28,6 +30,7 @@ final class ChatStreamController
         private readonly mixed $twig = null,
         private readonly mixed $sidecarClientFactory = null,
         private readonly mixed $anthropicClientFactory = null,
+        private readonly ?IssueOrchestrator $orchestrator = null,
     ) {}
 
     /**
@@ -78,6 +81,11 @@ final class ChatStreamController
         $localActionResponse = $this->handleLocalAction($userMsg, $msgStorage, $tenantId);
         if ($localActionResponse instanceof StreamedResponse) {
             return $localActionResponse;
+        }
+
+        $orchestratorResponse = $this->handleOrchestratorIntent($userMsg, $msgStorage);
+        if ($orchestratorResponse instanceof StreamedResponse) {
+            return $orchestratorResponse;
         }
 
         // Check API key
@@ -556,6 +564,109 @@ final class ChatStreamController
         }
 
         return null;
+    }
+
+    private function handleOrchestratorIntent(ChatMessage $userMsg, mixed $msgStorage): ?StreamedResponse
+    {
+        if ($this->orchestrator === null) {
+            return null;
+        }
+
+        $intent = IssueIntentDetector::detect((string) $userMsg->get('content'));
+        if ($intent === null) {
+            return null;
+        }
+
+        $responseText = match ($intent->action) {
+            'run_issue' => $this->handleRunIssue($intent->params['issueNumber']),
+            'show_run' => $this->handleShowRun($intent->params['runId']),
+            'list_runs' => $this->handleListRuns(),
+            'show_diff' => $this->handleShowDiff($intent->params['runId']),
+            'pause_run' => $this->handlePauseRun($intent->params['runId']),
+            'resume_run' => $this->handleResumeRun($intent->params['runId']),
+            'abort_run' => $this->handleAbortRun($intent->params['runId']),
+            default => 'Unknown orchestrator command.',
+        };
+
+        return $this->buildLocalActionResponse($userMsg, $msgStorage, $responseText);
+    }
+
+    private function handleRunIssue(int $issueNumber): string
+    {
+        try {
+            $run = $this->orchestrator->createRun($issueNumber);
+            $this->orchestrator->startRun($run);
+
+            return $this->orchestrator->summarizeRun($run);
+        } catch (\Throwable $e) {
+            return "Failed to start run for issue #{$issueNumber}: {$e->getMessage()}";
+        }
+    }
+
+    private function handleShowRun(string $runId): string
+    {
+        $run = $this->orchestrator->getRun($runId);
+
+        return $run !== null
+            ? $this->orchestrator->summarizeRun($run)
+            : "Run {$runId} not found.";
+    }
+
+    private function handleListRuns(): string
+    {
+        $runs = $this->orchestrator->listRuns();
+        if ($runs === []) {
+            return 'No issue runs found.';
+        }
+
+        return implode("\n\n---\n\n", array_map(
+            fn ($run) => $this->orchestrator->summarizeRun($run),
+            $runs,
+        ));
+    }
+
+    private function handleShowDiff(string $runId): string
+    {
+        $run = $this->orchestrator->getRun($runId);
+        if ($run === null) {
+            return "Run {$runId} not found.";
+        }
+        $diff = $this->orchestrator->getWorkspaceDiff($run);
+
+        return $diff !== '' ? "```diff\n{$diff}\n```" : 'No changes detected.';
+    }
+
+    private function handlePauseRun(string $runId): string
+    {
+        $run = $this->orchestrator->getRun($runId);
+        if ($run === null) {
+            return "Run {$runId} not found.";
+        }
+        $this->orchestrator->pauseRun($run);
+
+        return "Run paused.\n\n" . $this->orchestrator->summarizeRun($run);
+    }
+
+    private function handleResumeRun(string $runId): string
+    {
+        $run = $this->orchestrator->getRun($runId);
+        if ($run === null) {
+            return "Run {$runId} not found.";
+        }
+        $this->orchestrator->resumeRun($run);
+
+        return "Run resumed.\n\n" . $this->orchestrator->summarizeRun($run);
+    }
+
+    private function handleAbortRun(string $runId): string
+    {
+        $run = $this->orchestrator->getRun($runId);
+        if ($run === null) {
+            return "Run {$runId} not found.";
+        }
+        $this->orchestrator->abortRun($run);
+
+        return "Run aborted.\n\n" . $this->orchestrator->summarizeRun($run);
     }
 
     private function findWorkspaceByUuid(string $workspaceUuid, string $tenantId): ?Workspace

@@ -12,6 +12,9 @@ use Claudriel\CLI\WorkspaceRunLoopCommand;
 use Claudriel\CLI\WorkspaceStatusCommand;
 use Claudriel\CLI\WorkspaceVerifyCommand;
 use Claudriel\Command\BriefCommand;
+use Claudriel\Command\IssueListCommand;
+use Claudriel\Command\IssueRunCommand;
+use Claudriel\Command\IssueStatusCommand;
 use Claudriel\Command\CommitmentsCommand;
 use Claudriel\Command\CommitmentUpdateCommand;
 use Claudriel\Command\RecategorizeEventsCommand;
@@ -61,6 +64,7 @@ use Claudriel\Entity\Commitment;
 use Claudriel\Entity\CommitmentExtractionLog;
 use Claudriel\Entity\Integration;
 use Claudriel\Entity\McEvent;
+use Claudriel\Entity\IssueRun;
 use Claudriel\Entity\Operation;
 use Claudriel\Entity\Person;
 use Claudriel\Entity\ScheduleEntry;
@@ -213,6 +217,26 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Temporal Notification',
             class: TemporalNotification::class,
             keys: ['id' => 'tnid', 'uuid' => 'uuid'],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'issue_run',
+            label: 'Issue Run',
+            class: IssueRun::class,
+            keys: ['id' => 'irid', 'uuid' => 'uuid', 'label' => 'issue_title'],
+            group: 'orchestration',
+            fieldDefinitions: [
+                'issue_number' => ['type' => 'integer', 'label' => 'Issue Number'],
+                'issue_title' => ['type' => 'string', 'label' => 'Issue Title'],
+                'issue_body' => ['type' => 'text_long', 'label' => 'Issue Body'],
+                'milestone_title' => ['type' => 'string', 'label' => 'Milestone'],
+                'workspace_id' => ['type' => 'integer', 'label' => 'Workspace ID'],
+                'status' => ['type' => 'string', 'label' => 'Status'],
+                'branch_name' => ['type' => 'string', 'label' => 'Branch Name'],
+                'pr_url' => ['type' => 'string', 'label' => 'PR URL'],
+                'last_agent_output' => ['type' => 'text_long', 'label' => 'Last Agent Output'],
+                'event_log' => ['type' => 'text_long', 'label' => 'Event Log'],
+            ],
         ));
     }
 
@@ -967,7 +991,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation', 'issue_run'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {
@@ -1093,7 +1117,10 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $assembler = new DayBriefAssembler($eventRepo, $commitmentRepo, new DriftDetector($commitmentRepo), $personRepo, $skillRepo, $scheduleRepo, $workspaceRepo, $triageRepo);
         $sessionStore = new BriefSessionStore($this->projectRoot.'/storage/brief-session.txt');
 
-        return [
+        // Issue orchestrator (optional — requires GITHUB_TOKEN)
+        $orchestrator = $this->buildIssueOrchestrator($entityTypeManager, $gitOperator);
+
+        $commands = [
             new BriefCommand($assembler, $sessionStore),
             new CommitmentsCommand($commitmentRepo),
             new CommitmentUpdateCommand($commitmentRepo),
@@ -1110,6 +1137,14 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new WorkspaceVerifyCommand($workspaceRepo),
             new RecategorizeEventsCommand($entityTypeManager, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
         ];
+
+        if ($orchestrator !== null) {
+            $commands[] = new IssueRunCommand($orchestrator);
+            $commands[] = new IssueListCommand($orchestrator);
+            $commands[] = new IssueStatusCommand($orchestrator);
+        }
+
+        return $commands;
     }
 
     private function ensureClaudrielSystemWorkspace(
@@ -1145,6 +1180,27 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $artifact->set('local_path', $gitRepositoryManager->buildWorkspaceRepoPath($workspaceUuid));
 
         $artifactRepo->save($artifact);
+    }
+
+    private function buildIssueOrchestrator(
+        EntityTypeManager $entityTypeManager,
+        GitOperator $gitOperator,
+    ): ?\Claudriel\Domain\IssueOrchestrator {
+        $githubToken = $_ENV['GITHUB_TOKEN'] ?? getenv('GITHUB_TOKEN') ?: null;
+        if (!is_string($githubToken) || $githubToken === '') {
+            return null;
+        }
+
+        $githubOwner = $_ENV['GITHUB_OWNER'] ?? getenv('GITHUB_OWNER') ?: '';
+        $githubRepo = $_ENV['GITHUB_REPO'] ?? getenv('GITHUB_REPO') ?: '';
+
+        return new \Claudriel\Domain\IssueOrchestrator(
+            entityTypeManager: $entityTypeManager,
+            gitHubClient: new \Waaseyaa\GitHub\GitHubClient($githubToken, $githubOwner, $githubRepo),
+            pipeline: null,
+            instructionBuilder: new \Claudriel\Domain\IssueInstructionBuilder(),
+            gitOperator: $gitOperator,
+        );
     }
 
     private function findWorkspaceByName(EntityRepository $workspaceRepo, string $name): ?Workspace

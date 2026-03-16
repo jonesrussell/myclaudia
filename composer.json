@@ -3,8 +3,12 @@
     "description": "Claudriel — AI personal operations system",
     "type": "project",
     "license": "GPL-2.0-or-later",
+    "repositories": [
+        {"type": "path", "url": "../waaseyaa/packages/github"}
+    ],
     "require": {
         "php": ">=8.3",
+        "waaseyaa/github": "@dev",
         "waaseyaa/ai-pipeline": "v0.1.0-alpha.1",
         "waaseyaa/api": "v0.1.0-alpha.1",
         "waaseyaa/cli": "v0.1.0-alpha.1",
