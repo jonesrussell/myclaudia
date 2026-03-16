@@ -136,6 +136,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Person',
             class: Person::class,
             keys: ['id' => 'pid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'pid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'email' => ['type' => 'email', 'required' => true],
+                'tier' => ['type' => 'string'],
+                'source' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'latest_summary' => ['type' => 'string'],
+                'last_interaction_at' => ['type' => 'datetime'],
+                'last_inbox_category' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -157,6 +171,19 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Commitment',
             class: Commitment::class,
             keys: ['id' => 'cid', 'uuid' => 'uuid', 'label' => 'title'],
+            fieldDefinitions: [
+                'cid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'title' => ['type' => 'string', 'required' => true],
+                'status' => ['type' => 'string'],
+                'confidence' => ['type' => 'float'],
+                'due_date' => ['type' => 'datetime'],
+                'person_uuid' => ['type' => 'string'],
+                'source' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
