@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ddc78b6dd378ff8b727edd46d9e93706",
+    "content-hash": "f05416140d1f3e29746f6cf986d26ed1",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -4626,11 +4626,17 @@
         },
         {
             "name": "waaseyaa/github",
-            "version": "dev-main",
+            "version": "v0.1.0-alpha.8",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/waaseyaa/github.git",
+                "reference": "04b593df81f3fafd7c0e10542b73dcdb8adc10f2"
+            },
             "dist": {
-                "type": "path",
-                "url": "../waaseyaa/packages/github",
-                "reference": "d759925502f906448fe9708a0eb7328080169308"
+                "type": "zip",
+                "url": "https://api.github.com/repos/waaseyaa/github/zipball/04b593df81f3fafd7c0e10542b73dcdb8adc10f2",
+                "reference": "04b593df81f3fafd7c0e10542b73dcdb8adc10f2",
+                "shasum": ""
             },
             "require": {
                 "php": ">=8.3"
@@ -4641,18 +4647,16 @@
                     "Waaseyaa\\GitHub\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Waaseyaa\\GitHub\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "GPL-2.0-or-later"
             ],
             "description": "GitHub API client for issues, milestones, and pull requests",
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/waaseyaa/github/issues",
+                "source": "https://github.com/waaseyaa/github/tree/v0.1.0-alpha.8"
+            },
+            "time": "2026-03-16T17:30:04+00:00"
         },
         {
             "name": "waaseyaa/i18n",
@@ -5410,9 +5414,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "waaseyaa/github": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
