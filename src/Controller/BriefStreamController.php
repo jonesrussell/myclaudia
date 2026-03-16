@@ -21,7 +21,7 @@ final class BriefStreamController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        mixed $twig = null,
     ) {}
 
     /**

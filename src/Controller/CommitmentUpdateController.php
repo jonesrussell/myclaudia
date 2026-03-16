@@ -20,7 +20,7 @@ final class CommitmentUpdateController
 
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        mixed $twig = null,
     ) {}
 
     public function update(array $params, array $query, mixed $account, ?Request $httpRequest = null): SsrResponse

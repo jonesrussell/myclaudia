@@ -17,7 +17,7 @@ final class ContextController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        mixed $twig = null,
     ) {}
 
     public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse

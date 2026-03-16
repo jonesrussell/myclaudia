@@ -28,7 +28,7 @@ final class IngestController
 
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        mixed $twig = null,
     ) {
         $personRepo = new StorageRepositoryAdapter($this->entityTypeManager->getStorage('person'));
         $categorizer = new EventCategorizer(new AutomatedSenderDetector, $personRepo);

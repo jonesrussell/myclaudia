@@ -61,8 +61,8 @@ parameters:
 			path: src/Command/WorkspacesCommand.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\BriefStreamController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\BriefStreamController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/BriefStreamController.php
 
@@ -73,8 +73,8 @@ parameters:
 			path: src/Controller/ChatController.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\ChatStreamController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\ChatStreamController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/ChatStreamController.php
 
@@ -91,8 +91,8 @@ parameters:
 			path: src/Controller/CommitmentUpdateController.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\CommitmentUpdateController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\CommitmentUpdateController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/CommitmentUpdateController.php
 
@@ -103,8 +103,8 @@ parameters:
 			path: src/Controller/ContextController.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\ContextController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\ContextController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/ContextController.php
 
@@ -115,8 +115,8 @@ parameters:
 			path: src/Controller/DashboardController.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\IngestController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\IngestController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/IngestController.php
 
@@ -133,8 +133,8 @@ parameters:
 			path: src/Controller/IngestController.php
 
 		-
-			message: '#^Property Claudriel\\Controller\\WorkspaceApiController\:\:\$twig is never read, only written\.$#'
-			identifier: property.onlyWritten
+			message: '#^Constructor of class Claudriel\\Controller\\WorkspaceApiController has an unused parameter \$twig\.$#'
+			identifier: constructor.unusedParameter
 			count: 1
 			path: src/Controller/WorkspaceApiController.php
 

@@ -27,7 +27,7 @@ final class ChatStreamController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $twig = null,
+        mixed $twig = null,
         private readonly mixed $sidecarClientFactory = null,
         private readonly mixed $anthropicClientFactory = null,
         private readonly ?IssueOrchestrator $orchestrator = null,
