@@ -147,9 +147,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(ObjectType::class, $commitmentType);
 
-        // EntityTypeBuilder maps entity key 'cid' to GraphQL 'id', skips all key values
-        // Note: 'title' (label key) is currently skipped — tracked as upstream issue
-        $expectedFields = ['id', 'uuid', 'status', 'confidence', 'due_date', 'person_uuid', 'source', 'tenant_id', 'created_at', 'updated_at'];
+        $expectedFields = ['id', 'uuid', 'title', 'status', 'confidence', 'due_date', 'person_uuid', 'source', 'tenant_id', 'created_at', 'updated_at'];
         foreach ($expectedFields as $fieldName) {
             self::assertTrue($commitmentType->hasField($fieldName), "Commitment missing field: {$fieldName}");
         }
@@ -169,9 +167,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(ObjectType::class, $personType);
 
-        // EntityTypeBuilder maps entity key 'pid' to GraphQL 'id', skips all key values
-        // Note: 'name' (label key) is currently skipped — tracked as upstream issue
-        $expectedFields = ['id', 'uuid', 'email', 'tier', 'source', 'tenant_id', 'latest_summary', 'last_interaction_at', 'last_inbox_category', 'created_at', 'updated_at'];
+        $expectedFields = ['id', 'uuid', 'name', 'email', 'tier', 'source', 'tenant_id', 'latest_summary', 'last_interaction_at', 'last_inbox_category', 'created_at', 'updated_at'];
         foreach ($expectedFields as $fieldName) {
             self::assertTrue($personType->hasField($fieldName), "Person missing field: {$fieldName}");
         }
@@ -195,16 +191,16 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(InputObjectType::class, $inputType);
 
-        // Writable fields present
+        // Writable fields present (including label key 'title')
+        self::assertTrue($inputType->hasField('title'));
         self::assertTrue($inputType->hasField('status'));
         self::assertTrue($inputType->hasField('confidence'));
         self::assertTrue($inputType->hasField('due_date'));
 
-        // Entity key fields excluded from input (id, uuid, label key)
+        // Entity key fields excluded from input (id, uuid only)
         self::assertFalse($inputType->hasField('cid'));
         self::assertFalse($inputType->hasField('id'));
         self::assertFalse($inputType->hasField('uuid'));
-        self::assertFalse($inputType->hasField('title')); // label key — skipped
         // Read-only timestamp fields excluded
         self::assertFalse($inputType->hasField('created_at'));
         self::assertFalse($inputType->hasField('updated_at'));
@@ -224,16 +220,16 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(InputObjectType::class, $inputType);
 
-        // Writable fields present
+        // Writable fields present (including label key 'name')
+        self::assertTrue($inputType->hasField('name'));
         self::assertTrue($inputType->hasField('email'));
         self::assertTrue($inputType->hasField('tier'));
         self::assertTrue($inputType->hasField('source'));
 
-        // Entity key fields excluded from input (id, uuid, label key)
+        // Entity key fields excluded from input (id, uuid only)
         self::assertFalse($inputType->hasField('pid'));
         self::assertFalse($inputType->hasField('id'));
         self::assertFalse($inputType->hasField('uuid'));
-        self::assertFalse($inputType->hasField('name')); // label key — skipped
         // Read-only timestamp fields excluded
         self::assertFalse($inputType->hasField('created_at'));
         self::assertFalse($inputType->hasField('updated_at'));
