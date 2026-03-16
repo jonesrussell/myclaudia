@@ -97,6 +97,11 @@ task('sidecar:deploy', function (): void {
     run('cd {{deploy_path}}/sidecar && docker compose -f docker-compose.sidecar.yml --env-file .env up -d --build');
 });
 
+desc('Clear stale framework caches from shared storage');
+task('deploy:clear_cache', function (): void {
+    run('rm -f {{deploy_path}}/shared/storage/framework/packages.php');
+});
+
 desc('Validate sidecar health and app smoke probes');
 task('deploy:validate', function (): void {
     $baseUrl = rtrim((string) get('deploy_validation_base_url'), '/');
@@ -150,6 +155,7 @@ task('deploy', [
     'deploy:writable',
     'deploy:copy_caddyfile',
     'deploy:symlink',
+    'deploy:clear_cache',
     'sidecar:deploy',
     'caddy:reload',
     'php-fpm:reload',
