@@ -88,7 +88,6 @@ jobs:
   admin-build:
     name: Admin Bundle Build
     runs-on: ubuntu-latest
-    continue-on-error: true
     defaults:
       run:
         working-directory: claudriel/frontend/admin
@@ -101,7 +100,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '25'
           cache: npm
           cache-dependency-path: claudriel/frontend/admin/package-lock.json
 
