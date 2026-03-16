@@ -11,6 +11,7 @@ use Claudriel\Temporal\RelativeScheduleQueryService;
 use Claudriel\Temporal\TemporalAwarenessEngine;
 use Claudriel\Temporal\TemporalSuggestionEngine;
 use Claudriel\Temporal\TimeSnapshot;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class DayBriefAssembler
@@ -32,9 +33,11 @@ final class DayBriefAssembler
     {
         $snapshot ??= ($this->timeService ?? new AtomicTimeService)->now();
 
+        /** @var ContentEntityInterface[] $allRepoEvents */
+        $allRepoEvents = $this->eventRepo->findBy([]);
         $recentEvents = array_values(array_filter(
-            $this->eventRepo->findBy([]),
-            fn ($e) => $this->eventMatchesScope($e, $tenantId, $workspaceUuid)
+            $allRepoEvents,
+            fn (ContentEntityInterface $e) => $this->eventMatchesScope($e, $tenantId, $workspaceUuid)
                 && new \DateTimeImmutable($e->get('occurred') ?? 'now') >= $since,
         ));
 
@@ -100,15 +103,16 @@ final class DayBriefAssembler
         $people = $normalizedPeople !== [] ? $normalizedPeople : $peopleEvents;
         $triage = $normalizedTriage !== [] ? $normalizedTriage : $triage;
 
+        /** @var ContentEntityInterface[] $allCommitments */
         $allCommitments = $this->commitmentRepo->findBy([]);
         $pending = array_values(array_filter(
             $allCommitments,
-            fn ($c) => $this->entityMatchesTenant($c, $tenantId) && $c->get('status') === 'pending',
+            fn (ContentEntityInterface $c) => $this->entityMatchesTenant($c, $tenantId) && $c->get('status') === 'pending',
         ));
         $drifting = $this->driftDetector->findDrifting($tenantId);
 
         $today = $snapshot->local()->format('Y-m-d');
-        $dueToday = count(array_filter($pending, fn ($c) => ($c->get('due_date') ?? '') === $today));
+        $dueToday = count(array_filter($pending, static fn (ContentEntityInterface $c) => ($c->get('due_date') ?? '') === $today));
         $temporalAwareness = (new TemporalAwarenessEngine)->analyze($schedule, $snapshot);
         $temporalSuggestions = (new TemporalSuggestionEngine)->suggest($temporalAwareness, $snapshot);
 
@@ -528,16 +532,16 @@ final class DayBriefAssembler
         ));
 
         return array_map(function ($ws) use ($recentEvents) {
-            $wsUuid = $ws->get('uuid');
+            $wsUuid = $this->getEntityValue($ws, 'uuid');
             $activityCount = count(array_filter(
                 $recentEvents,
-                fn ($e) => $e->get('workspace_id') === $wsUuid,
+                fn ($e) => $this->getEntityValue($e, 'workspace_id') === $wsUuid,
             ));
 
             return [
                 'uuid' => $wsUuid,
-                'name' => $ws->get('name') ?? '',
-                'description' => $ws->get('description') ?? '',
+                'name' => $this->getEntityValue($ws, 'name') ?? '',
+                'description' => $this->getEntityValue($ws, 'description') ?? '',
                 'activity_count' => $activityCount,
             ];
         }, $workspaces);
@@ -556,16 +560,16 @@ final class DayBriefAssembler
 
         $eventText = '';
         foreach ($recentEvents as $event) {
-            $eventText .= ' '.strtolower($event->get('source') ?? '');
-            $eventText .= ' '.strtolower($event->get('type') ?? '');
-            $payload = json_decode($event->get('payload') ?? '{}', true) ?? [];
+            $eventText .= ' '.strtolower((string) ($this->getEntityValue($event, 'source') ?? ''));
+            $eventText .= ' '.strtolower((string) ($this->getEntityValue($event, 'type') ?? ''));
+            $payload = json_decode((string) ($this->getEntityValue($event, 'payload') ?? '{}'), true) ?? [];
             $eventText .= ' '.strtolower($payload['subject'] ?? '');
             $eventText .= ' '.strtolower($payload['from_name'] ?? '');
         }
 
         $matched = [];
         foreach ($allSkills as $skill) {
-            $keywords = $skill->get('trigger_keywords') ?? '';
+            $keywords = (string) ($this->getEntityValue($skill, 'trigger_keywords') ?? '');
             $parts = array_map('trim', explode(',', strtolower($keywords)));
             foreach ($parts as $keyword) {
                 if ($keyword !== '' && str_contains($eventText, $keyword)) {

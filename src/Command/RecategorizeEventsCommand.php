@@ -9,6 +9,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManagerInterface;
 
 #[AsCommand(name: 'claudriel:recategorize-events', description: 'Re-categorize existing events using EventCategorizer')]
@@ -25,6 +26,7 @@ final class RecategorizeEventsCommand extends Command
     {
         $storage = $this->entityTypeManager->getStorage('mc_event');
         $ids = $storage->getQuery()->execute();
+        /** @var ContentEntityInterface[] $events */
         $events = $storage->loadMultiple($ids);
 
         $updated = 0;

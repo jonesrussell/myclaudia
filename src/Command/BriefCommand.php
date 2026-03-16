@@ -54,13 +54,13 @@ final class BriefCommand extends Command
             $output->writeln('');
         }
 
-        $pending = $brief['commitments']['pending'] ?? [];
+        $pending = $brief['commitments']['pending'];
         $output->writeln(sprintf('<comment>Pending commitments (%d)</comment>', count($pending)));
         foreach ($pending as $c) {
             $output->writeln(sprintf('  • %s (%.0f%% confidence)', $c->get('title'), $c->get('confidence') * 100));
         }
 
-        $drifting = $brief['commitments']['drifting'] ?? [];
+        $drifting = $brief['commitments']['drifting'];
         if (! empty($drifting)) {
             $output->writeln('');
             $output->writeln('<error>Drifting (no activity 48h+)</error>');

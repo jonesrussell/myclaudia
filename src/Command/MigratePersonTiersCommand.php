@@ -9,6 +9,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 #[AsCommand(name: 'claudriel:migrate-person-tiers', description: 'Backfill tier field on existing Person entities')]
@@ -21,6 +22,7 @@ final class MigratePersonTiersCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var ContentEntityInterface[] $persons */
         $persons = $this->personRepo->findBy([]);
         $updated = 0;
 

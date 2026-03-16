@@ -9,13 +9,12 @@ use Claudriel\Entity\ChatSession;
 use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
 /**
  * Chat interface controller.
- *
- * HttpKernel instantiates as: new ChatController($entityTypeManager, $twig)
  */
 final class ChatController
 {
@@ -41,13 +40,15 @@ final class ChatController
         // Load recent sessions
         $sessionStorage = $this->entityTypeManager->getStorage('chat_session');
         $sessionIds = $sessionStorage->getQuery()->execute();
+        /** @var ContentEntityInterface[] $loadedSessions */
+        $loadedSessions = $sessionStorage->loadMultiple($sessionIds);
         $allSessions = array_values(array_filter(
-            $sessionStorage->loadMultiple($sessionIds),
+            $loadedSessions,
             fn ($session): bool => $resolver->tenantMatches($session, $scope->tenantId),
         ));
 
         // Sort by created_at descending, take 10
-        usort($allSessions, function ($a, $b) {
+        usort($allSessions, static function (ContentEntityInterface $a, ContentEntityInterface $b) {
             return ($b->get('created_at') ?? '') <=> ($a->get('created_at') ?? '');
         });
         $sessions = array_slice($allSessions, 0, 10);
@@ -108,12 +109,14 @@ final class ChatController
 
         $messageStorage = $this->entityTypeManager->getStorage('chat_message');
         $messageIds = $messageStorage->getQuery()->condition('session_uuid', $uuid)->execute();
+        /** @var ContentEntityInterface[] $loadedMessages */
+        $loadedMessages = $messageStorage->loadMultiple($messageIds);
         $allMessages = array_values(array_filter(
-            $messageStorage->loadMultiple($messageIds),
+            $loadedMessages,
             fn ($message): bool => $resolver->tenantMatches($message, $scope->tenantId),
         ));
 
-        usort($allMessages, function ($a, $b) {
+        usort($allMessages, static function (ContentEntityInterface $a, ContentEntityInterface $b) {
             return ($a->get('created_at') ?? '') <=> ($b->get('created_at') ?? '');
         });
 
@@ -196,6 +199,7 @@ final class ChatController
             $sessionStorage->save($session);
         }
 
+        assert($session instanceof ContentEntityInterface);
         $sessionUuid = $session->get('uuid');
 
         // Save user message

@@ -15,7 +15,6 @@ final class WorkspaceApiController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        mixed $twig = null,
     ) {}
 
     public function list(array $params = [], array $query = [], mixed $account = null): SsrResponse

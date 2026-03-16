@@ -18,9 +18,6 @@ use Waaseyaa\Entity\EntityTypeManager;
 
 /**
  * POST /api/ingest — accepts external ingestion payloads.
- *
- * HttpKernel calls: new $class($entityTypeManager, $twig)
- * then: $instance->handle($params, $query, $account, $httpRequest)
  */
 final class IngestController
 {
@@ -28,7 +25,6 @@ final class IngestController
 
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        mixed $twig = null,
     ) {
         $personRepo = new StorageRepositoryAdapter($this->entityTypeManager->getStorage('person'));
         $categorizer = new EventCategorizer(new AutomatedSenderDetector, $personRepo);
@@ -110,7 +106,7 @@ final class IngestController
             ?? getenv('CLAUDRIEL_API_KEY')
             ?: null;
 
-        if ($key === null || $key === '' || $key === false) {
+        if ($key === null) {
             return [];
         }
 

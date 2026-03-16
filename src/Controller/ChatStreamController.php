@@ -27,7 +27,6 @@ final class ChatStreamController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        mixed $twig = null,
         private readonly mixed $sidecarClientFactory = null,
         private readonly mixed $anthropicClientFactory = null,
         private readonly ?IssueOrchestrator $orchestrator = null,
@@ -426,7 +425,7 @@ final class ChatStreamController
     {
         $key = $_ENV['ANTHROPIC_API_KEY'] ?? getenv('ANTHROPIC_API_KEY') ?: null;
 
-        return is_string($key) && $key !== '' ? $key : null;
+        return is_string($key) ? $key : null;
     }
 
     private function emitSseEvent(string $event, array $payload): void

@@ -11,6 +11,8 @@ config/active/
 waaseyaa.sqlite
 .worktrees/
 node_modules/
+frontend/admin/.nuxt/
+frontend/admin/.output/
 
 # User data (gitignored, .gitkeep preserves dirs)
 context/

@@ -9,6 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 #[AsCommand(name: 'claudriel:skills', description: 'List skills in the vault')]
@@ -26,6 +27,7 @@ final class SkillsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        /** @var ContentEntityInterface[] $all */
         $all = $this->skillRepo->findBy([]);
         $keyword = $input->getOption('keyword');
 

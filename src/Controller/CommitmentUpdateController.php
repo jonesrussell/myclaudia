@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
 /**
  * PATCH /commitments/{uuid} controller.
- *
- * HttpKernel calls: new $class($entityTypeManager, $twig)
- * then: $instance->update($params, $query, $account, $httpRequest)
  */
 final class CommitmentUpdateController
 {
@@ -20,7 +18,6 @@ final class CommitmentUpdateController
 
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        mixed $twig = null,
     ) {}
 
     public function update(array $params, array $query, mixed $account, ?Request $httpRequest = null): SsrResponse
@@ -31,7 +28,7 @@ final class CommitmentUpdateController
         $ids = $storage->getQuery()->condition('uuid', $uuid)->execute();
         $commitment = ! empty($ids) ? $storage->load(reset($ids)) : null;
 
-        if ($commitment === null) {
+        if (! $commitment instanceof ContentEntityInterface) {
             return new SsrResponse(
                 content: json_encode(['error' => 'Not found.']),
                 statusCode: 404,

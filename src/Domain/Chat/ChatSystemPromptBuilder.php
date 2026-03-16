@@ -126,11 +126,6 @@ final class ChatSystemPromptBuilder
         return implode("\n", $sections);
     }
 
-    /**
-     * Format the brief data into a concise context block for the system prompt.
-     *
-     * @param  array{recent_events: array, pending_commitments: array, drifting_commitments: array, people: array<string,string>}  $brief
-     */
     private function buildInstructions(bool $hasToolAccess): string
     {
         $base = <<<'INSTRUCTIONS'

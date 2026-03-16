@@ -13,6 +13,7 @@ use Claudriel\Temporal\Agent\TemporalGuidanceAssembler;
 use Claudriel\Temporal\TemporalContextFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 use Waaseyaa\User\Middleware\CsrfMiddleware;
@@ -103,13 +104,15 @@ final class DashboardController
         // Load chat sessions
         $chatSessionStorage = $this->entityTypeManager->getStorage('chat_session');
         $sessionIds = $chatSessionStorage->getQuery()->execute();
+        /** @var ContentEntityInterface[] $loadedSessions */
+        $loadedSessions = $chatSessionStorage->loadMultiple($sessionIds);
         $allSessions = array_values(array_filter(
-            $chatSessionStorage->loadMultiple($sessionIds),
+            $loadedSessions,
             fn ($session): bool => $resolver->tenantMatches($session, $scope->tenantId),
         ));
-        usort($allSessions, fn ($a, $b) => ($b->get('created_at') ?? '') <=> ($a->get('created_at') ?? ''));
+        usort($allSessions, static fn (ContentEntityInterface $a, ContentEntityInterface $b) => ($b->get('created_at') ?? '') <=> ($a->get('created_at') ?? ''));
 
-        $twigSessions = array_map(fn ($s) => [
+        $twigSessions = array_map(static fn (ContentEntityInterface $s) => [
             'uuid' => $s->get('uuid'),
             'title' => $s->get('title') ?? 'New Chat',
             'created_at' => $s->get('created_at'),
@@ -119,16 +122,20 @@ final class DashboardController
         $apiConfigured = is_string($apiKey) && $apiKey !== '';
         $model = $_ENV['CLAUDE_MODEL'] ?? getenv('CLAUDE_MODEL') ?: 'claude-sonnet-4-6';
 
-        $twigCommitments = array_map(fn ($c) => [
+        /** @var ContentEntityInterface[] $pendingCommitments */
+        $pendingCommitments = $brief['commitments']['pending'];
+        $twigCommitments = array_map(static fn (ContentEntityInterface $c) => [
             'title' => $c->get('title'),
             'confidence' => $c->get('confidence') ?? 1.0,
             'due_date' => $c->get('due_date'),
-        ], $brief['commitments']['pending']);
+        ], $pendingCommitments);
 
-        $twigDrifting = array_map(fn ($c) => [
+        /** @var ContentEntityInterface[] $driftingCommitments */
+        $driftingCommitments = $brief['commitments']['drifting'];
+        $twigDrifting = array_map(static fn (ContentEntityInterface $c) => [
             'title' => $c->get('title'),
             'updated_at' => $c->get('updated_at'),
-        ], $brief['commitments']['drifting']);
+        ], $driftingCommitments);
 
         // Twig rendering
         if ($this->twig !== null) {

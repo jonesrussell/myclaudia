@@ -18,15 +18,16 @@ final class DriftDetector
     {
         $cutoff = new \DateTimeImmutable(sprintf('-%d hours', self::DRIFT_HOURS));
         // Load all commitments and filter in memory — status is stored in the _data JSON blob.
+        /** @var ContentEntityInterface[] $all */
         $all = $this->repo->findBy([]);
         $active = array_filter(
             $all,
-            fn (ContentEntityInterface $c) => $c->get('status') === 'active',
+            static fn (ContentEntityInterface $c) => $c->get('status') === 'active',
         );
 
         return array_values(array_filter(
             $active,
-            fn (ContentEntityInterface $c) => new \DateTimeImmutable($c->get('updated_at') ?? 'now') < $cutoff,
+            static fn (ContentEntityInterface $c) => new \DateTimeImmutable($c->get('updated_at') ?? 'now') < $cutoff,
         ));
     }
 }

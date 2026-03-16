@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Ingestion;
 
 use Claudriel\Entity\Skill;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class SkillFileIngester
@@ -109,10 +110,12 @@ final class SkillFileIngester
 
     private function findBySourcePath(string $filePath): ?Skill
     {
+        /** @var ContentEntityInterface[] $all */
         $all = $this->skillRepo->findBy([]);
         foreach ($all as $skill) {
             if ($skill->get('source_path') === $filePath) {
-                /** @var Skill $skill */
+                assert($skill instanceof Skill);
+
                 return $skill;
             }
         }

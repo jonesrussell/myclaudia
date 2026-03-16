@@ -102,3 +102,5 @@ See `docs/specs/workflow.md` for milestone list and versioning model.
 - `GmailMessageNormalizer::normalize()` base64-decodes body with URL-safe alphabet (`-_` → `+/`)
 - When refactoring a subsystem, update the relevant `docs/specs/` file. Stale specs cause agents to generate conflicting code.
 - ConsoleKernel auto-discovery of CLI commands may need explicit wiring (issue #9 is open)
+- `EntityRepositoryInterface::findBy()` returns `EntityInterface[]`, but most callers need `ContentEntityInterface`. Use `assert($entity instanceof ConcreteType)` for type narrowing (established pattern), or `/** @var */` for array-level annotations before `array_filter`
+- Controllers accept an optional `$twig = null` parameter for forward-compatibility with the Waaseyaa DI resolver; do not remove it without checking injection wiring

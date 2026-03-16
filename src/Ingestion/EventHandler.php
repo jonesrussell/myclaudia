@@ -8,6 +8,7 @@ use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
 use Claudriel\Support\ContentHasher;
 use Claudriel\Support\PersonTierClassifier;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 use Waaseyaa\Foundation\Ingestion\Envelope;
 
@@ -29,7 +30,10 @@ final class EventHandler
 
         $existing = $this->eventRepo->findBy(['content_hash' => $contentHash]);
         if ($existing !== []) {
-            return $existing[0];
+            $first = $existing[0];
+            assert($first instanceof McEvent);
+
+            return $first;
         }
 
         $category = $this->categorizer->categorize($envelope->source, $envelope->type, $payload);
@@ -58,8 +62,10 @@ final class EventHandler
         $now = (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM);
         $existing = $this->personRepo->findBy(['email' => $email]);
         if ($existing !== []) {
-            $existing[0]->set('last_interaction_at', $now);
-            $this->personRepo->save($existing[0]);
+            $person = $existing[0];
+            assert($person instanceof ContentEntityInterface);
+            $person->set('last_interaction_at', $now);
+            $this->personRepo->save($person);
 
             return;
         }

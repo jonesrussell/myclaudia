@@ -24,7 +24,7 @@ final class CommitmentHandler
     public function handle(array $candidates, McEvent $event, string $personId, string $tenantId): void
     {
         foreach ($candidates as $candidate) {
-            if (($candidate['confidence'] ?? 0.0) < self::CONFIDENCE_THRESHOLD) {
+            if ($candidate['confidence'] < self::CONFIDENCE_THRESHOLD) {
                 $this->logLowConfidenceCandidate($candidate, $event);
 
                 continue;

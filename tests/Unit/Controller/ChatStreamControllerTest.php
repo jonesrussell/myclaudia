@@ -282,7 +282,6 @@ final class ChatStreamControllerTest extends TestCase
 
         $controller = new ChatStreamController(
             $etm,
-            null,
             sidecarClientFactory: static fn (): SidecarChatClient => new class extends SidecarChatClient
             {
                 public function __construct()

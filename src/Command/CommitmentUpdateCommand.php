@@ -9,6 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 #[AsCommand(name: 'claudriel:commitment:update', description: 'Update a commitment status')]
@@ -42,6 +43,7 @@ final class CommitmentUpdateCommand extends Command
             return Command::FAILURE;
         }
 
+        /** @var ContentEntityInterface[] $results */
         $results = $this->commitmentRepo->findBy(['uuid' => $uuid]);
         $commitment = $results[0] ?? null;
 

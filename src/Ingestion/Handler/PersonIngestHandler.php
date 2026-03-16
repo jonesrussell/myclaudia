@@ -6,6 +6,7 @@ namespace Claudriel\Ingestion\Handler;
 
 use Claudriel\Entity\Person;
 use Claudriel\Ingestion\IngestHandlerInterface;
+use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManagerInterface;
 
 /**
@@ -45,7 +46,7 @@ final class PersonIngestHandler implements IngestHandlerInterface
         if ($ids !== []) {
             // Update existing person.
             $person = $storage->load(reset($ids));
-            if ($person !== null) {
+            if ($person instanceof ContentEntityInterface) {
                 $name = $payload['name'] ?? null;
                 if (is_string($name) && $name !== '') {
                     $person->set('name', $name);
