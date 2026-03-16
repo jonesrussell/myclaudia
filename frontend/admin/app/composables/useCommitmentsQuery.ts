@@ -1,11 +1,7 @@
 import { gql } from '~/utils/gql';
 import { graphqlFetch } from '~/utils/graphqlFetch';
 import type { Commitment } from '~/types/commitment';
-
-interface ListResult<T> {
-  items: T[];
-  total: number;
-}
+import type { ListResult } from '~/types/graphql';
 
 const COMMITMENTS_LIST_QUERY = gql`
   query CommitmentsList($status: String, $tenantId: String) {

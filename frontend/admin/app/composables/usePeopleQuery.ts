@@ -1,11 +1,7 @@
 import { gql } from '~/utils/gql';
 import { graphqlFetch } from '~/utils/graphqlFetch';
 import type { Person } from '~/types/person';
-
-interface ListResult<T> {
-  items: T[];
-  total: number;
-}
+import type { ListResult } from '~/types/graphql';
 
 const PEOPLE_LIST_QUERY = gql`
   query PeopleList($tier: String, $tenantId: String) {

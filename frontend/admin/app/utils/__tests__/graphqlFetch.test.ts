@@ -12,6 +12,7 @@ describe('graphqlFetch', () => {
 
   it('returns typed data on success', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ data: { article: { id: '1', title: 'Test' } } }),
     });
 
@@ -28,6 +29,7 @@ describe('graphqlFetch', () => {
 
   it('passes variables in request body', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ data: { items: [] } }),
     });
 
@@ -39,6 +41,7 @@ describe('graphqlFetch', () => {
 
   it('throws GraphQlError on errors', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ errors: [{ message: 'Not found' }] }),
     });
 
@@ -48,6 +51,7 @@ describe('graphqlFetch', () => {
 
   it('throws GraphQlError with multiple error messages', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ errors: [{ message: 'Error 1' }, { message: 'Error 2' }] }),
     });
 
@@ -59,6 +63,15 @@ describe('graphqlFetch', () => {
       expect((e as GraphQlError).message).toBe('Error 1; Error 2');
       expect((e as GraphQlError).errors).toHaveLength(2);
     }
+  });
+  it('throws on non-ok HTTP response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+    });
+
+    await expect(graphqlFetch('{ bad }')).rejects.toThrow('GraphQL request failed: 500 Internal Server Error');
   });
 });
 
