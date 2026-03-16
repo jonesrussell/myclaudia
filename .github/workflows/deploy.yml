@@ -103,6 +103,7 @@ jobs:
             --exclude='docs/' \
             --exclude='.env' \
             --exclude='*.sqlite' \
+            --exclude='skills/' \
             claudriel/ claudriel/.build/
 
       - name: Install PHP Deployer
