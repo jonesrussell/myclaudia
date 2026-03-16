@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Tests\Integration\GraphQL;
 
+use Claudriel\Entity\Commitment;
+use Claudriel\Entity\Person;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ObjectType;
@@ -21,8 +23,6 @@ use Waaseyaa\GraphQL\Access\GraphQlAccessGuard;
 use Waaseyaa\GraphQL\Resolver\EntityResolver;
 use Waaseyaa\GraphQL\Resolver\ReferenceLoader;
 use Waaseyaa\GraphQL\Schema\SchemaFactory;
-use Claudriel\Entity\Commitment;
-use Claudriel\Entity\Person;
 
 /**
  * Contract test: validates Claudriel's entity types produce
@@ -38,7 +38,7 @@ final class SchemaContractTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->entityTypeManager = new EntityTypeManager(new EventDispatcher());
+        $this->entityTypeManager = new EntityTypeManager(new EventDispatcher);
 
         $this->entityTypeManager->registerCoreEntityType(new EntityType(
             id: 'person',
@@ -99,7 +99,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function commitmentAndPersonTypesExistInSchema(): void
+    public function commitment_and_person_types_exist_in_schema(): void
     {
         $schema = $this->buildSchema();
         $queryType = $schema->getQueryType();
@@ -114,7 +114,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function commitmentMutationsExist(): void
+    public function commitment_mutations_exist(): void
     {
         $schema = $this->buildSchema();
         $mutationType = $schema->getMutationType();
@@ -126,7 +126,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function personMutationsExist(): void
+    public function person_mutations_exist(): void
     {
         $schema = $this->buildSchema();
         $mutationType = $schema->getMutationType();
@@ -138,7 +138,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function commitmentTypeHasExpectedFields(): void
+    public function commitment_type_has_expected_fields(): void
     {
         $schema = $this->buildSchema();
         $queryType = $schema->getQueryType();
@@ -158,7 +158,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function personTypeHasExpectedFields(): void
+    public function person_type_has_expected_fields(): void
     {
         $schema = $this->buildSchema();
         $queryType = $schema->getQueryType();
@@ -178,7 +178,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function commitmentCreateInputExcludesReadOnlyFields(): void
+    public function commitment_create_input_excludes_read_only_fields(): void
     {
         $schema = $this->buildSchema();
         $mutationType = $schema->getMutationType();
@@ -207,7 +207,7 @@ final class SchemaContractTest extends TestCase
     }
 
     #[Test]
-    public function personCreateInputExcludesReadOnlyFields(): void
+    public function person_create_input_excludes_read_only_fields(): void
     {
         $schema = $this->buildSchema();
         $mutationType = $schema->getMutationType();
