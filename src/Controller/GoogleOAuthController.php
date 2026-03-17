@@ -21,6 +21,8 @@ final class GoogleOAuthController
     private const USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
     private const SCOPES = [
+        // User profile — email address for provider_email field
+        'https://www.googleapis.com/auth/userinfo.email',
         // Gmail — read inbox + send (no full mailbox access)
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/gmail.send',

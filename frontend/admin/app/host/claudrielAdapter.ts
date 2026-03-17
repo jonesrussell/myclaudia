@@ -3,48 +3,14 @@ import type { HostAdapter } from '~/host/hostAdapter'
 import type { AdminSessionPayload, EntitySchema, JsonApiResource, SessionBootstrap } from '~/host/types'
 import { graphqlFetch } from '~/utils/graphqlFetch'
 
-interface EntityConfig {
-  basePath: string
-  collectionKey: string
-  itemKey: string
-  labelField: string
+/** Default label field per entity type (used by search when no override is given). */
+const LABEL_FIELDS: Record<string, string> = {
+  workspace: 'name',
+  person: 'name',
+  commitment: 'title',
+  schedule_entry: 'title',
+  triage_entry: 'sender_name',
 }
-
-const ENTITY_CONFIG: Record<string, EntityConfig> = {
-  workspace: {
-    basePath: '/api/workspaces',
-    collectionKey: 'workspaces',
-    itemKey: 'workspace',
-    labelField: 'name',
-  },
-  person: {
-    basePath: '/api/people',
-    collectionKey: 'people',
-    itemKey: 'person',
-    labelField: 'name',
-  },
-  commitment: {
-    basePath: '/api/commitments',
-    collectionKey: 'commitments',
-    itemKey: 'commitment',
-    labelField: 'title',
-  },
-  schedule_entry: {
-    basePath: '/api/schedule',
-    collectionKey: 'schedule',
-    itemKey: 'schedule',
-    labelField: 'title',
-  },
-  triage_entry: {
-    basePath: '/api/triage',
-    collectionKey: 'triage',
-    itemKey: 'triage',
-    labelField: 'sender_name',
-  },
-}
-
-/** Entity types routed through GraphQL instead of REST. */
-const GRAPHQL_TYPES = new Set(['commitment', 'person', 'workspace', 'schedule_entry', 'triage_entry'])
 
 /** Fields to request per GraphQL entity type. */
 const GRAPHQL_FIELDS: Record<string, string> = {
@@ -63,13 +29,13 @@ function toCamelCase(s: string): string {
   return s.replace(/_(\w)/g, (_, c) => c.toUpperCase())
 }
 
-function configFor(type: string): EntityConfig {
-  const config = ENTITY_CONFIG[type]
-  if (!config) {
+function fieldsFor(type: string): string {
+  const fields = GRAPHQL_FIELDS[type]
+  if (!fields) {
     throw new Error(`Unsupported admin entity type: ${type}`)
   }
 
-  return config
+  return fields
 }
 
 function toResource(type: string, item: Record<string, any>): JsonApiResource {
@@ -130,123 +96,67 @@ export const claudrielHostAdapter: HostAdapter = {
       type: string,
       query: Record<string, any> = {},
     ): Promise<{ data: JsonApiResource[]; meta: Record<string, any>; links: Record<string, string> }> {
-      if (GRAPHQL_TYPES.has(type)) {
-        const listField = `${toCamelCase(type)}List`
-        const fields = GRAPHQL_FIELDS[type]
-        const limit = typeof query.page?.limit === 'number' ? query.page.limit : 50
-        const offset = typeof query.page?.offset === 'number' ? query.page.offset : 0
-        const data = await graphqlFetch<Record<string, { items: Record<string, any>[]; total: number }>>(
-          `query($limit: Int, $offset: Int) { ${listField}(limit: $limit, offset: $offset) { items { ${fields} } total } }`,
-          { limit, offset },
-        )
-        const result = data[listField]
-        if (!result) throw new Error(`GraphQL: no data returned for ${type} list`)
-        const resources = result.items.map(item => toResource(type, item))
-
-        return {
-          data: resources,
-          meta: { total: result.total, offset, limit },
-          links: {},
-        }
-      }
-
-      const config = configFor(type)
-      const response = await $fetch<Record<string, any>>(config.basePath)
-      const items = Array.isArray(response[config.collectionKey]) ? response[config.collectionKey] : []
-      const resources = items.map((item: Record<string, any>) => toResource(type, item))
+      const listField = `${toCamelCase(type)}List`
+      const fields = fieldsFor(type)
+      const limit = typeof query.page?.limit === 'number' ? query.page.limit : 50
+      const offset = typeof query.page?.offset === 'number' ? query.page.offset : 0
+      const data = await graphqlFetch<Record<string, { items: Record<string, any>[]; total: number }>>(
+        `query($limit: Int, $offset: Int) { ${listField}(limit: $limit, offset: $offset) { items { ${fields} } total } }`,
+        { limit, offset },
+      )
+      const result = data[listField]
+      if (!result) throw new Error(`GraphQL: no data returned for ${type} list`)
+      const resources = result.items.map(item => toResource(type, item))
 
       return {
         data: resources,
-        meta: {
-          total: resources.length,
-          offset: typeof query.page?.offset === 'number' ? query.page.offset : 0,
-          limit: typeof query.page?.limit === 'number' ? query.page.limit : resources.length,
-        },
+        meta: { total: result.total, offset, limit },
         links: {},
       }
     },
 
     async get(type: string, id: string): Promise<JsonApiResource> {
-      if (GRAPHQL_TYPES.has(type)) {
-        const camel = toCamelCase(type)
-        const fields = GRAPHQL_FIELDS[type]
-        const data = await graphqlFetch<Record<string, Record<string, any> | null>>(
-          `query($id: ID!) { ${camel}(id: $id) { ${fields} } }`,
-          { id },
-        )
-        const item = data[camel]
-        if (!item) throw new Error(`${type} not found: ${id}`)
-        return toResource(type, item)
-      }
-
-      const config = configFor(type)
-      const response = await $fetch<Record<string, any>>(`${config.basePath}/${id}`)
-      const item = response[config.itemKey]
-      if (!item || typeof item !== 'object') {
-        throw new Error(`Failed to load ${type} ${id}`)
-      }
-
+      const camel = toCamelCase(type)
+      const fields = fieldsFor(type)
+      const data = await graphqlFetch<Record<string, Record<string, any> | null>>(
+        `query($id: ID!) { ${camel}(id: $id) { ${fields} } }`,
+        { id },
+      )
+      const item = data[camel]
+      if (!item) throw new Error(`${type} not found: ${id}`)
       return toResource(type, item)
     },
 
     async create(type: string, attributes: Record<string, any>): Promise<JsonApiResource> {
-      if (GRAPHQL_TYPES.has(type)) {
-        const pascal = toPascalCase(type)
-        const fields = GRAPHQL_FIELDS[type]
-        const data = await graphqlFetch<Record<string, Record<string, any>>>(
-          `mutation($input: ${pascal}CreateInput!) { create${pascal}(input: $input) { ${fields} } }`,
-          { input: attributes },
-        )
-        const created = data[`create${pascal}`]
-        if (!created) throw new Error(`GraphQL: create ${type} returned no data`)
-        return toResource(type, created)
-      }
-
-      const config = configFor(type)
-      const response = await $fetch<Record<string, any>>(config.basePath, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: attributes,
-      })
-
-      return toResource(type, response[config.itemKey])
+      const pascal = toPascalCase(type)
+      const fields = fieldsFor(type)
+      const data = await graphqlFetch<Record<string, Record<string, any>>>(
+        `mutation($input: ${pascal}CreateInput!) { create${pascal}(input: $input) { ${fields} } }`,
+        { input: attributes },
+      )
+      const created = data[`create${pascal}`]
+      if (!created) throw new Error(`GraphQL: create ${type} returned no data`)
+      return toResource(type, created)
     },
 
     async update(type: string, id: string, attributes: Record<string, any>): Promise<JsonApiResource> {
-      if (GRAPHQL_TYPES.has(type)) {
-        const pascal = toPascalCase(type)
-        const fields = GRAPHQL_FIELDS[type]
-        const data = await graphqlFetch<Record<string, Record<string, any>>>(
-          `mutation($id: ID!, $input: ${pascal}UpdateInput!) { update${pascal}(id: $id, input: $input) { ${fields} } }`,
-          { id, input: attributes },
-        )
-        const updated = data[`update${pascal}`]
-        if (!updated) throw new Error(`GraphQL: update ${type} returned no data`)
-        return toResource(type, updated)
-      }
-
-      const config = configFor(type)
-      const response = await $fetch<Record<string, any>>(`${config.basePath}/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: attributes,
-      })
-
-      return toResource(type, response[config.itemKey])
+      const pascal = toPascalCase(type)
+      const fields = fieldsFor(type)
+      const data = await graphqlFetch<Record<string, Record<string, any>>>(
+        `mutation($id: ID!, $input: ${pascal}UpdateInput!) { update${pascal}(id: $id, input: $input) { ${fields} } }`,
+        { id, input: attributes },
+      )
+      const updated = data[`update${pascal}`]
+      if (!updated) throw new Error(`GraphQL: update ${type} returned no data`)
+      return toResource(type, updated)
     },
 
     async remove(type: string, id: string): Promise<void> {
-      if (GRAPHQL_TYPES.has(type)) {
-        const pascal = toPascalCase(type)
-        await graphqlFetch(
-          `mutation($id: ID!) { delete${pascal}(id: $id) { deleted } }`,
-          { id },
-        )
-        return
-      }
-
-      const config = configFor(type)
-      await $fetch(`${config.basePath}/${id}`, { method: 'DELETE' })
+      const pascal = toPascalCase(type)
+      await graphqlFetch(
+        `mutation($id: ID!) { delete${pascal}(id: $id) { deleted } }`,
+        { id },
+      )
     },
 
     async search(type: string, labelField: string, query: string, limit: number = 10): Promise<JsonApiResource[]> {
@@ -254,27 +164,15 @@ export const claudrielHostAdapter: HostAdapter = {
         return []
       }
 
-      if (GRAPHQL_TYPES.has(type)) {
-        const listField = `${toCamelCase(type)}List`
-        const fields = GRAPHQL_FIELDS[type]
-        const config = ENTITY_CONFIG[type]
-        const effectiveField = labelField || config?.labelField || 'name'
-        const data = await graphqlFetch<Record<string, { items: Record<string, any>[] }>>(
-          `query($filter: [FilterInput!], $limit: Int) { ${listField}(filter: $filter, limit: $limit) { items { ${fields} } total } }`,
-          { filter: [{ field: effectiveField, value: `%${query}%`, operator: 'LIKE' }], limit },
-        )
-        const result = data[listField]
-        return result ? result.items.map(item => toResource(type, item)) : []
-      }
-
-      const config = configFor(type)
-      const result = await this.list(type)
-      const effectiveField = labelField || config.labelField
-      const needle = query.toLowerCase()
-
-      return result.data
-        .filter((resource) => String(resource.attributes[effectiveField] ?? '').toLowerCase().includes(needle))
-        .slice(0, limit)
+      const listField = `${toCamelCase(type)}List`
+      const fields = fieldsFor(type)
+      const effectiveField = labelField || LABEL_FIELDS[type] || 'name'
+      const data = await graphqlFetch<Record<string, { items: Record<string, any>[] }>>(
+        `query($filter: [FilterInput!], $limit: Int) { ${listField}(filter: $filter, limit: $limit) { items { ${fields} } total } }`,
+        { filter: [{ field: effectiveField, value: `%${query}%`, operator: 'LIKE' }], limit },
+      )
+      const result = data[listField]
+      return result ? result.items.map(item => toResource(type, item)) : []
     },
 
     async schema(type: string): Promise<EntitySchema> {
