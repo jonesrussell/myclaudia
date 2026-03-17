@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Controller;
 
 use Claudriel\Controller\ChatStreamController;
+use Claudriel\Domain\Chat\SubprocessChatClient;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
 use Claudriel\Entity\Commitment;
@@ -278,7 +279,7 @@ final class ChatStreamControllerTest extends TestCase
         ]));
 
         // Create a mock script that emits progress + token events
-        $script = sys_get_temp_dir() . '/mock_agent_progress_' . uniqid() . '.php';
+        $script = sys_get_temp_dir().'/mock_agent_progress_'.uniqid().'.php';
         file_put_contents($script, <<<'PHP'
         <?php
         // Read stdin (the request JSON) and discard
@@ -292,7 +293,7 @@ final class ChatStreamControllerTest extends TestCase
         $controller = new ChatStreamController(
             $etm,
             subprocessClientFactory: static function () use ($script) {
-                return new \Claudriel\Domain\Chat\SubprocessChatClient(
+                return new SubprocessChatClient(
                     pythonBinary: PHP_BINARY,
                     agentPath: $script,
                     timeoutSeconds: 10,

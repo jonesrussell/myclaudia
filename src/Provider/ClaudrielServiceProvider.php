@@ -52,6 +52,7 @@ use Claudriel\Controller\ScheduleApiController;
 use Claudriel\Controller\TemporalNotificationApiController;
 use Claudriel\Controller\TriageApiController;
 use Claudriel\Controller\WorkspaceApiController;
+use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Claudriel\Domain\IssueInstructionBuilder;
@@ -78,7 +79,6 @@ use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Layer2\GitRepositoryManager;
 use Claudriel\Service\GitOperator;
-use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
 use Claudriel\Support\GoogleTokenManager;
@@ -275,6 +275,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $this->singleton(GoogleTokenManagerInterface::class, function () {
             $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
             $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+
             return new GoogleTokenManager(
                 $this->resolve(EntityTypeManager::class),
                 $clientId,
@@ -284,6 +285,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
 
         $this->singleton(InternalApiTokenGenerator::class, function () {
             $secret = $_ENV['AGENT_INTERNAL_SECRET'] ?? getenv('AGENT_INTERNAL_SECRET') ?: '';
+
             return new InternalApiTokenGenerator($secret);
         });
 

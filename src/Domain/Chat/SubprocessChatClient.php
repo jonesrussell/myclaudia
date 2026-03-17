@@ -136,13 +136,13 @@ final class SubprocessChatClient
                 'tool_call' => $onProgress !== null ? $onProgress([
                     'phase' => 'tool_call',
                     'tool' => $event['tool'] ?? '',
-                    'summary' => 'Using ' . ($event['tool'] ?? 'tool'),
+                    'summary' => 'Using '.($event['tool'] ?? 'tool'),
                     'level' => 'info',
                 ]) : null,
                 'tool_result' => $onProgress !== null ? $onProgress([
                     'phase' => 'tool_result',
                     'tool' => $event['tool'] ?? '',
-                    'summary' => 'Received result from ' . ($event['tool'] ?? 'tool'),
+                    'summary' => 'Received result from '.($event['tool'] ?? 'tool'),
                     'level' => 'info',
                 ]) : null,
                 'error' => $onError($event['message'] ?? 'Unknown agent error'),
@@ -159,11 +159,11 @@ final class SubprocessChatClient
         $exitCode = proc_close($process);
 
         if ($stderr !== '' && $stderr !== false) {
-            error_log('[Agent stderr] ' . $stderr);
+            error_log('[Agent stderr] '.$stderr);
         }
 
         if ($exitCode !== 0 && ! $receivedDone) {
-            $onError('Agent subprocess exited with code ' . $exitCode);
+            $onError('Agent subprocess exited with code '.$exitCode);
 
             return;
         }

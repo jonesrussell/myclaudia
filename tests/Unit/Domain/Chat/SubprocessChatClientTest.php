@@ -16,7 +16,7 @@ final class SubprocessChatClientTest extends TestCase
     public function stream_emits_tokens_and_done_from_json_lines(): void
     {
         // Use a PHP script that mimics the Python agent's JSON-lines output
-        $script = sys_get_temp_dir() . '/mock_agent_' . uniqid() . '.php';
+        $script = sys_get_temp_dir().'/mock_agent_'.uniqid().'.php';
         file_put_contents($script, <<<'PHP'
         <?php
         echo json_encode(['event' => 'message', 'content' => 'Hello']) . "\n";
@@ -41,9 +41,15 @@ final class SubprocessChatClientTest extends TestCase
             tenantId: 'tenant-1',
             apiBase: 'http://localhost',
             apiToken: 'token',
-            onToken: function (string $token) use (&$tokens) { $tokens[] = $token; },
-            onDone: function (string $full) use (&$doneResponse) { $doneResponse = $full; },
-            onError: function (string $err) use (&$errors) { $errors[] = $err; },
+            onToken: function (string $token) use (&$tokens) {
+                $tokens[] = $token;
+            },
+            onDone: function (string $full) use (&$doneResponse) {
+                $doneResponse = $full;
+            },
+            onError: function (string $err) use (&$errors) {
+                $errors[] = $err;
+            },
         );
 
         $this->assertSame(['Hello', ' world'], $tokens);
@@ -56,7 +62,7 @@ final class SubprocessChatClientTest extends TestCase
     #[Test]
     public function stream_calls_on_error_for_nonzero_exit(): void
     {
-        $script = sys_get_temp_dir() . '/mock_agent_fail_' . uniqid() . '.php';
+        $script = sys_get_temp_dir().'/mock_agent_fail_'.uniqid().'.php';
         file_put_contents($script, <<<'PHP'
         <?php
         fwrite(STDERR, "Something went wrong\n");
@@ -80,7 +86,9 @@ final class SubprocessChatClientTest extends TestCase
             apiToken: 'token',
             onToken: function (string $token) {},
             onDone: function (string $full) {},
-            onError: function (string $err) use (&$errors) { $errors[] = $err; },
+            onError: function (string $err) use (&$errors) {
+                $errors[] = $err;
+            },
         );
 
         $this->assertNotEmpty($errors);
@@ -91,7 +99,7 @@ final class SubprocessChatClientTest extends TestCase
     #[Test]
     public function stream_calls_on_progress_for_tool_events(): void
     {
-        $script = sys_get_temp_dir() . '/mock_agent_tools_' . uniqid() . '.php';
+        $script = sys_get_temp_dir().'/mock_agent_tools_'.uniqid().'.php';
         file_put_contents($script, <<<'PHP'
         <?php
         echo json_encode(['event' => 'tool_call', 'tool' => 'gmail_list', 'args' => ['query' => 'is:unread']]) . "\n";
@@ -118,7 +126,9 @@ final class SubprocessChatClientTest extends TestCase
             onToken: function (string $token) {},
             onDone: function (string $full) {},
             onError: function (string $err) {},
-            onProgress: function (array $payload) use (&$progressEvents) { $progressEvents[] = $payload; },
+            onProgress: function (array $payload) use (&$progressEvents) {
+                $progressEvents[] = $payload;
+            },
         );
 
         $this->assertCount(2, $progressEvents);

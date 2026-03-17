@@ -6,6 +6,7 @@ namespace Claudriel\Controller;
 
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Support\GoogleTokenManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\SSR\SsrResponse;
 
 final class InternalGoogleController
@@ -32,7 +33,7 @@ final class InternalGoogleController
         $maxResults = min((int) ($query['max_results'] ?? 10), 50);
 
         $url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages?'
-            . http_build_query(['q' => $q, 'maxResults' => $maxResults]);
+            .http_build_query(['q' => $q, 'maxResults' => $maxResults]);
 
         $response = $this->googleApiGet($url, $accessToken);
 
@@ -118,7 +119,7 @@ final class InternalGoogleController
         $timeMax = (new \DateTimeImmutable("+{$daysAhead} days"))->format(\DateTimeInterface::RFC3339);
 
         $url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events?'
-            . http_build_query([
+            .http_build_query([
                 'timeMin' => $timeMin,
                 'timeMax' => $timeMax,
                 'maxResults' => $maxResults,
@@ -175,7 +176,7 @@ final class InternalGoogleController
     private function authenticate(mixed $httpRequest): ?string
     {
         $auth = '';
-        if ($httpRequest instanceof \Symfony\Component\HttpFoundation\Request) {
+        if ($httpRequest instanceof Request) {
             $auth = $httpRequest->headers->get('Authorization', '');
         }
 
@@ -226,7 +227,7 @@ final class InternalGoogleController
 
     private function getRequestBody(mixed $httpRequest): ?array
     {
-        if (! $httpRequest instanceof \Symfony\Component\HttpFoundation\Request) {
+        if (! $httpRequest instanceof Request) {
             return null;
         }
 

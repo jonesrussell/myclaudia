@@ -65,7 +65,7 @@ final class CodexExecutionPipelineTest extends TestCase
             fn (string $command, string $input): array => ['exit_code' => 0, 'output' => ''],
         );
         // Create a mock PHP script that mimics the Python agent
-        $mockScript = sys_get_temp_dir() . '/mock_codex_agent_' . uniqid() . '.php';
+        $mockScript = sys_get_temp_dir().'/mock_codex_agent_'.uniqid().'.php';
         file_put_contents($mockScript, <<<'PHP'
         <?php
         file_get_contents('php://stdin');
