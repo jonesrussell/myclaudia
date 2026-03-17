@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Entity\Account;
 use Claudriel\Entity\Integration;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,7 +48,7 @@ final class GoogleOAuthController
         ?Request $httpRequest = null,
         ?Environment $twig = null,
     ): RedirectResponse {
-        if ($account === null) {
+        if (! $account instanceof Account) {
             return new RedirectResponse('/login', 302);
         }
 
@@ -88,7 +89,7 @@ final class GoogleOAuthController
 
     private function handleCallback(array $query, mixed $account): RedirectResponse
     {
-        if ($account === null) {
+        if (! $account instanceof Account) {
             return new RedirectResponse('/login', 302);
         }
 
@@ -123,7 +124,7 @@ final class GoogleOAuthController
         $_SESSION['flash_success'] = 'Google account connected'
             .($providerEmail ? ' as '.$providerEmail : '').'.';
 
-        return new RedirectResponse('/', 302);
+        return new RedirectResponse('/app', 302);
     }
 
     private function exchangeCodeForTokens(string $code): ?array
