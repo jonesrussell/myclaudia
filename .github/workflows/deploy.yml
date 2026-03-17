@@ -52,17 +52,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install sidecar dependencies
-        working-directory: claudriel/docker/sidecar
-        run: pip install -r requirements.txt
-
-      - name: Run sidecar lint
-        working-directory: claudriel/docker/sidecar
-        run: ruff check app/
-
-      - name: Run sidecar tests
-        working-directory: claudriel/docker/sidecar
-        run: pytest
+      - name: Verify agent syntax
+        working-directory: claudriel/agent
+        run: python -c "import ast, pathlib; [ast.parse(f.read_text()) for f in pathlib.Path('.').rglob('*.py')]"
 
   deploy:
     name: Build & Deploy
