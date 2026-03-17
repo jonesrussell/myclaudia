@@ -89,11 +89,24 @@ final class GoogleOAuthController
 
     private function handleCallback(array $query, mixed $account): RedirectResponse
     {
+        // Temporary debug trace - remove after smoke test
+        $debugPath = dirname(__DIR__, 2).'/storage/oauth-debug.log';
+        $log = static function (string $msg) use ($debugPath): void {
+            file_put_contents($debugPath, date('c').' '.$msg."\n", FILE_APPEND);
+        };
+
+        $log('callback: account='.get_class($account).' query_keys='.implode(',', array_keys($query)));
+
         if (! $account instanceof Account) {
+            $log('callback: REJECTED - not Account instance');
+
             return new RedirectResponse('/login', 302);
         }
 
+        $log('callback: account_uuid='.$account->get('uuid'));
+
         if (isset($query['error'])) {
+            $log('callback: Google error='.$query['error']);
             $_SESSION['flash_error'] = 'Google authorization denied: '.$query['error'];
 
             return new RedirectResponse('/', 302);
@@ -102,15 +115,20 @@ final class GoogleOAuthController
         $expectedState = $_SESSION['google_oauth_state'] ?? null;
         unset($_SESSION['google_oauth_state']);
 
+        $log('callback: expected_state='.($expectedState ?? 'NULL').' query_state='.($query['state'] ?? 'MISSING'));
+
         if ($expectedState === null || ! hash_equals($expectedState, $query['state'] ?? '')) {
+            $log('callback: STATE MISMATCH - session_id='.session_id());
             $_SESSION['flash_error'] = 'Invalid OAuth state. Please try again.';
 
             return new RedirectResponse('/', 302);
         }
 
+        $log('callback: state OK, exchanging code');
         $tokenData = $this->exchangeCodeForTokens($query['code'] ?? '');
 
         if ($tokenData === null) {
+            $log('callback: token exchange FAILED');
             $_SESSION['flash_error'] = 'Failed to exchange authorization code.';
 
             return new RedirectResponse('/', 302);
