@@ -77,8 +77,12 @@ final class GoogleOAuthController
         try {
             return $this->handleCallback($query, $account);
         } catch (\Throwable $e) {
-            // Temporary debug output - remove after smoke test
-            return new RedirectResponse('/?oauth_error='.rawurlencode($e->getMessage().'|'.$e->getFile().':'.$e->getLine()), 302);
+            // Temporary debug - remove after smoke test
+            $debugPath = dirname(__DIR__, 2).'/storage/oauth-debug.log';
+            file_put_contents($debugPath, date('c').' '.$e->getMessage()."\n".$e->getTraceAsString()."\n", FILE_APPEND);
+            $_SESSION['flash_error'] = 'OAuth error: '.$e->getMessage();
+
+            return new RedirectResponse('/app', 302);
         }
     }
 
