@@ -1,15 +1,20 @@
 """Tool: Read a specific Gmail message."""
 
-from claude_agent_sdk import Tool
+TOOL_DEF = {
+    "name": "gmail_read",
+    "description": "Read a specific Gmail message by ID.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "message_id": {
+                "type": "string",
+                "description": "The Gmail message ID to read",
+            },
+        },
+        "required": ["message_id"],
+    },
+}
 
 
-def create_tool(api):
-    def gmail_read(message_id: str) -> dict:
-        """Read a specific Gmail message by ID.
-
-        Args:
-            message_id: The Gmail message ID to read
-        """
-        return api.get(f"/api/internal/gmail/read/{message_id}")
-
-    return Tool.from_function(gmail_read)
+def execute(api, args: dict) -> dict:
+    return api.get(f"/api/internal/gmail/read/{args['message_id']}")

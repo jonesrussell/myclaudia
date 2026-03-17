@@ -1,16 +1,28 @@
 """Tool: List upcoming calendar events."""
 
-from claude_agent_sdk import Tool
+TOOL_DEF = {
+    "name": "calendar_list",
+    "description": "List upcoming calendar events.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "days_ahead": {
+                "type": "integer",
+                "description": "Number of days to look ahead (default: 7)",
+                "default": 7,
+            },
+            "max_results": {
+                "type": "integer",
+                "description": "Maximum number of events to return (default: 20)",
+                "default": 20,
+            },
+        },
+    },
+}
 
 
-def create_tool(api):
-    def calendar_list(days_ahead: int = 7, max_results: int = 20) -> dict:
-        """List upcoming calendar events.
-
-        Args:
-            days_ahead: Number of days to look ahead (default: 7)
-            max_results: Maximum number of events to return (default: 20)
-        """
-        return api.get("/api/internal/calendar/list", params={"days_ahead": days_ahead, "max_results": max_results})
-
-    return Tool.from_function(calendar_list)
+def execute(api, args: dict) -> dict:
+    return api.get("/api/internal/calendar/list", params={
+        "days_ahead": args.get("days_ahead", 7),
+        "max_results": args.get("max_results", 20),
+    })
