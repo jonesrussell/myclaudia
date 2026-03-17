@@ -104,3 +104,6 @@ See `docs/specs/workflow.md` for milestone list and versioning model.
 - ConsoleKernel auto-discovery of CLI commands may need explicit wiring (issue #9 is open)
 - `EntityRepositoryInterface::findBy()` returns `EntityInterface[]`, but most callers need `ContentEntityInterface`. Use `assert($entity instanceof ConcreteType)` for type narrowing (established pattern), or `/** @var */` for array-level annotations before `array_filter`
 - Controllers accept an optional `$twig = null` parameter for forward-compatibility with the Waaseyaa DI resolver; do not remove it without checking injection wiring
+- Pre-push hook blocks `curl_exec`; use `file_get_contents` with `stream_context_create` for HTTP requests
+- PHPStan treats `$http_response_header` (from `file_get_contents`) as always-defined `list<string>`; suppress with `@phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType`
+- Controllers that don't render templates but keep `?Environment $twig` for DI compat need `@phpstan-ignore constructor.unusedParameter`
