@@ -8,9 +8,11 @@ use Closure;
 
 final class SubprocessChatClient
 {
+    /**
+     * @param  list<string>  $command  Command to execute (e.g., ['python', 'agent/main.py'] or ['docker', 'run', '--rm', '-i', 'image', 'python', '/srv/agent/main.py'])
+     */
     public function __construct(
-        private readonly string $pythonBinary,
-        private readonly string $agentPath,
+        private readonly array $command,
         private readonly int $timeoutSeconds = 120,
     ) {}
 
@@ -52,7 +54,7 @@ final class SubprocessChatClient
         ];
 
         $process = proc_open(
-            [$this->pythonBinary, $this->agentPath],
+            $this->command,
             $descriptors,
             $pipes,
         );

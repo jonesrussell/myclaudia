@@ -90,12 +90,9 @@ task('deploy:clear_cache', function (): void {
     run('rm -f {{deploy_path}}/shared/storage/framework/packages.php 2>/dev/null || echo "INVALIDATED" > {{deploy_path}}/shared/storage/framework/packages.php 2>/dev/null || true');
 });
 
-desc('Set up Python agent virtualenv');
+desc('Build agent Docker image');
 task('agent:setup', function (): void {
-    // Shared venv survives across releases — only recreate if missing
-    $venvPath = '{{deploy_path}}/shared/agent-venv';
-    run("test -f {$venvPath}/bin/python || (python3 -m venv {$venvPath} 2>/dev/null || (echo 'WARNING: python3-venv not installed — agent unavailable' && exit 0))");
-    run("test -f {$venvPath}/bin/pip && {$venvPath}/bin/pip install -q -r {{release_path}}/agent/requirements.txt || true");
+    run('cd {{release_path}}/agent && docker build -t claudriel-agent .');
 });
 
 desc('Validate app smoke probes');

@@ -101,10 +101,16 @@ final class CodexExecutionPipeline
 
     private function createSubprocessChatClient(): SubprocessChatClient
     {
-        $projectRoot = getcwd() ?: '/srv';
-        $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
-        $pythonVenv = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
+        $dockerImage = $_ENV['AGENT_DOCKER_IMAGE'] ?? getenv('AGENT_DOCKER_IMAGE') ?: '';
 
-        return new SubprocessChatClient($pythonVenv.'/bin/python', $agentPath);
+        if ($dockerImage !== '') {
+            return new SubprocessChatClient(['docker', 'run', '--rm', '-i', '--network=host', $dockerImage, 'python', '/srv/agent/main.py']);
+        }
+
+        $projectRoot = getcwd() ?: '/srv';
+        $venv = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
+        $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
+
+        return new SubprocessChatClient([$venv.'/bin/python', $agentPath]);
     }
 }

@@ -75,8 +75,7 @@ final class CodexExecutionPipelineTest extends TestCase
         PHP);
 
         $subprocessClient = new SubprocessChatClient(
-            pythonBinary: PHP_BINARY,
-            agentPath: $mockScript,
+            command: [PHP_BINARY, $mockScript],
             timeoutSeconds: 10,
         );
 

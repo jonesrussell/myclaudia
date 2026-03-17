@@ -382,10 +382,6 @@ final class ChatStreamController
         );
         $apiToken = $tokenGenerator->generate($accountId);
 
-        $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
-        $pythonBinary = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
-        $pythonBinary .= '/bin/python';
-
         $apiBase = $_ENV['CLAUDRIEL_API_URL'] ?? getenv('CLAUDRIEL_API_URL') ?: 'http://localhost:8088';
 
         $this->emitSseEvent('chat-progress', [
@@ -394,7 +390,7 @@ final class ChatStreamController
             'level' => 'info',
         ]);
 
-        $client = $this->createSubprocessClient($pythonBinary, $agentPath);
+        $client = $this->createSubprocessClient($projectRoot);
 
         $client->stream(
             systemPrompt: $systemPrompt,
@@ -495,13 +491,25 @@ final class ChatStreamController
         return new ChatSystemPromptBuilder($assembler, $projectRoot);
     }
 
-    private function createSubprocessClient(string $pythonBinary, string $agentPath): SubprocessChatClient
+    private function createSubprocessClient(string $projectRoot): SubprocessChatClient
     {
         if (is_callable($this->subprocessClientFactory)) {
-            return ($this->subprocessClientFactory)($pythonBinary, $agentPath);
+            return ($this->subprocessClientFactory)();
         }
 
-        return new SubprocessChatClient($pythonBinary, $agentPath);
+        $dockerImage = $_ENV['AGENT_DOCKER_IMAGE'] ?? getenv('AGENT_DOCKER_IMAGE') ?: '';
+
+        if ($dockerImage !== '') {
+            // Production: run agent inside Docker container
+            $command = ['docker', 'run', '--rm', '-i', '--network=host', $dockerImage, 'python', '/srv/agent/main.py'];
+        } else {
+            // Local dev: run agent directly via venv
+            $venv = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
+            $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
+            $command = [$venv.'/bin/python', $agentPath];
+        }
+
+        return new SubprocessChatClient($command);
     }
 
     private function generateUuid(): string

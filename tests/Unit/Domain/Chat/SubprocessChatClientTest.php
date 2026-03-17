@@ -25,8 +25,7 @@ final class SubprocessChatClientTest extends TestCase
         PHP);
 
         $client = new SubprocessChatClient(
-            pythonBinary: PHP_BINARY,
-            agentPath: $script,
+            command: [PHP_BINARY, $script],
             timeoutSeconds: 10,
         );
 
@@ -70,8 +69,7 @@ final class SubprocessChatClientTest extends TestCase
         PHP);
 
         $client = new SubprocessChatClient(
-            pythonBinary: PHP_BINARY,
-            agentPath: $script,
+            command: [PHP_BINARY, $script],
             timeoutSeconds: 10,
         );
 
@@ -109,8 +107,7 @@ final class SubprocessChatClientTest extends TestCase
         PHP);
 
         $client = new SubprocessChatClient(
-            pythonBinary: PHP_BINARY,
-            agentPath: $script,
+            command: [PHP_BINARY, $script],
             timeoutSeconds: 10,
         );
 

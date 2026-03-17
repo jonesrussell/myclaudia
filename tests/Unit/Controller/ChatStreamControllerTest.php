@@ -294,8 +294,7 @@ final class ChatStreamControllerTest extends TestCase
             $etm,
             subprocessClientFactory: static function () use ($script) {
                 return new SubprocessChatClient(
-                    pythonBinary: PHP_BINARY,
-                    agentPath: $script,
+                    command: [PHP_BINARY, $script],
                     timeoutSeconds: 10,
                 );
             },
