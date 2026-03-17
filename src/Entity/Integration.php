@@ -18,7 +18,7 @@ final class Integration extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        if (!isset($values['status'])) {
+        if (! isset($values['status'])) {
             $values['status'] = 'pending';
         }
 

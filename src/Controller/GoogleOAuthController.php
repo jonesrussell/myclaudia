@@ -13,7 +13,9 @@ use Waaseyaa\Entity\EntityTypeManager;
 final class GoogleOAuthController
 {
     private const AUTH_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+
     private const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+
     private const USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
     private const SCOPES = [
@@ -23,7 +25,9 @@ final class GoogleOAuthController
     ];
 
     private readonly string $clientId;
+
     private readonly string $clientSecret;
+
     private readonly string $redirectUri;
 
     public function __construct(
@@ -49,7 +53,7 @@ final class GoogleOAuthController
         $state = bin2hex(random_bytes(32));
         $_SESSION['google_oauth_state'] = $state;
 
-        $authUrl = self::AUTH_ENDPOINT . '?' . http_build_query([
+        $authUrl = self::AUTH_ENDPOINT.'?'.http_build_query([
             'client_id' => $this->clientId,
             'redirect_uri' => $this->redirectUri,
             'response_type' => 'code',
@@ -74,15 +78,17 @@ final class GoogleOAuthController
         }
 
         if (isset($query['error'])) {
-            $_SESSION['flash_error'] = 'Google authorization denied: ' . $query['error'];
+            $_SESSION['flash_error'] = 'Google authorization denied: '.$query['error'];
+
             return new RedirectResponse('/', 302);
         }
 
         $expectedState = $_SESSION['google_oauth_state'] ?? null;
         unset($_SESSION['google_oauth_state']);
 
-        if ($expectedState === null || !hash_equals($expectedState, $query['state'] ?? '')) {
+        if ($expectedState === null || ! hash_equals($expectedState, $query['state'] ?? '')) {
             $_SESSION['flash_error'] = 'Invalid OAuth state. Please try again.';
+
             return new RedirectResponse('/', 302);
         }
 
@@ -90,6 +96,7 @@ final class GoogleOAuthController
 
         if ($tokenData === null) {
             $_SESSION['flash_error'] = 'Failed to exchange authorization code.';
+
             return new RedirectResponse('/', 302);
         }
 
@@ -99,7 +106,7 @@ final class GoogleOAuthController
         $this->upsertIntegration($account, $tokenData, $providerEmail);
 
         $_SESSION['flash_success'] = 'Google account connected'
-            . ($providerEmail ? ' as ' . $providerEmail : '') . '.';
+            .($providerEmail ? ' as '.$providerEmail : '').'.';
 
         return new RedirectResponse('/', 302);
     }
@@ -150,7 +157,7 @@ final class GoogleOAuthController
         $context = stream_context_create([
             'http' => [
                 'method' => 'GET',
-                'header' => 'Authorization: Bearer ' . $accessToken,
+                'header' => 'Authorization: Bearer '.$accessToken,
                 'timeout' => 10,
             ],
         ]);
@@ -189,7 +196,7 @@ final class GoogleOAuthController
             ->execute();
 
         $expiresAt = isset($tokenData['expires_in'])
-            ? (new \DateTimeImmutable('+' . $tokenData['expires_in'] . ' seconds'))->format('c')
+            ? (new \DateTimeImmutable('+'.$tokenData['expires_in'].' seconds'))->format('c')
             : null;
 
         $scopes = isset($tokenData['scope'])
@@ -212,7 +219,7 @@ final class GoogleOAuthController
 
             if ($oldScopes !== $scopes) {
                 $metadata = json_decode($integration->get('metadata') ?? '{}', true) ?? [];
-                $metadata['scopes_changed_at'] = (new \DateTimeImmutable())->format('c');
+                $metadata['scopes_changed_at'] = (new \DateTimeImmutable)->format('c');
                 $integration->set('metadata', json_encode($metadata));
             }
         } else {

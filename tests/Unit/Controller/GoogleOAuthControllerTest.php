@@ -64,7 +64,7 @@ final class GoogleOAuthControllerTest extends TestCase
     private function buildEntityTypeManager(): EntityTypeManager
     {
         $db = PdoDatabase::createSqlite(':memory:');
-        $dispatcher = new EventDispatcher();
+        $dispatcher = new EventDispatcher;
         $etm = new EntityTypeManager($dispatcher, function ($def) use ($db, $dispatcher) {
             (new SqlSchemaHandler($def, $db))->ensureTable();
 

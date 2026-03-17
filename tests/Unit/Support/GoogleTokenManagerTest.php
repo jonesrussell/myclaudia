@@ -8,8 +8,8 @@ use Claudriel\Entity\Integration;
 use Claudriel\Support\GoogleTokenManager;
 use PHPUnit\Framework\TestCase;
 use Waaseyaa\Entity\EntityTypeManager;
-use Waaseyaa\Entity\Storage\EntityStorageInterface;
 use Waaseyaa\Entity\Storage\EntityQueryInterface;
+use Waaseyaa\Entity\Storage\EntityStorageInterface;
 
 final class GoogleTokenManagerTest extends TestCase
 {

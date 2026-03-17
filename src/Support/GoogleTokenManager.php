@@ -9,6 +9,7 @@ use Waaseyaa\Entity\EntityTypeManager;
 final class GoogleTokenManager implements GoogleTokenManagerInterface
 {
     private const EXPIRY_BUFFER_SECONDS = 60;
+
     private const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
     public function __construct(
@@ -22,12 +23,12 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
         $integration = $this->findActiveIntegration($accountId);
 
         if ($integration === null) {
-            throw new \RuntimeException('No active Google integration for account ' . $accountId);
+            throw new \RuntimeException('No active Google integration for account '.$accountId);
         }
 
         $expiresAt = $integration->get('token_expires_at');
 
-        if ($expiresAt !== null && !$this->isExpired($expiresAt)) {
+        if ($expiresAt !== null && ! $this->isExpired($expiresAt)) {
             return $integration->get('access_token');
         }
 
@@ -37,7 +38,7 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
             $integration->set('status', 'error');
             $this->entityTypeManager->getStorage('integration')->save($integration);
 
-            throw new \RuntimeException('No refresh token available for account ' . $accountId);
+            throw new \RuntimeException('No refresh token available for account '.$accountId);
         }
 
         return $this->refreshAccessToken($integration, $refreshToken);
@@ -67,7 +68,7 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
     private function isExpired(string $expiresAt): bool
     {
         $expiry = new \DateTimeImmutable($expiresAt);
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable;
 
         return $expiry->getTimestamp() - $now->getTimestamp() < self::EXPIRY_BUFFER_SECONDS;
     }
@@ -75,16 +76,16 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
     private function refreshAccessToken(object $integration, string $refreshToken): string
     {
         $payload = http_build_query([
-            'client_id'     => $this->clientId,
+            'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'refresh_token' => $refreshToken,
-            'grant_type'    => 'refresh_token',
+            'grant_type' => 'refresh_token',
         ]);
 
         $context = stream_context_create([
             'http' => [
-                'method'  => 'POST',
-                'header'  => 'Content-Type: application/x-www-form-urlencoded',
+                'method' => 'POST',
+                'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => $payload,
                 'timeout' => 30,
             ],
@@ -106,7 +107,7 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
             $this->entityTypeManager->getStorage('integration')->save($integration);
 
             throw new \RuntimeException(
-                'Google token refresh failed for account ' . $integration->get('account_id')
+                'Google token refresh failed for account '.$integration->get('account_id')
             );
         }
 
@@ -115,7 +116,7 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
         $integration->set('access_token', $data['access_token']);
         $integration->set(
             'token_expires_at',
-            (new \DateTimeImmutable('+' . $data['expires_in'] . ' seconds'))->format('c'),
+            (new \DateTimeImmutable('+'.$data['expires_in'].' seconds'))->format('c'),
         );
 
         if (isset($data['refresh_token'])) {
