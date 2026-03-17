@@ -24,6 +24,7 @@ use Claudriel\Command\WorkspaceCreateCommand;
 use Claudriel\Command\WorkspacePullCommand;
 use Claudriel\Command\WorkspacesCommand;
 use Claudriel\Controller\AdminSessionController;
+use Claudriel\Controller\GoogleOAuthController;
 use Claudriel\Controller\AdminUiController;
 use Claudriel\Controller\Ai\ExtractionImprovementSuggestionController;
 use Claudriel\Controller\Ai\ExtractionSelfAssessmentController;
@@ -78,6 +79,8 @@ use Claudriel\Layer2\GitRepositoryManager;
 use Claudriel\Service\GitOperator;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\GoogleTokenManager;
+use Claudriel\Support\GoogleTokenManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
@@ -917,6 +920,24 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->render()
                 ->build(),
         );
+
+        // Google OAuth
+        $router->addRoute(
+            'claudriel.auth.google.redirect',
+            RouteBuilder::create('/auth/google')
+                ->controller(GoogleOAuthController::class.'::redirect')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $googleCallbackRoute = RouteBuilder::create('/auth/google/callback')
+            ->controller(GoogleOAuthController::class.'::callback')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $googleCallbackRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.auth.google.callback', $googleCallbackRoute);
 
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
