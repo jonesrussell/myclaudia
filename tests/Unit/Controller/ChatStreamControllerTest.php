@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Controller;
 
 use Claudriel\Controller\ChatStreamController;
-use Claudriel\Domain\Chat\SidecarChatClient;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
 use Claudriel\Entity\Commitment;
@@ -257,14 +256,12 @@ final class ChatStreamControllerTest extends TestCase
         }
     }
 
-    public function test_stream_forwards_sanitized_progress_events_from_sidecar(): void
+    public function test_stream_forwards_sanitized_progress_events_from_subprocess(): void
     {
         $originalKey = getenv('ANTHROPIC_API_KEY');
-        $originalSidecarUrl = getenv('SIDECAR_URL');
-        $originalSidecarKey = getenv('CLAUDRIEL_SIDECAR_KEY');
+        $originalSecret = getenv('AGENT_INTERNAL_SECRET');
         putenv('ANTHROPIC_API_KEY=test-key');
-        putenv('SIDECAR_URL=http://sidecar.test');
-        putenv('CLAUDRIEL_SIDECAR_KEY=test-sidecar-key');
+        putenv('AGENT_INTERNAL_SECRET=test-secret-that-is-at-least-32-bytes-long');
 
         $etm = $this->buildEntityTypeManager();
 
@@ -280,47 +277,26 @@ final class ChatStreamControllerTest extends TestCase
             'created_at' => date('c'),
         ]));
 
+        // Create a mock script that emits progress + token events
+        $script = sys_get_temp_dir() . '/mock_agent_progress_' . uniqid() . '.php';
+        file_put_contents($script, <<<'PHP'
+        <?php
+        // Read stdin (the request JSON) and discard
+        file_get_contents('php://stdin');
+        echo json_encode(['event' => 'tool_call', 'tool' => 'calendar_list', 'args' => []]) . "\n";
+        echo json_encode(['event' => 'tool_result', 'tool' => 'calendar_list', 'result' => ['items' => []]]) . "\n";
+        echo json_encode(['event' => 'message', 'content' => 'Today looks clear.']) . "\n";
+        echo json_encode(['event' => 'done']) . "\n";
+        PHP);
+
         $controller = new ChatStreamController(
             $etm,
-            sidecarClientFactory: static fn (): SidecarChatClient => new class extends SidecarChatClient
-            {
-                public function __construct()
-                {
-                    parent::__construct('http://sidecar.test', 'test-key');
-                }
-
-                public function isAvailable(): bool
-                {
-                    return true;
-                }
-
-                public function stream(
-                    string $systemPrompt,
-                    array $messages,
-                    \Closure $onToken,
-                    \Closure $onDone,
-                    \Closure $onError,
-                    ?string $sessionId = null,
-                    ?\Closure $onProgress = null,
-                    ?string $tenantId = null,
-                    ?string $workspaceId = null,
-                    ?array $timeSnapshot = null,
-                ): void {
-                    TestCase::assertIsArray($timeSnapshot);
-                    TestCase::assertArrayHasKey('timezone', $timeSnapshot);
-                    TestCase::assertArrayHasKey('utc', $timeSnapshot);
-
-                    if ($onProgress !== null) {
-                        $onProgress([
-                            'phase' => 'tool',
-                            'summary' => "  Checking   calendar   context  \n",
-                            'level' => 'info',
-                        ]);
-                    }
-
-                    $onToken('Today looks clear.');
-                    $onDone('Today looks clear.');
-                }
+            subprocessClientFactory: static function () use ($script) {
+                return new \Claudriel\Domain\Chat\SubprocessChatClient(
+                    pythonBinary: PHP_BINARY,
+                    agentPath: $script,
+                    timeoutSeconds: 10,
+                );
             },
         );
 
@@ -338,24 +314,20 @@ final class ChatStreamControllerTest extends TestCase
 
         self::assertIsString($output);
         self::assertStringContainsString('event: chat-progress', $output);
-        self::assertStringContainsString('"summary":"Checking calendar context"', $output);
         self::assertStringContainsString('event: chat-token', $output);
         self::assertStringContainsString('event: chat-done', $output);
+
+        unlink($script);
 
         if ($originalKey !== false) {
             putenv("ANTHROPIC_API_KEY={$originalKey}");
         } else {
             putenv('ANTHROPIC_API_KEY');
         }
-        if ($originalSidecarUrl !== false) {
-            putenv("SIDECAR_URL={$originalSidecarUrl}");
+        if ($originalSecret !== false) {
+            putenv("AGENT_INTERNAL_SECRET={$originalSecret}");
         } else {
-            putenv('SIDECAR_URL');
-        }
-        if ($originalSidecarKey !== false) {
-            putenv("CLAUDRIEL_SIDECAR_KEY={$originalSidecarKey}");
-        } else {
-            putenv('CLAUDRIEL_SIDECAR_KEY');
+            putenv('AGENT_INTERNAL_SECRET');
         }
     }
 

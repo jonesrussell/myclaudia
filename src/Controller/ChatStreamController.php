@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
-use Claudriel\Domain\Chat\AnthropicChatClient;
 use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
+use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\Chat\IssueIntentDetector;
-use Claudriel\Domain\Chat\SidecarChatClient;
+use Claudriel\Domain\Chat\SubprocessChatClient;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\IssueOrchestrator;
 use Claudriel\Entity\ChatMessage;
@@ -27,8 +27,7 @@ final class ChatStreamController
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
-        private readonly mixed $sidecarClientFactory = null,
-        private readonly mixed $anthropicClientFactory = null,
+        private readonly mixed $subprocessClientFactory = null,
         private readonly ?IssueOrchestrator $orchestrator = null,
     ) {}
 
@@ -107,11 +106,11 @@ final class ChatStreamController
         );
 
         return new StreamedResponse(
-            function () use ($sessionUuid, $apiKey, $msgStorage, $tenantId, $workspaceId, $snapshot): void {
+            function () use ($sessionUuid, $apiKey, $msgStorage, $tenantId, $workspaceId, $snapshot, $account): void {
                 if (session_status() === PHP_SESSION_ACTIVE) {
                     session_write_close();
                 }
-                $this->streamTokens($sessionUuid, $apiKey, $msgStorage, $tenantId, $workspaceId, $snapshot);
+                $this->streamTokens($sessionUuid, $apiKey, $msgStorage, $tenantId, $workspaceId, $snapshot, $account);
             },
             200,
             [
@@ -309,7 +308,7 @@ final class ChatStreamController
         $signal->touch();
     }
 
-    private function streamTokens(string $sessionUuid, string $apiKey, mixed $msgStorage, string $tenantId, ?string $workspaceUuid = null, ?TimeSnapshot $snapshot = null): void
+    private function streamTokens(string $sessionUuid, string $apiKey, mixed $msgStorage, string $tenantId, ?string $workspaceUuid = null, ?TimeSnapshot $snapshot = null, mixed $account = null): void
     {
         $snapshot ??= (new TemporalContextFactory($this->entityTypeManager))->snapshotForInteraction(
             scopeKey: 'chat-stream:'.$sessionUuid,
@@ -338,22 +337,11 @@ final class ChatStreamController
             $sessionMessages,
         );
 
-        // Try sidecar first (provides Gmail/Calendar via Claude Code MCP)
-        $sidecarUrl = $_ENV['SIDECAR_URL'] ?? getenv('SIDECAR_URL') ?: '';
-        $sidecarKey = $_ENV['CLAUDRIEL_SIDECAR_KEY'] ?? getenv('CLAUDRIEL_SIDECAR_KEY') ?: '';
-        $useSidecar = false;
-        $sidecarClient = null;
-
-        if ($sidecarUrl !== '' && $sidecarKey !== '') {
-            $sidecarClient = $this->createSidecarClient($sidecarUrl, $sidecarKey);
-            $useSidecar = $sidecarClient->isAvailable();
-        }
-
-        // Build system prompt (tool instructions only when sidecar is available)
+        // Build system prompt (tools always available)
         $projectRoot = $this->resolveProjectRoot();
         $promptBuilder = $this->buildPromptBuilder($projectRoot);
         $activeWorkspace = $workspaceUuid !== null ? $this->findWorkspaceByUuid($workspaceUuid, $tenantId)?->get('name') : null;
-        $systemPrompt = $promptBuilder->build($tenantId, hasToolAccess: $useSidecar, activeWorkspace: is_string($activeWorkspace) ? $activeWorkspace : null, snapshot: $snapshot);
+        $systemPrompt = $promptBuilder->build($tenantId, activeWorkspace: is_string($activeWorkspace) ? $activeWorkspace : null, snapshot: $snapshot);
 
         $onToken = function (string $token): void {
             $this->emitSseEvent('chat-token', ['token' => $token]);
@@ -387,38 +375,37 @@ final class ChatStreamController
             $this->emitSseEvent('chat-progress', $normalized);
         };
 
-        if ($useSidecar) {
-            $this->emitSseEvent('chat-progress', [
-                'phase' => 'prepare',
-                'summary' => 'Connecting Claude Code sidecar',
-                'level' => 'info',
-            ]);
-            $sidecarClient->stream(
-                $systemPrompt,
-                $apiMessages,
-                $onToken,
-                $onDone,
-                $onError,
-                sessionId: $sessionUuid,
-                onProgress: $onProgress,
-                tenantId: $tenantId,
-                workspaceId: $workspaceUuid,
-                timeSnapshot: $snapshot->toArray(),
-            );
-        } else {
-            // Fallback: direct Anthropic API (no Gmail/Calendar)
-            $model = $_ENV['ANTHROPIC_MODEL'] ?? getenv('ANTHROPIC_MODEL') ?: 'claude-sonnet-4-20250514';
-            $client = $this->createAnthropicClient($apiKey, $model);
+        $accountId = is_object($account) && method_exists($account, 'id') ? (string) $account->id() : $tenantId;
+        $secret = $_ENV['AGENT_INTERNAL_SECRET'] ?? getenv('AGENT_INTERNAL_SECRET') ?: '';
+        $tokenGenerator = new InternalApiTokenGenerator($secret);
+        $apiToken = $tokenGenerator->generate($accountId);
 
-            $client->stream(
-                $systemPrompt,
-                $apiMessages,
-                onToken: $onToken,
-                onDone: $onDone,
-                onError: $onError,
-                onProgress: $onProgress,
-            );
-        }
+        $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
+        $pythonBinary = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
+        $pythonBinary .= '/bin/python';
+
+        $apiBase = $_ENV['CLAUDRIEL_API_URL'] ?? getenv('CLAUDRIEL_API_URL') ?: 'http://localhost:8088';
+
+        $this->emitSseEvent('chat-progress', [
+            'phase' => 'prepare',
+            'summary' => 'Starting agent',
+            'level' => 'info',
+        ]);
+
+        $client = $this->createSubprocessClient($pythonBinary, $agentPath);
+
+        $client->stream(
+            systemPrompt: $systemPrompt,
+            messages: $apiMessages,
+            accountId: $accountId,
+            tenantId: $tenantId,
+            apiBase: $apiBase,
+            apiToken: $apiToken,
+            onToken: $onToken,
+            onDone: $onDone,
+            onError: $onError,
+            onProgress: $onProgress,
+        );
     }
 
     private function getApiKey(): ?string
@@ -506,22 +493,13 @@ final class ChatStreamController
         return new ChatSystemPromptBuilder($assembler, $projectRoot);
     }
 
-    private function createSidecarClient(string $sidecarUrl, string $sidecarKey): SidecarChatClient
+    private function createSubprocessClient(string $pythonBinary, string $agentPath): SubprocessChatClient
     {
-        if (is_callable($this->sidecarClientFactory)) {
-            return ($this->sidecarClientFactory)($sidecarUrl, $sidecarKey);
+        if (is_callable($this->subprocessClientFactory)) {
+            return ($this->subprocessClientFactory)($pythonBinary, $agentPath);
         }
 
-        return new SidecarChatClient($sidecarUrl, $sidecarKey);
-    }
-
-    private function createAnthropicClient(string $apiKey, string $model): AnthropicChatClient
-    {
-        if (is_callable($this->anthropicClientFactory)) {
-            return ($this->anthropicClientFactory)($apiKey, $model);
-        }
-
-        return new AnthropicChatClient($apiKey, $model);
+        return new SubprocessChatClient($pythonBinary, $agentPath);
     }
 
     private function generateUuid(): string

@@ -17,35 +17,14 @@ services:
       - ./templates:/srv/templates:ro
       - ./config:/srv/config:ro
       - ./vendor:/srv/vendor:ro
+      - ./agent:/srv/agent:ro
       - ${CLAUDRIEL_DATA:-/home/jones/claudriel}:/srv/data
       - /home/jones/dev/waaseyaa/packages:/home/jones/dev/waaseyaa/packages:ro
     environment:
       - APP_ENV=dev
-      - SIDECAR_URL=http://sidecar:8100
-      - CLAUDRIEL_SIDECAR_KEY=${CLAUDRIEL_SIDECAR_KEY}
       - CLAUDRIEL_API_KEY=${CLAUDRIEL_API_KEY}
-      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
-      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
-    depends_on:
-      sidecar:
-        condition: service_healthy
-
-  sidecar:
-    build:
-      context: ./docker/sidecar
-    environment:
-      - CLAUDRIEL_SIDECAR_KEY=${CLAUDRIEL_SIDECAR_KEY}
-      - CLAUDRIEL_API_KEY=${CLAUDRIEL_API_KEY}
-      - CLAUDRIEL_INGEST_URL=http://caddy/api/ingest
-      - SESSION_TIMEOUT_MINUTES=15
-      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
-    volumes:
-      - ${HOME}/.claude:/root/.claude:rw
-      - ${HOME}/.claude.json:/root/.claude.json:ro
-    expose:
-      - "8100"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-6}
+      - AGENT_INTERNAL_SECRET=${AGENT_INTERNAL_SECRET}
+      - AGENT_VENV=/srv/agent/.venv
+      - AGENT_PATH=/srv/agent/main.py

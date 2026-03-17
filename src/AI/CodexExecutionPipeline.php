@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\AI;
 
-use Claudriel\Domain\Chat\SidecarChatClient;
+use Claudriel\Domain\Chat\SubprocessChatClient;
 use Claudriel\Entity\Operation;
 use Claudriel\Entity\Workspace;
 use Claudriel\Service\GitOperator;
@@ -17,7 +17,7 @@ final class CodexExecutionPipeline
         private readonly GitOperator $gitOperator,
         private readonly EntityRepositoryInterface $workspaceRepository,
         private readonly EntityRepositoryInterface $operationRepository,
-        private readonly ?SidecarChatClient $sidecarChatClient = null,
+        private readonly ?SubprocessChatClient $subprocessChatClient = null,
     ) {}
 
     public function execute(Workspace $workspace, string $instruction): void
@@ -52,24 +52,27 @@ final class CodexExecutionPipeline
 
     public function callCodexModel(Workspace $workspace, string $prompt): string
     {
-        $client = $this->sidecarChatClient ?? $this->createSidecarChatClient();
+        $client = $this->subprocessChatClient ?? $this->createSubprocessChatClient();
         $response = null;
         $streamed = '';
         $error = null;
 
         $client->stream(
-            '',
-            [['role' => 'user', 'content' => $prompt]],
-            function (string $token) use (&$streamed): void {
+            systemPrompt: '',
+            messages: [['role' => 'user', 'content' => $prompt]],
+            accountId: 'codex',
+            tenantId: 'default',
+            apiBase: $_ENV['CLAUDRIEL_API_URL'] ?? getenv('CLAUDRIEL_API_URL') ?: 'http://localhost:8088',
+            apiToken: '',
+            onToken: function (string $token) use (&$streamed): void {
                 $streamed .= $token;
             },
-            function (string $fullResponse) use (&$response): void {
+            onDone: function (string $fullResponse) use (&$response): void {
                 $response = $fullResponse;
             },
-            function (string $message) use (&$error): void {
+            onError: function (string $message) use (&$error): void {
                 $error = $message;
             },
-            (string) ($workspace->get('uuid') ?? 'default'),
         );
 
         if (is_string($error) && $error !== '') {
@@ -96,20 +99,12 @@ final class CodexExecutionPipeline
         return $commitHash;
     }
 
-    private function createSidecarChatClient(): SidecarChatClient
+    private function createSubprocessChatClient(): SubprocessChatClient
     {
-        $sidecarUrl = $_ENV['SIDECAR_URL'] ?? getenv('SIDECAR_URL') ?: '';
-        $sidecarKey = $_ENV['CLAUDRIEL_SIDECAR_KEY'] ?? getenv('CLAUDRIEL_SIDECAR_KEY') ?: '';
+        $projectRoot = getcwd() ?: '/srv';
+        $agentPath = $_ENV['AGENT_PATH'] ?? getenv('AGENT_PATH') ?: $projectRoot.'/agent/main.py';
+        $pythonVenv = $_ENV['AGENT_VENV'] ?? getenv('AGENT_VENV') ?: $projectRoot.'/agent/.venv';
 
-        if ($sidecarUrl === '' || $sidecarKey === '') {
-            throw new \RuntimeException('Claude Code sidecar is not configured.');
-        }
-
-        $client = new SidecarChatClient($sidecarUrl, $sidecarKey);
-        if (! $client->isAvailable()) {
-            throw new \RuntimeException('Claude Code sidecar is unavailable.');
-        }
-
-        return $client;
+        return new SubprocessChatClient($pythonVenv.'/bin/python', $agentPath);
     }
 }

@@ -41,6 +41,7 @@ use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\GoogleOAuthController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\IngestController;
+use Claudriel\Controller\InternalGoogleController;
 use Claudriel\Controller\NotFoundController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Controller\PublicAccountController;
@@ -77,8 +78,11 @@ use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Layer2\GitRepositoryManager;
 use Claudriel\Service\GitOperator;
+use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\GoogleTokenManager;
+use Claudriel\Support\GoogleTokenManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\Database\PdoDatabase;
 use Waaseyaa\Entity\EntityType;
@@ -267,6 +271,28 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 'event_log' => ['type' => 'text_long', 'label' => 'Event Log'],
             ],
         ));
+
+        $this->singleton(GoogleTokenManagerInterface::class, function () {
+            $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
+            $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+            return new GoogleTokenManager(
+                $this->resolve(EntityTypeManager::class),
+                $clientId,
+                $clientSecret,
+            );
+        });
+
+        $this->singleton(InternalApiTokenGenerator::class, function () {
+            $secret = $_ENV['AGENT_INTERNAL_SECRET'] ?? getenv('AGENT_INTERNAL_SECRET') ?: '';
+            return new InternalApiTokenGenerator($secret);
+        });
+
+        $this->singleton(InternalGoogleController::class, function () {
+            return new InternalGoogleController(
+                $this->resolve(GoogleTokenManagerInterface::class),
+                $this->resolve(InternalApiTokenGenerator::class),
+            );
+        });
     }
 
     public function routes(WaaseyaaRouter $router): void
@@ -540,6 +566,47 @@ final class ClaudrielServiceProvider extends ServiceProvider
             ->build();
         $ingestRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.api.ingest', $ingestRoute);
+
+        // Internal API routes (agent subprocess → PHP)
+        $internalGmailListRoute = RouteBuilder::create('/api/internal/gmail/list')
+            ->controller(InternalGoogleController::class.'::gmailList')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGmailListRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.gmail.list', $internalGmailListRoute);
+
+        $internalGmailReadRoute = RouteBuilder::create('/api/internal/gmail/read/{id}')
+            ->controller(InternalGoogleController::class.'::gmailRead')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGmailReadRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.gmail.read', $internalGmailReadRoute);
+
+        $internalGmailSendRoute = RouteBuilder::create('/api/internal/gmail/send')
+            ->controller(InternalGoogleController::class.'::gmailSend')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $internalGmailSendRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.gmail.send', $internalGmailSendRoute);
+
+        $internalCalendarListRoute = RouteBuilder::create('/api/internal/calendar/list')
+            ->controller(InternalGoogleController::class.'::calendarList')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalCalendarListRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.calendar.list', $internalCalendarListRoute);
+
+        $internalCalendarCreateRoute = RouteBuilder::create('/api/internal/calendar/create')
+            ->controller(InternalGoogleController::class.'::calendarCreate')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $internalCalendarCreateRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.calendar.create', $internalCalendarCreateRoute);
 
         $router->addRoute(
             'claudriel.api.context',

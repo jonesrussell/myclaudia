@@ -6,7 +6,7 @@
 
 **Architecture:** PHP spawns a Python subprocess (`agent/main.py`) via `proc_open()`. Python runs the agentic loop using `claude-agent-sdk`, calling back to PHP internal API endpoints for Google operations. Communication is JSON-lines over stdout; PHP maps these to SSE for the browser.
 
-**Tech Stack:** Python 3.11+ with `claude-agent-sdk` and `httpx`, PHP 8.3+ with `proc_open()`, HMAC-SHA256 for internal API auth.
+**Tech Stack:** Python 3.11+ with `claude-agent-sdk` and `httpx`, PHP 8.4+ with `proc_open()`, HMAC-SHA256 for internal API auth.
 
 **Spec:** `docs/superpowers/specs/2026-03-17-sidecar-removal-agent-subprocess-design.md`
 

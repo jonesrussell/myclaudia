@@ -14,7 +14,7 @@ final class ChatSystemPromptBuilder
         private readonly string $projectRoot,
     ) {}
 
-    public function build(string $tenantId = 'default', bool $hasToolAccess = false, ?string $activeWorkspace = null, ?TimeSnapshot $snapshot = null): string
+    public function build(string $tenantId = 'default', ?string $activeWorkspace = null, ?TimeSnapshot $snapshot = null): string
     {
         $parts = [];
 
@@ -52,7 +52,7 @@ final class ChatSystemPromptBuilder
         }
 
         // Chat instructions
-        $parts[] = $this->buildInstructions($hasToolAccess);
+        $parts[] = $this->buildInstructions();
 
         return implode("\n\n---\n\n", array_filter($parts));
     }
@@ -126,9 +126,12 @@ final class ChatSystemPromptBuilder
         return implode("\n", $sections);
     }
 
-    private function buildInstructions(bool $hasToolAccess): string
+    private function buildInstructions(): string
     {
-        $base = <<<'INSTRUCTIONS'
+        $ingestUrl = getenv('CLAUDRIEL_INGEST_URL') ?: 'http://caddy/api/ingest';
+        $apiKey = $_ENV['CLAUDRIEL_API_KEY'] ?? getenv('CLAUDRIEL_API_KEY') ?: '';
+
+        return <<<INSTRUCTIONS
 # Instructions
 
 You are Claudriel, an AI personal operations assistant. You are responding via the Claudriel web dashboard. Be warm, concise, and proactive. You have access to the user's commitments, events, and personal context shown above. Help them stay on track.
@@ -140,60 +143,32 @@ If the user asks to create a workspace and key details are missing, ask only for
 When the user asks for a "worktree", interpret that as a git worktree by default, not a Claudriel workspace. If details are missing, ask only for the missing git worktree details rather than asking the user to choose between unrelated meanings.
 
 For schedule changes involving recurring events, default to changing only the single occurrence the user mentioned unless they explicitly say to modify or delete the whole series. If series-wide intent is unclear, do not assume it.
-INSTRUCTIONS;
-
-        if (! $hasToolAccess) {
-            $base .= <<<'NO_TOOLS'
-
 
 ## Capabilities
 
-You can see the user's current context (commitments, events, people) shown above, and you can have a helpful conversation based on that context. You do NOT have access to Gmail, Calendar, or any external data sources in this mode. If the user asks you to check email or calendar, let them know that external data access requires the sidecar service to be running.
-NO_TOOLS;
-
-            return $base;
-        }
-
-        $ingestUrl = getenv('CLAUDRIEL_INGEST_URL') ?: 'http://caddy/api/ingest';
-        $apiKey = $_ENV['CLAUDRIEL_API_KEY'] ?? getenv('CLAUDRIEL_API_KEY') ?: '';
-
-        $base .= <<<TOOLS
+You have access to Gmail and Google Calendar tools. You can check email, read messages, send replies, list calendar events, and create new events. When the user asks you to check email or calendar, use your tools directly.
 
 ## Data Ingestion
 
-When the user asks you to check emails, calendar events, or any external data source, you MUST:
+When you find relevant items via Gmail or Calendar, ingest them into the Claudriel system using your tools. For each relevant item, post it to the ingestion endpoint:
 
-1. Fetch the data using your Gmail/Calendar MCP tools
-2. For EACH relevant item found, ingest it into the Claudriel system using curl:
-
-```bash
-curl -s -X POST "{$ingestUrl}" \\
-  -H "Authorization: Bearer {$apiKey}" \\
-  -H "Content-Type: application/json" \\
-  -d '{"source":"gmail","type":"message.received","payload":{"subject":"...","from_email":"...","from_name":"...","body":"..."}}'
-```
+POST {$ingestUrl}
+Authorization: Bearer {$apiKey}
+Content-Type: application/json
 
 ### Ingestion payload formats:
 
 **Email events** (source: "gmail", type: "message.received"):
-```json
 {"source":"gmail","type":"message.received","payload":{"subject":"<subject>","from_email":"<email>","from_name":"<name>","body":"<snippet or summary>"}}
-```
 
 **Calendar events** (source: "google-calendar", type: "calendar.event"):
-```json
 {"source":"google-calendar","type":"calendar.event","payload":{"event_id":"<stable event id>","calendar_id":"<calendar id>","title":"<event title>","start_time":"2026-03-13T09:00:00-04:00","end_time":"2026-03-13T10:00:00-04:00","from_name":"<organizer>","from_email":"<organizer email>","body":"<description or location>"}}
-```
 
-**Commitment detection** (source: "claude-sidecar", type: "commitment.detected"):
-```json
-{"source":"claude-sidecar","type":"commitment.detected","payload":{"title":"<what was committed to>","confidence":0.8,"due_date":"2026-03-15","person_email":"<who>","person_name":"<who>"}}
-```
+**Commitment detection** (source: "claude-agent", type: "commitment.detected"):
+{"source":"claude-agent","type":"commitment.detected","payload":{"title":"<what was committed to>","confidence":0.8,"due_date":"2026-03-15","person_email":"<who>","person_name":"<who>"}}
 
-Always ingest data silently (don't show curl output to the user), then summarize what you found in a friendly way. After ingesting, the Day Brief on the dashboard will update automatically.
-TOOLS;
-
-        return $base;
+Always ingest data silently (don't show raw API output to the user), then summarize what you found in a friendly way. After ingesting, the Day Brief on the dashboard will update automatically.
+INSTRUCTIONS;
     }
 
     private function formatBriefContext(array $brief): string

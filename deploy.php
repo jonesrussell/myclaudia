@@ -64,11 +64,6 @@ task('deploy:copy_caddyfile', function (): void {
     run('cp {{release_path}}/Caddyfile {{deploy_path}}/Caddyfile');
 });
 
-desc('Ensure sidecar directory exists');
-task('deploy:sidecar_dir', function (): void {
-    run('mkdir -p {{deploy_path}}/sidecar');
-});
-
 desc('Ensure shared runtime directories exist');
 task('deploy:runtime_dirs', function (): void {
     run('mkdir -p {{deploy_path}}/shared/storage');
@@ -87,16 +82,6 @@ task('php-fpm:reload', function (): void {
     run('sudo systemctl reload php8.4-fpm');
 });
 
-desc('Deploy sidecar container');
-task('sidecar:deploy', function (): void {
-    run('mkdir -p {{deploy_path}}/sidecar');
-    run('cp {{release_path}}/docker-compose.sidecar.yml {{deploy_path}}/sidecar/');
-    run('rm -rf {{deploy_path}}/sidecar/docker-context');
-    run('cp -r {{release_path}}/docker/sidecar {{deploy_path}}/sidecar/docker-context');
-    run('grep -E "^(CLAUDRIEL_|ANTHROPIC_|CLAUDE_|SIDECAR_|GITHUB_)" {{deploy_path}}/shared/.env > {{deploy_path}}/sidecar/.env || true');
-    run('cd {{deploy_path}}/sidecar && docker compose -f docker-compose.sidecar.yml --env-file .env up -d --build');
-});
-
 desc('Clear stale framework caches from shared storage');
 task('deploy:clear_cache', function (): void {
     // The cache file may be owned by the web server user. If rm fails,
@@ -105,24 +90,16 @@ task('deploy:clear_cache', function (): void {
     run('rm -f {{deploy_path}}/shared/storage/framework/packages.php 2>/dev/null || echo "INVALIDATED" > {{deploy_path}}/shared/storage/framework/packages.php 2>/dev/null || true');
 });
 
-desc('Validate sidecar health and app smoke probes');
+desc('Set up Python agent virtualenv');
+task('agent:setup', function (): void {
+    run('cd {{release_path}} && python3.11 -m venv agent/.venv 2>/dev/null || python3 -m venv agent/.venv');
+    run('{{release_path}}/agent/.venv/bin/pip install -q -r {{release_path}}/agent/requirements.txt');
+});
+
+desc('Validate app smoke probes');
 task('deploy:validate', function (): void {
     $baseUrl = rtrim((string) get('deploy_validation_base_url'), '/');
     $briefJsonFile = '{{deploy_path}}/shared/logs/deploy-validation-brief.json';
-    $sidecarHealthFile = '{{deploy_path}}/shared/logs/deploy-validation-sidecar-health.json';
-
-    writeln('Validating deployed sidecar health');
-    run(<<<BASH
-for attempt in 1 2 3 4 5 6 7 8 9 10; do
-  if curl --silent --show-error --fail http://127.0.0.1:8100/health > {$sidecarHealthFile}; then
-    exit 0
-  fi
-  sleep 2
-done
-echo 'Sidecar health endpoint did not become healthy in time' >&2
-exit 1
-BASH);
-    run("grep -q '\"status\":\"ok\"' {$sidecarHealthFile}");
 
     try {
         run("for attempt in 1 2 3 4 5; do curl --silent --show-error --fail {$baseUrl}/brief > /dev/null && exit 0; sleep 1; done; echo 'Public Caddy endpoint did not become healthy in time' >&2; exit 1");
@@ -149,7 +126,6 @@ desc('Deploy Claudriel to production');
 task('deploy', [
     'deploy:info',
     'deploy:setup',
-    'deploy:sidecar_dir',
     'deploy:lock',
     'deploy:release',
     'deploy:upload',
@@ -159,7 +135,7 @@ task('deploy', [
     'deploy:copy_caddyfile',
     'deploy:symlink',
     'deploy:clear_cache',
-    'sidecar:deploy',
+    'agent:setup',
     'caddy:reload',
     'php-fpm:reload',
     'deploy:validate',

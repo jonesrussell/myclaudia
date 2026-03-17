@@ -6,7 +6,7 @@ namespace Claudriel\Tests\Unit\AI;
 
 use Claudriel\AI\CodexExecutionPipeline;
 use Claudriel\AI\PromptBuilder;
-use Claudriel\Domain\Chat\SidecarChatClient;
+use Claudriel\Domain\Chat\SubprocessChatClient;
 use Claudriel\Entity\Operation;
 use Claudriel\Entity\Workspace;
 use Claudriel\Service\GitOperator;
@@ -64,40 +64,28 @@ final class CodexExecutionPipelineTest extends TestCase
             },
             fn (string $command, string $input): array => ['exit_code' => 0, 'output' => ''],
         );
-        $sidecarClient = new class extends SidecarChatClient
-        {
-            public function __construct()
-            {
-                parent::__construct('http://sidecar.test', 'test-key');
-            }
+        // Create a mock PHP script that mimics the Python agent
+        $mockScript = sys_get_temp_dir() . '/mock_codex_agent_' . uniqid() . '.php';
+        file_put_contents($mockScript, <<<'PHP'
+        <?php
+        file_get_contents('php://stdin');
+        $patch = "--- a/file.txt\n+++ b/file.txt\n@@ -0,0 +1 @@\n+patched\n";
+        echo json_encode(['event' => 'message', 'content' => $patch]) . "\n";
+        echo json_encode(['event' => 'done']) . "\n";
+        PHP);
 
-            public function stream(
-                string $systemPrompt,
-                array $messages,
-                \Closure $onToken,
-                \Closure $onDone,
-                \Closure $onError,
-                ?string $sessionId = null,
-                ?\Closure $onProgress = null,
-                ?string $tenantId = null,
-                ?string $workspaceId = null,
-                ?array $timeSnapshot = null,
-            ): void {
-                $onDone("--- a/file.txt\n+++ b/file.txt\n@@ -0,0 +1 @@\n+patched\n");
-            }
-
-            public function isAvailable(): bool
-            {
-                return true;
-            }
-        };
+        $subprocessClient = new SubprocessChatClient(
+            pythonBinary: PHP_BINARY,
+            agentPath: $mockScript,
+            timeoutSeconds: 10,
+        );
 
         $pipeline = new CodexExecutionPipeline(
             new PromptBuilder,
             $gitOperator,
             $workspaceRepo,
             $operationRepo,
-            $sidecarClient,
+            $subprocessClient,
         );
         $pipeline->execute($workspace, 'Prepare a placeholder patch.');
 
