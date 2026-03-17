@@ -128,6 +128,7 @@ final class GoogleOAuthController
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => $payload,
                 'timeout' => 30,
+                'ignore_errors' => true,
             ],
         ]);
 
@@ -137,15 +138,7 @@ final class GoogleOAuthController
             return null;
         }
 
-        $httpCode = 0;
-        /** @phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType */
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            foreach ($http_response_header as $header) {
-                if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
-                    $httpCode = (int) $m[1];
-                }
-            }
-        }
+        $httpCode = $this->parseHttpStatusCode($http_response_header ?? []); // @phpstan-ignore nullCoalesce.variable
 
         if ($httpCode >= 400) {
             return null;
@@ -161,6 +154,7 @@ final class GoogleOAuthController
                 'method' => 'GET',
                 'header' => 'Authorization: Bearer '.$accessToken,
                 'timeout' => 10,
+                'ignore_errors' => true,
             ],
         ]);
 
@@ -170,15 +164,7 @@ final class GoogleOAuthController
             return [];
         }
 
-        $httpCode = 0;
-        /** @phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType */
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            foreach ($http_response_header as $header) {
-                if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
-                    $httpCode = (int) $m[1];
-                }
-            }
-        }
+        $httpCode = $this->parseHttpStatusCode($http_response_header ?? []); // @phpstan-ignore nullCoalesce.variable
 
         if ($httpCode >= 400) {
             return [];
@@ -245,5 +231,21 @@ final class GoogleOAuthController
         }
 
         $storage->save($integration);
+    }
+
+    /**
+     * @param  list<string>  $headers
+     */
+    private function parseHttpStatusCode(array $headers): int
+    {
+        $httpCode = 0;
+
+        foreach ($headers as $header) {
+            if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
+                $httpCode = (int) $m[1];
+            }
+        }
+
+        return $httpCode;
     }
 }

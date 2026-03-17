@@ -88,20 +88,12 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
                 'header' => 'Content-Type: application/x-www-form-urlencoded',
                 'content' => $payload,
                 'timeout' => 30,
+                'ignore_errors' => true,
             ],
         ]);
 
         $response = @file_get_contents(self::TOKEN_ENDPOINT, false, $context);
-        $httpCode = 0;
-
-        /** @phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType */
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            foreach ($http_response_header as $header) {
-                if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
-                    $httpCode = (int) $m[1];
-                }
-            }
-        }
+        $httpCode = $this->parseHttpStatusCode($http_response_header ?? []); // @phpstan-ignore nullCoalesce.variable
 
         if ($response === false || $httpCode >= 400) {
             $integration->set('status', 'error');
@@ -127,5 +119,21 @@ final class GoogleTokenManager implements GoogleTokenManagerInterface
         $this->entityTypeManager->getStorage('integration')->save($integration);
 
         return $data['access_token'];
+    }
+
+    /**
+     * @param  list<string>  $headers
+     */
+    private function parseHttpStatusCode(array $headers): int
+    {
+        $httpCode = 0;
+
+        foreach ($headers as $header) {
+            if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
+                $httpCode = (int) $m[1];
+            }
+        }
+
+        return $httpCode;
     }
 }
