@@ -22,6 +22,8 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
     /** @var \Closure(): EntityTypeManager */
     private \Closure $entityTypeManagerFactory;
 
+    private ?EntityTypeManager $resolvedEtm = null;
+
     /**
      * @param  \Closure(): EntityTypeManager  $entityTypeManagerFactory
      */
@@ -30,9 +32,14 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
         $this->entityTypeManagerFactory = $entityTypeManagerFactory;
     }
 
+    private function etm(): EntityTypeManager
+    {
+        return $this->resolvedEtm ??= ($this->entityTypeManagerFactory)();
+    }
+
     public function resolveSession(Request $request): ?AdminSurfaceSessionData
     {
-        $etm = ($this->entityTypeManagerFactory)();
+        $etm = $this->etm();
         $resolver = new AuthenticatedAccountSessionResolver($etm);
         $account = $resolver->resolve();
 
@@ -96,7 +103,7 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
             return $this->jsonResponse(['error' => 'Not authenticated.'], 401);
         }
 
-        $etm = ($this->entityTypeManagerFactory)();
+        $etm = $this->etm();
         $sessionData = $session->toArray();
         $catalog = $this->buildCatalog($session)->build();
 
