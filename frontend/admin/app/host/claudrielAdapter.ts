@@ -132,9 +132,12 @@ export const claudrielHostAdapter: HostAdapter = {
         const fields = GRAPHQL_FIELDS[type]
         const limit = typeof query.page?.limit === 'number' ? query.page.limit : 50
         const offset = typeof query.page?.offset === 'number' ? query.page.offset : 0
-        const queryStr = `{ ${listField}(limit: ${limit}, offset: ${offset}) { items { ${fields} } total } }`
-        const data = await graphqlFetch<Record<string, { items: Record<string, any>[]; total: number }>>(queryStr)
+        const data = await graphqlFetch<Record<string, { items: Record<string, any>[]; total: number }>>(
+          `query($limit: Int, $offset: Int) { ${listField}(limit: $limit, offset: $offset) { items { ${fields} } total } }`,
+          { limit, offset },
+        )
         const result = data[listField]
+        if (!result) throw new Error(`GraphQL: no data returned for ${type} list`)
         const resources = result.items.map(item => toResource(type, item))
 
         return {
@@ -164,9 +167,13 @@ export const claudrielHostAdapter: HostAdapter = {
       if (GRAPHQL_TYPES.has(type)) {
         const camel = toCamelCase(type)
         const fields = GRAPHQL_FIELDS[type]
-        const queryStr = `{ ${camel}(id: "${id}") { ${fields} } }`
-        const data = await graphqlFetch<Record<string, Record<string, any>>>(queryStr)
-        return toResource(type, data[camel])
+        const data = await graphqlFetch<Record<string, Record<string, any> | null>>(
+          `query($id: ID!) { ${camel}(id: $id) { ${fields} } }`,
+          { id },
+        )
+        const item = data[camel]
+        if (!item) throw new Error(`${type} not found: ${id}`)
+        return toResource(type, item)
       }
 
       const config = configFor(type)
@@ -187,7 +194,9 @@ export const claudrielHostAdapter: HostAdapter = {
           `mutation($input: ${pascal}CreateInput!) { create${pascal}(input: $input) { ${fields} } }`,
           { input: attributes },
         )
-        return toResource(type, data[`create${pascal}`])
+        const created = data[`create${pascal}`]
+        if (!created) throw new Error(`GraphQL: create ${type} returned no data`)
+        return toResource(type, created)
       }
 
       const config = configFor(type)
@@ -208,7 +217,9 @@ export const claudrielHostAdapter: HostAdapter = {
           `mutation($id: ID!, $input: ${pascal}UpdateInput!) { update${pascal}(id: $id, input: $input) { ${fields} } }`,
           { id, input: attributes },
         )
-        return toResource(type, data[`update${pascal}`])
+        const updated = data[`update${pascal}`]
+        if (!updated) throw new Error(`GraphQL: update ${type} returned no data`)
+        return toResource(type, updated)
       }
 
       const config = configFor(type)
@@ -245,9 +256,12 @@ export const claudrielHostAdapter: HostAdapter = {
         const fields = GRAPHQL_FIELDS[type]
         const config = ENTITY_CONFIG[type]
         const effectiveField = labelField || config?.labelField || 'name'
-        const queryStr = `{ ${listField}(filter: [{ field: "${effectiveField}", value: "%${query}%", operator: "LIKE" }], limit: ${limit}) { items { ${fields} } total } }`
-        const data = await graphqlFetch<Record<string, { items: Record<string, any>[] }>>(queryStr)
-        return data[listField].items.map(item => toResource(type, item))
+        const data = await graphqlFetch<Record<string, { items: Record<string, any>[] }>>(
+          `query($filter: [FilterInput!], $limit: Int) { ${listField}(filter: $filter, limit: $limit) { items { ${fields} } total } }`,
+          { filter: [{ field: effectiveField, value: `%${query}%`, operator: 'LIKE' }], limit },
+        )
+        const result = data[listField]
+        return result ? result.items.map(item => toResource(type, item)) : []
       }
 
       const config = configFor(type)
