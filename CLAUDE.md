@@ -107,3 +107,5 @@ See `docs/specs/workflow.md` for milestone list and versioning model.
 - Pre-push hook blocks `curl_exec`; use `file_get_contents` with `stream_context_create` for HTTP requests
 - PHPStan treats `$http_response_header` (from `file_get_contents`) as always-defined `list<string>`; suppress with `@phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType`
 - Controllers that don't render templates but keep `?Environment $twig` for DI compat need `@phpstan-ignore constructor.unusedParameter`
+- Non-SSR routes (without `->render()`) receive `AnonymousUser` for `$account`, not `AuthenticatedAccount`; use `AuthenticatedAccountSessionResolver` to resolve from session
+- `file_get_contents` needs `'ignore_errors' => true` in stream context to get response body on HTTP 4xx/5xx (otherwise returns `false`)
