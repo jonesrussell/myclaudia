@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Admin\Host;
 
 use Claudriel\Access\AuthenticatedAccount;
+use Claudriel\Entity\Tenant;
 use Claudriel\Support\AdminAccess;
 use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,8 +50,8 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
             roles: $account->getRoles(),
             policies: [],
             email: $account->getEmail(),
-            tenantId: (string) ($account->getTenantId() ?? 'default'),
-            tenantName: 'Default',
+            tenantId: (string) ($account->getTenantId() ?? ''),
+            tenantName: '',
         );
     }
 
@@ -114,18 +115,20 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
             ];
         }, $catalog);
 
+        $tenantId = $sessionData['tenant']['id'] ?? '';
+        $tenantPayload = null;
+        if ($tenantId !== '') {
+            $tenantPayload = $this->serializeTenant($etm, $tenantId);
+        }
+
         return $this->jsonResponse([
             'account' => [
                 'uuid' => $sessionData['account']['id'],
                 'email' => $sessionData['account']['email'] ?? $sessionData['account']['name'],
-                'tenant_id' => $sessionData['tenant']['id'] ?? '',
+                'tenant_id' => $tenantId,
                 'roles' => $sessionData['account']['roles'],
             ],
-            'tenant' => $sessionData['tenant'] !== null ? [
-                'uuid' => $sessionData['tenant']['id'],
-                'name' => $sessionData['tenant']['name'],
-                'default_workspace_uuid' => null,
-            ] : null,
+            'tenant' => $tenantPayload,
             'entity_types' => $entityTypes,
         ]);
     }
@@ -143,6 +146,39 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
         session_regenerate_id(true);
 
         return $this->jsonResponse(['logged_out' => true]);
+    }
+
+    /**
+     * @return array{uuid: string, name: string, default_workspace_uuid: string|null}|null
+     */
+    private function serializeTenant(EntityTypeManager $etm, string $tenantId): ?array
+    {
+        $ids = $etm->getStorage('tenant')->getQuery()
+            ->condition('uuid', $tenantId)
+            ->range(0, 1)
+            ->execute();
+
+        if ($ids === []) {
+            return null;
+        }
+
+        $tenant = $etm->getStorage('tenant')->load(reset($ids));
+        if (! $tenant instanceof Tenant) {
+            return null;
+        }
+
+        $metadata = $tenant->get('metadata');
+        $workspaceUuid = null;
+        if (is_array($metadata)) {
+            $val = $metadata['default_workspace_uuid'] ?? null;
+            $workspaceUuid = is_string($val) && $val !== '' ? $val : null;
+        }
+
+        return [
+            'uuid' => (string) $tenant->get('uuid'),
+            'name' => (string) $tenant->get('name'),
+            'default_workspace_uuid' => $workspaceUuid,
+        ];
     }
 
     private function jsonResponse(mixed $data, int $statusCode = 200): SsrResponse
