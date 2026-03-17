@@ -2488,17 +2488,6 @@
             messagesEl.appendChild(emptyState);
         });
 
-        // ── Auto-trigger Morning Brief ──
-        var briefKey = 'claudriel_brief_date';
-        var today = new Date().toISOString().slice(0, 10);
-        var lastBriefDate = localStorage.getItem(briefKey);
-
-        if (lastBriefDate !== today && !inputEl.disabled) {
-            setTimeout(function() {
-                sendMessage('Good morning! Give me my daily brief.');
-                localStorage.setItem(briefKey, today);
-            }, 500);
-        }
     })();
     </script>
 {% endblock %}
