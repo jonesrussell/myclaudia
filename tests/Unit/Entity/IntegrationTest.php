@@ -17,7 +17,7 @@ final class IntegrationTest extends TestCase
             'access_token' => 'ya29.token',
             'refresh_token' => '1//refresh',
             'token_expires_at' => '2026-03-16T22:00:00Z',
-            'scopes' => json_encode(['https://www.googleapis.com/auth/gmail.readonly']),
+            'scopes' => json_encode(['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']),
             'status' => 'active',
             'provider_email' => 'user@gmail.com',
             'metadata' => json_encode(['token_type' => 'Bearer']),

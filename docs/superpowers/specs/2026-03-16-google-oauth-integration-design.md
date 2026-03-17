@@ -56,7 +56,7 @@ Fields (in addition to base entity fields):
      - client_id (from env)
      - redirect_uri (from env)
      - response_type=code
-     - scope: gmail.readonly calendar.readonly drive.readonly
+     - scope: gmail.readonly gmail.send calendar.readonly calendar.events calendar.calendarlist.readonly calendar.freebusy drive.file
      - state: CSRF token
      - access_type=offline (to get refresh_token)
      - prompt=consent (force consent to ensure refresh_token)
@@ -82,13 +82,19 @@ Fields (in addition to base entity fields):
    - Token exchange fails → redirect with error, log details
 ```
 
-### Scopes (Read-Only for v1)
+### Scopes (Minimal, Non-Restricted, SaaS-Safe)
 
-| Service | Scope |
-|---------|-------|
-| Gmail | `https://www.googleapis.com/auth/gmail.readonly` |
-| Calendar | `https://www.googleapis.com/auth/calendar.readonly` |
-| Drive | `https://www.googleapis.com/auth/drive.readonly` |
+| Service | Scope | Purpose |
+|---------|-------|---------|
+| Gmail | `https://www.googleapis.com/auth/gmail.readonly` | Read inbox messages |
+| Gmail | `https://www.googleapis.com/auth/gmail.send` | Send and reply to emails |
+| Calendar | `https://www.googleapis.com/auth/calendar.readonly` | Read calendar events |
+| Calendar | `https://www.googleapis.com/auth/calendar.events` | Create and edit events |
+| Calendar | `https://www.googleapis.com/auth/calendar.calendarlist.readonly` | List available calendars |
+| Calendar | `https://www.googleapis.com/auth/calendar.freebusy` | Check availability |
+| Drive | `https://www.googleapis.com/auth/drive.file` | Per-file access only |
+
+**Scope policy:** No restricted scopes. No Gmail add-on scopes. No full-drive or full-mailbox scopes. No calendar.acls or calendar.calendars scopes. This list is the single source of truth — `GoogleOAuthController::SCOPES` must match exactly.
 
 Persist exactly what Google returns. Do not assume requested equals granted.
 

@@ -21,9 +21,16 @@ final class GoogleOAuthController
     private const USERINFO_ENDPOINT = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
     private const SCOPES = [
+        // Gmail — read inbox + send (no full mailbox access)
         'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/gmail.send',
+        // Calendar — read events + create/edit events + list calendars + free/busy
         'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/drive.readonly',
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+        'https://www.googleapis.com/auth/calendar.freebusy',
+        // Drive — per-file access only (no full drive)
+        'https://www.googleapis.com/auth/drive.file',
     ];
 
     private readonly string $clientId;
