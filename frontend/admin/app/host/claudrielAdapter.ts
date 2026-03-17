@@ -1,6 +1,7 @@
 import type { EntityTypeInfo } from '~/composables/useNavGroups'
 import type { HostAdapter } from '~/host/hostAdapter'
 import type { AdminSessionPayload, EntitySchema, JsonApiResource, SessionBootstrap } from '~/host/types'
+import { graphqlFetch } from '~/utils/graphqlFetch'
 
 interface EntityConfig {
   basePath: string
@@ -40,6 +41,23 @@ const ENTITY_CONFIG: Record<string, EntityConfig> = {
     itemKey: 'triage',
     labelField: 'sender_name',
   },
+}
+
+/** Entity types routed through GraphQL instead of REST. */
+const GRAPHQL_TYPES = new Set(['commitment', 'person'])
+
+/** Fields to request per GraphQL entity type. */
+const GRAPHQL_FIELDS: Record<string, string> = {
+  commitment: 'uuid title status confidence due_date person_uuid source tenant_id created_at updated_at',
+  person: 'uuid name email tier source tenant_id latest_summary last_interaction_at last_inbox_category created_at updated_at',
+}
+
+function toPascalCase(s: string): string {
+  return s.replace(/(^|_)(\w)/g, (_, __, c) => c.toUpperCase())
+}
+
+function toCamelCase(s: string): string {
+  return s.replace(/_(\w)/g, (_, c) => c.toUpperCase())
 }
 
 function configFor(type: string): EntityConfig {
@@ -109,10 +127,27 @@ export const claudrielHostAdapter: HostAdapter = {
       type: string,
       query: Record<string, any> = {},
     ): Promise<{ data: JsonApiResource[]; meta: Record<string, any>; links: Record<string, string> }> {
+      if (GRAPHQL_TYPES.has(type)) {
+        const listField = `${toCamelCase(type)}List`
+        const fields = GRAPHQL_FIELDS[type]
+        const limit = typeof query.page?.limit === 'number' ? query.page.limit : 50
+        const offset = typeof query.page?.offset === 'number' ? query.page.offset : 0
+        const queryStr = `{ ${listField}(limit: ${limit}, offset: ${offset}) { items { ${fields} } total } }`
+        const data = await graphqlFetch<Record<string, { items: Record<string, any>[]; total: number }>>(queryStr)
+        const result = data[listField]
+        const resources = result.items.map(item => toResource(type, item))
+
+        return {
+          data: resources,
+          meta: { total: result.total, offset, limit },
+          links: {},
+        }
+      }
+
       const config = configFor(type)
       const response = await $fetch<Record<string, any>>(config.basePath)
       const items = Array.isArray(response[config.collectionKey]) ? response[config.collectionKey] : []
-      const resources = items.map((item) => toResource(type, item))
+      const resources = items.map((item: Record<string, any>) => toResource(type, item))
 
       return {
         data: resources,
@@ -126,6 +161,14 @@ export const claudrielHostAdapter: HostAdapter = {
     },
 
     async get(type: string, id: string): Promise<JsonApiResource> {
+      if (GRAPHQL_TYPES.has(type)) {
+        const camel = toCamelCase(type)
+        const fields = GRAPHQL_FIELDS[type]
+        const queryStr = `{ ${camel}(id: "${id}") { ${fields} } }`
+        const data = await graphqlFetch<Record<string, Record<string, any>>>(queryStr)
+        return toResource(type, data[camel])
+      }
+
       const config = configFor(type)
       const response = await $fetch<Record<string, any>>(`${config.basePath}/${id}`)
       const item = response[config.itemKey]
@@ -137,6 +180,16 @@ export const claudrielHostAdapter: HostAdapter = {
     },
 
     async create(type: string, attributes: Record<string, any>): Promise<JsonApiResource> {
+      if (GRAPHQL_TYPES.has(type)) {
+        const pascal = toPascalCase(type)
+        const fields = GRAPHQL_FIELDS[type]
+        const data = await graphqlFetch<Record<string, Record<string, any>>>(
+          `mutation($input: ${pascal}CreateInput!) { create${pascal}(input: $input) { ${fields} } }`,
+          { input: attributes },
+        )
+        return toResource(type, data[`create${pascal}`])
+      }
+
       const config = configFor(type)
       const response = await $fetch<Record<string, any>>(config.basePath, {
         method: 'POST',
@@ -148,6 +201,16 @@ export const claudrielHostAdapter: HostAdapter = {
     },
 
     async update(type: string, id: string, attributes: Record<string, any>): Promise<JsonApiResource> {
+      if (GRAPHQL_TYPES.has(type)) {
+        const pascal = toPascalCase(type)
+        const fields = GRAPHQL_FIELDS[type]
+        const data = await graphqlFetch<Record<string, Record<string, any>>>(
+          `mutation($id: ID!, $input: ${pascal}UpdateInput!) { update${pascal}(id: $id, input: $input) { ${fields} } }`,
+          { id, input: attributes },
+        )
+        return toResource(type, data[`update${pascal}`])
+      }
+
       const config = configFor(type)
       const response = await $fetch<Record<string, any>>(`${config.basePath}/${id}`, {
         method: 'PATCH',
@@ -159,6 +222,15 @@ export const claudrielHostAdapter: HostAdapter = {
     },
 
     async remove(type: string, id: string): Promise<void> {
+      if (GRAPHQL_TYPES.has(type)) {
+        const pascal = toPascalCase(type)
+        await graphqlFetch(
+          `mutation($id: ID!) { delete${pascal}(id: $id) { deleted } }`,
+          { id },
+        )
+        return
+      }
+
       const config = configFor(type)
       await $fetch(`${config.basePath}/${id}`, { method: 'DELETE' })
     },
@@ -166,6 +238,16 @@ export const claudrielHostAdapter: HostAdapter = {
     async search(type: string, labelField: string, query: string, limit: number = 10): Promise<JsonApiResource[]> {
       if (query.length < 2) {
         return []
+      }
+
+      if (GRAPHQL_TYPES.has(type)) {
+        const listField = `${toCamelCase(type)}List`
+        const fields = GRAPHQL_FIELDS[type]
+        const config = ENTITY_CONFIG[type]
+        const effectiveField = labelField || config?.labelField || 'name'
+        const queryStr = `{ ${listField}(filter: [{ field: "${effectiveField}", value: "%${query}%", operator: "LIKE" }], limit: ${limit}) { items { ${fields} } total } }`
+        const data = await graphqlFetch<Record<string, { items: Record<string, any>[] }>>(queryStr)
+        return data[listField].items.map(item => toResource(type, item))
       }
 
       const config = configFor(type)
