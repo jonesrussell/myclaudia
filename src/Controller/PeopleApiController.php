@@ -22,6 +22,7 @@ final class PeopleApiController
 
     public function list(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
+        error_log('Deprecated: '.__METHOD__.' — use /api/graphql endpoint instead');
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         $scope = $resolver->resolve($query, $account);
         $entries = array_values(array_filter(
@@ -50,6 +51,7 @@ final class PeopleApiController
 
     public function create(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
     {
+        error_log('Deprecated: '.__METHOD__.' — use /api/graphql endpoint instead');
         $body = json_decode($httpRequest?->getContent() ?? '', true) ?? [];
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
@@ -81,6 +83,7 @@ final class PeopleApiController
 
     public function show(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
+        error_log('Deprecated: '.__METHOD__.' — use /api/graphql endpoint instead');
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         $scope = $resolver->resolve($query, $account);
         $person = $this->findByUuid((string) ($params['uuid'] ?? ''), $scope->tenantId);
@@ -93,6 +96,7 @@ final class PeopleApiController
 
     public function update(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
     {
+        error_log('Deprecated: '.__METHOD__.' — use /api/graphql endpoint instead');
         $body = json_decode($httpRequest?->getContent() ?? '', true) ?? [];
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
@@ -152,6 +156,7 @@ final class PeopleApiController
 
     public function delete(array $params = [], array $query = [], mixed $account = null): SsrResponse
     {
+        error_log('Deprecated: '.__METHOD__.' — use /api/graphql endpoint instead');
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         $scope = $resolver->resolve($query, $account);
         $person = $this->findByUuid((string) ($params['uuid'] ?? ''), $scope->tenantId);
