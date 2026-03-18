@@ -1,6 +1,6 @@
 // packages/admin/tests/components/widgets/Select.test.ts
 import { describe, it, expect } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mount, flushPromises } from '@vue/test-utils'
 import Select from '~/components/widgets/Select.vue'
 
 describe('Select', () => {
@@ -11,7 +11,7 @@ describe('Select', () => {
   }
 
   it('renders an option for each enum value', async () => {
-    const wrapper = await mountSuspended(Select, {
+    const wrapper = mount(Select, {
       props: { modelValue: '', label: 'Status', schema },
     })
     const options = wrapper.findAll('option')
@@ -22,7 +22,7 @@ describe('Select', () => {
   })
 
   it('emits update:modelValue on selection change', async () => {
-    const wrapper = await mountSuspended(Select, {
+    const wrapper = mount(Select, {
       props: { modelValue: '', label: 'Status', schema },
     })
     await wrapper.find('select').setValue('blocked')
@@ -30,7 +30,7 @@ describe('Select', () => {
   })
 
   it('is disabled when disabled=true', async () => {
-    const wrapper = await mountSuspended(Select, {
+    const wrapper = mount(Select, {
       props: { modelValue: '', label: 'Status', schema, disabled: true },
     })
     expect(wrapper.find('select').attributes('disabled')).toBeDefined()

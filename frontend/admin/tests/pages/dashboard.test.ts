@@ -1,25 +1,43 @@
-import { describe, it, expect, vi } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { flushPromises } from '@vue/test-utils'
+import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 import Dashboard from '~/pages/index.vue'
 import { entityTypes } from '../fixtures/entityTypes'
 
-describe('Dashboard onboarding', () => {
-  it('shows onboarding prompt when no content types exist', async () => {
-    vi.stubGlobal('$fetch', vi.fn((url: string) => {
-      if (url === '/api/entity-types') {
-        return Promise.resolve({ data: entityTypes })
-      }
-      if (url.startsWith('/api/node_type')) {
-        return Promise.resolve({ data: [], meta: { total: 0 } })
-      }
-      return Promise.reject(new Error(`Unexpected fetch: ${url}`))
-    }))
+const IngestSummaryWidgetStub = defineComponent({
+  name: 'IngestSummaryWidget',
+  render: () => h('div', { class: 'ingest-stub' }),
+})
 
-    const wrapper = await mountSuspended(Dashboard)
-    await flushPromises()
+describe('Dashboard', () => {
+  it('renders entity type cards from auth state', () => {
+    useState('claudriel.admin.session.entity-types').value = entityTypes
 
-    expect(wrapper.text()).toContain('Get started with your first content type')
-    expect(wrapper.text()).toContain('Use Note (built-in)')
+    const wrapper = mount(Dashboard, {
+      global: {
+        stubs: {
+          IngestSummaryWidget: IngestSummaryWidgetStub,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('User')
+    expect(wrapper.text()).toContain('Content')
+    expect(wrapper.text()).toContain('Dashboard')
+  })
+
+  it('renders empty card grid when no entity types exist', () => {
+    useState('claudriel.admin.session.entity-types').value = []
+
+    const wrapper = mount(Dashboard, {
+      global: {
+        stubs: {
+          IngestSummaryWidget: IngestSummaryWidgetStub,
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Dashboard')
+    expect(wrapper.findAll('.card').length).toBe(0)
   })
 })

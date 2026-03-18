@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mount, flushPromises } from '@vue/test-utils'
 import FileUpload from '~/components/widgets/FileUpload.vue'
 
 class MockXMLHttpRequest {
@@ -64,7 +64,7 @@ describe('FileUpload widget', () => {
   })
 
   it('uploads selected file and emits returned file URL', async () => {
-    const wrapper = await mountSuspended(FileUpload, {
+    const wrapper = mount(FileUpload, {
       props: {
         modelValue: '',
         label: 'Upload',

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mount, flushPromises } from '@vue/test-utils'
 import AdminShell from '~/components/layout/AdminShell.vue'
 import { useLanguage } from '~/composables/useLanguage'
 
@@ -10,7 +10,7 @@ describe('AdminShell locale switcher', () => {
   })
 
   it('switches translated UI labels when locale changes', async () => {
-    const wrapper = await mountSuspended(AdminShell, {
+    const wrapper = mount(AdminShell, {
       slots: {
         default: '<div>Body</div>',
       },
