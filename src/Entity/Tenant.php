@@ -18,7 +18,7 @@ final class Tenant extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'tenant', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('metadata') === null) {
             $this->set('metadata', []);

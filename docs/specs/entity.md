@@ -12,6 +12,18 @@
 | `src/Entity/Workspace.php` | Named grouping context for events and commitments |
 | `src/McClaudiaServiceProvider.php` | Registers all entity types + routes |
 
+## Internal-Only Entities
+
+The following entities are used internally and do not require CRUD surfaces
+(admin UI, REST controllers, or GraphQL schema):
+
+| Entity | Purpose |
+|--------|---------|
+| `Artifact` | Repo reference used by workspace system internally |
+| `Integration` | Service integration config, managed via OAuth flows not user-facing |
+| `Operation` | Work unit tracking for AI code-gen, internal orchestration |
+| `TriageEntry` | Unprocessed message buffer, consumed by ingestion pipeline |
+
 ## Interface Signatures
 
 All entities extend `Waaseyaa\Entity\ContentEntityBase` (which implements `ContentEntityInterface`):

@@ -15,6 +15,7 @@ use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 use Waaseyaa\User\Middleware\CsrfMiddleware;
@@ -29,7 +30,7 @@ final class PublicAccountController
         private readonly ?string $storageDir = null,
     ) {}
 
-    public function signupForm(array $params = [], array $query = [], mixed $account = null): RedirectResponse|SsrResponse
+    public function signupForm(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
     {
         $resolvedAccount = $account instanceof AuthenticatedAccount
             ? $account
@@ -47,7 +48,7 @@ final class PublicAccountController
         ]);
     }
 
-    public function signup(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
+    public function signup(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
     {
         $request = $httpRequest ?? Request::create('/signup', 'POST');
         $name = trim((string) $request->request->get('name', ''));

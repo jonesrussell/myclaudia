@@ -22,6 +22,6 @@ final class IssueRun extends ContentEntityBase
             'status' => 'pending',
             'event_log' => '[]',
         ];
-        parent::__construct($values, 'issue_run', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
     }
 }

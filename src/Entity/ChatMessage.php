@@ -17,7 +17,7 @@ final class ChatMessage extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'chat_message', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('tenant_id') === null) {
             $this->set('tenant_id', $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default');

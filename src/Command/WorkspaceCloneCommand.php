@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Claudriel\Command;
 
+use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Artifact;
 use Claudriel\Entity\Workspace;
-use Claudriel\Layer2\GitRepositoryManager;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

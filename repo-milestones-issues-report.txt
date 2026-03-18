@@ -1,0 +1,1710 @@
+================================================================================
+  WAASEYAA
+================================================================================
+
+## MILESTONES (26 total)
+
+  #  1 [CLOSED] v0.1 — Framework Identity
+       Issues: 12 closed, 0 open
+       Desc: Waaseyaa becomes an installable framework. Kernel, skeleton, config-driven entity types, CLI, publishing automation. A d
+
+  #  2 [CLOSED] v0.2 — Auth & Storage
+       Issues: 9 closed, 0 open
+       Desc: Auth (JWT/API keys), disk-backed file storage, file upload endpoint, i18n fr locale, dev server stability, admin SPA cle
+
+  #  3 [CLOSED] v0.5 — Diidjaaheer
+       Issues: 0 closed, 0 open
+       Desc: Cultural groups, teachings, events, articles, Ojibwe language model. The actual app, assembled on top of v0.2–v0.4.
+
+  #  4 [CLOSED] v0.3 — Native SSR Engine
+       Issues: 7 closed, 0 open
+       Desc: Twig rendering pipeline, field formatters, view modes, public routing, theme system. Everything needed to serve public p
+
+  #  5 [CLOSED] v0.4 — AI & MCP
+       Issues: 5 closed, 0 open
+       Desc: Vector embeddings, semantic search, one enrichment pipeline type, MCP endpoint. AI infrastructure online before the Diid
+
+  #  6 [CLOSED] v1.0 — Production
+       Issues: 0 closed, 0 open
+       Desc: Performance hardening, security audit, FrankenPHP/production server config, Telescope observability, deployment docs. Di
+
+  #  7 [CLOSED] v0.1-defaults
+       Issues: 1 closed, 0 open
+       Desc: MVP: boot validation, core.note, CI gate
+
+  #  8 [CLOSED] v0.2-onboarding
+       Issues: 0 closed, 0 open
+       Desc: Onboarding UX, quickstart, API examples
+
+  #  9 [CLOSED] v0.3-migrations
+       Issues: 0 closed, 0 open
+       Desc: Migration tooling and tenant rollback
+
+  # 10 [CLOSED] v0.1-release-approval
+       Issues: 0 closed, 0 open
+       Desc: Checklist for eventual v1.0 (kept, not executed until Russell authorizes)
+
+  # 11 [CLOSED] v0.7
+       Issues: 10 closed, 0 open
+       Desc: SSR path templates stabilized; Admin SPA critical bugs resolved; app developer experience unblocked
+
+  # 12 [CLOSED] v0.8
+       Issues: 9 closed, 0 open
+       Desc: Default content type (core.note), boot enforcement, ACL baseline, CI versioning gates — platform contracts begin
+
+  # 13 [CLOSED] v0.9
+       Issues: 6 closed, 0 open
+       Desc: Ingestion envelope, schema registry, namespace rules, RBAC, telemetry, operator diagnostics, onboarding guardrails
+
+  # 14 [CLOSED] v0.10
+       Issues: 11 closed, 0 open
+       Desc: Feature flags, tenant migration plan — contract evolution and rollout safety finalized before v1.0 lock
+
+  # 15 [CLOSED] v1.0
+       Issues: 4 closed, 0 open
+       Desc: Platform contracts locked. Ingestion, schema registry, ACL, versioning, and CI — stable and semver-committed
+
+  # 16 [CLOSED] v0.8.1 — Schema Registry Polish
+       Issues: 4 closed, 0 open
+       Desc: Post-#229 cleanup: test improvements and serialization support for the schema registry.
+
+  # 17 [CLOSED] v0.9 — Tenant Onboarding & Security Defaults
+       Issues: 23 closed, 0 open
+       Desc: Onboarding guardrails, security defaults, feature flags, and migration tooling for multi-tenant deployments.
+
+  # 18 [CLOSED] v0.11 — Ingestion Pipeline Defaults
+       Issues: 7 closed, 0 open
+       Desc: Turn the ingestion subsystem into a governed, versioned, schema-validated pipeline with safe defaults. Foundation for v0
+
+  # 19 [CLOSED] v0.12 — Operator Diagnostics & Health
+       Issues: 6 closed, 0 open
+       Desc: Expand the diagnostic foundation (DiagnosticCode, DiagnosticEmitter, BootDiagnosticReport) into a full operator-facing h
+
+  # 20 [CLOSED] v1.1
+       Issues: 4 closed, 0 open
+       Desc: Post-contract-lock features: mail package, ServiceProvider container resolution, and feature-level enhancements
+
+  # 21 [CLOSED] v1.2
+       Issues: 27 closed, 0 open
+       Desc: ## SSR Engine Enhancements
+
+**Theme:** Closing the gap between "SSR renders pages" and "SSR is pleasant to build templat
+
+  # 22 [CLOSED] v1.0 Release
+       Issues: 47 closed, 0 open
+       Desc: v1.0 Release — shipped 2026-03-13. PRs merged: #374 (auth), #375 (access policies), #376 (exception handler), #377 (SSR/
+
+  # 23 [CLOSED] Waaseyaa v1.1
+       Issues: 16 closed, 0 open
+       Desc: Follow-up work after v1.0 release. Batch plan: Batch 1 (Critical+High): #380 hydration mismatch, #326 middleware orderin
+
+  # 24 [OPEN  ] v1.3 — GraphQL & Cleanup
+       Issues: 17 closed, 7 open
+       Desc: GraphQL query/mutation layer implementation and codebase housekeeping.
+
+  # 25 [OPEN  ] v1.4 — Remove database-legacy & Unify Under DBAL
+       Issues: 0 closed, 17 open
+       Desc: Replace the legacy PdoDatabase/query-builder stack with Doctrine DBAL, then drop the waaseyaa/database-legacy package en
+
+  # 26 [OPEN  ] v1.8 Projects & Workspaces
+       Issues: 0 closed, 0 open
+       Desc: Placeholder for any future framework-level support for Projects & Workspaces. No issues planned for this milestone yet.
+
+## ISSUES (347 total)
+
+  ### (no milestone) (0 open, 133 closed)
+    # 17 [CLOSED] PackageManifestCompiler silently discovers zero policies under default PSR-4 autoloading  [bug]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 18 [CLOSED] Boolean fields render as 1/0 integers instead of true/false in admin SPA  [bug]  (updated: 2026-03-04)
+    # 19 [CLOSED] Timestamp fields display as "0" instead of formatted dates  [enhancement]  (updated: 2026-03-04)
+    # 22 [CLOSED] User list API returns 500 — database schema mismatch (id vs uid)  [bug]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 24 [CLOSED] Create form defaults all boolean fields to checked  [bug]  (updated: 2026-03-04)
+    # 26 [CLOSED] Entity list page headings show machine names instead of labels  [enhancement]  (updated: 2026-03-04)
+    # 57 [CLOSED] v0.5 — System Integration & Verification (Minoo) Tracking  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 58 [CLOSED] v0.5: Bootstrap Minoo app with CLI and baseline health checks  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 59 [CLOSED] v0.5: Deterministic testing foundation for Minoo  (updated: 2026-03-04)
+         DEP: Depends on: #58
+    # 60 [CLOSED] v0.5: Playwright harness and CI artifacts  (updated: 2026-03-04)
+         DEP: Depends on: #59
+    # 61 [CLOSED] v0.5: Admin workflow E2E smoke suite  (updated: 2026-03-04)
+         DEP: Depends on: #60
+    # 62 [CLOSED] v0.5: Public SSR E2E smoke suite  (updated: 2026-03-04)
+         DEP: Depends on: #60
+    # 63 [CLOSED] v0.5: SSR snapshot baseline suite  (updated: 2026-03-04)
+         DEP: Depends on: #59
+    # 64 [CLOSED] v0.5: Semantic search integration regression suite  (updated: 2026-03-04)
+         DEP: Depends on: #59
+    # 65 [CLOSED] v0.5: MCP integration and contract suite  (updated: 2026-03-04)
+         DEP: Depends on: #59
+    # 66 [CLOSED] v0.5: End-to-end author-to-assistant journey test  (updated: 2026-03-04)
+         DEP: Depends on: #61, #62, #64, #65
+    # 67 [CLOSED] v0.5: Integration gap audit (middleware/cache/embedding/provider interactions)  (updated: 2026-03-04)
+         DEP: Depends on: #61, #63, #64, #65
+    # 68 [CLOSED] v0.5: CI release gate and verification report  (updated: 2026-03-04)
+         DEP: Depends on: #66, #67
+         CROSS-REF: minoo
+    # 69 [CLOSED] Security: Gate DevAdmin fallback by environment and explicit config  (updated: 2026-03-04)
+    # 70 [CLOSED] SSR i18n integration: wire language negotiation into public render + alias resolution  (updated: 2026-03-04)
+    # 71 [CLOSED] Semantic search resilience: fallback behavior for provider failures and vector mismatch  (updated: 2026-03-04)
+    # 72 [CLOSED] AI lifecycle: add embedding deletion/cleanup on entity delete  (updated: 2026-03-04)
+    # 73 [CLOSED] v0.6 — Minoo Content Model & Authoring Foundation  (updated: 2026-03-04)
+         CROSS-REF: minoo
+    # 74 [CLOSED] v0.6: Domain model blueprint (teachings/stories/clans/events/relationships)  (updated: 2026-03-04)
+         CROSS-REF: minoo
+    # 75 [CLOSED] v0.6: Entity/bundle config scaffolding  (updated: 2026-03-04)
+         DEP: Depends on: #74
+    # 76 [CLOSED] v0.6: Relationship modeling primitives  (updated: 2026-03-04)
+         DEP: Depends on: #75
+    # 77 [CLOSED] v0.6: Validation and editorial constraints  (updated: 2026-03-04)
+         DEP: Depends on: #75, #76
+    # 78 [CLOSED] v0.6: Role and permission matrix for authoring  (updated: 2026-03-04)
+         DEP: Depends on: #75, #77
+    # 79 [CLOSED] v0.6: Authoring workflows (draft/review/publish)  (updated: 2026-03-04)
+         DEP: Depends on: #78
+         DEP: - Invalid transitions are blocked with clear errors.
+    # 80 [CLOSED] v0.6: Admin UX baseline for new bundles  (updated: 2026-03-04)
+         DEP: Depends on: #75, #77, #79
+    # 81 [CLOSED] v0.6: SSR view modes and templates for core bundles  (updated: 2026-03-04)
+         DEP: Depends on: #75, #76
+    # 82 [CLOSED] v0.6: Semantic embedding field strategy by bundle  (updated: 2026-03-04)
+         DEP: Depends on: #75, #81
+    # 83 [CLOSED] v0.6: MCP domain tools for knowledge traversal  (updated: 2026-03-04)
+         DEP: Depends on: #76, #82
+    # 84 [CLOSED] v0.6: Fixture pack for cultural knowledge sandbox  (updated: 2026-03-04)
+         DEP: Depends on: #75, #76, #83
+    # 85 [CLOSED] v0.6: Release gate + verification report  (updated: 2026-03-04)
+         DEP: Depends on: #80, #81, #82, #83, #84
+    # 86 [CLOSED] v0.7 — Relationship Navigation & Knowledge Graph UX  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 87 [CLOSED] v0.7: Relationship-driven browse surfaces + graph traversal UX  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 88 [CLOSED] v0.7 — Relationship Navigation & Knowledge Graph UX  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 89 [CLOSED] v0.7: Relationship navigation & browse surfaces (SSR)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 90 [CLOSED] v0.7: Relationship-driven view modes & templates  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 91 [CLOSED] v0.7: Graph-based search enhancements  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 92 [CLOSED] v0.7: MCP knowledge traversal tools  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 93 [CLOSED] v0.7: Fixture expansion for graph scenarios  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 94 [CLOSED] v0.7: Verification gate & report  (updated: 2026-03-04)
+    # 95 [CLOSED] v0.8 — Authoring Workflow, Publishing, and Editorial Controls  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 96 [CLOSED] v0.8: Editorial workflow state machine + transitions  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 97 [CLOSED] v0.8: Workflow-driven access control (authoring, review, publish)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 98 [CLOSED] v0.8: SSR visibility rules for workflow states (draft/review/published/archived)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    # 99 [CLOSED] v0.8: Workflow fixture pack (deterministic lifecycle scenarios)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #100 [CLOSED] v0.8: MCP editorial tools (transition, validate, publish, archive)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #101 [CLOSED] v0.8: Semantic indexing + search visibility based on workflow state  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #102 [CLOSED] v0.8: Relationship-aware publishing rules (endpoint visibility, edge visibility)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #103 [CLOSED] v0.8: Relationship-aware publishing rules (endpoint visibility, edge visibility)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #104 [CLOSED] v0.8: Verification gate + milestone report  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #105 [CLOSED] v0.9 — Public Discovery Surfaces, AI-Assisted Exploration, and Performance  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #106 [CLOSED] v0.9: Public search UX (semantic + graph hybrid)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #107 [CLOSED] v0.9: Public relationship endpoint pages  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #108 [CLOSED] v0.9: Topic hubs and cluster pages  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #109 [CLOSED] v0.9: Timeline navigation (temporal edges)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #110 [CLOSED] v0.9: SSR caching and performance tuning for discovery surfaces  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #111 [CLOSED] v0.9: Verification gate + milestone report  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #112 [CLOSED] v0.9: Discovery fixture pack expansion (deterministic scenarios)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #113 [CLOSED] v0.9: AI-assisted discovery blend (MCP + semantic + graph context)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #114 [CLOSED] v1.0 — Platform Hardening & API Stabilization  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #115 [CLOSED] v1.0: API surface consolidation + contract freeze (traversal/SSR/MCP/semantic)  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #116 [CLOSED] v1.0: SSR context contract stabilization + cache key finalization  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #117 [CLOSED] v1.0: MCP contract stabilization + permission boundary hardening  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #118 [CLOSED] v1.0: Traversal and discovery caching hardening  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #119 [CLOSED] v1.0: Semantic index warmers + read-path performance baselines  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #120 [CLOSED] v1.0: CLI + fixture ergonomics for authoring, graph, and workflow scenarios  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #121 [CLOSED] v1.0: Security and access-control hardening audit  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #122 [CLOSED] v1.0: Verification gate + release readiness report  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #125 [CLOSED] v1.1 — Performance, Caching, and Scale Hardening  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa, minoo
+    #126 [CLOSED] v1.1: SSR cache key hardening (workflow + graph + locale context)  (updated: 2026-03-04)
+    #127 [CLOSED] v1.1: Traversal/discovery cache layer + invalidation strategy  (updated: 2026-03-04)
+    #128 [CLOSED] v1.1: Semantic warm-path optimization + batch refresh pipeline  (updated: 2026-03-04)
+    #129 [CLOSED] v1.1: MCP read-path caching with permission-safe keys  (updated: 2026-03-04)
+    #130 [CLOSED] v1.1: Query-path profiling + hot-path optimization (API/SSR/discovery)  (updated: 2026-03-04)
+    #131 [CLOSED] v1.1: Performance fixture expansion (large graph + workflow scenarios)  (updated: 2026-03-04)
+    #132 [CLOSED] v1.1: Performance regression gate + baseline drift checks  (updated: 2026-03-04)
+    #133 [CLOSED] v1.1: Verification gate + performance readiness report  (updated: 2026-03-04)
+    #134 [CLOSED] v1.2 — Developer Ergonomics, Tooling, and Ecosystem Readiness  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    #135 [CLOSED] v1.2: CLI scaffolding for bundles/relationships/workflows  (updated: 2026-03-04)
+    #136 [CLOSED] v1.2: Fixture pack generator + scenario templates  (updated: 2026-03-04)
+    #137 [CLOSED] v1.2: Debug panels for traversal, workflow, and SSR context  (updated: 2026-03-04)
+    #138 [CLOSED] v1.2: Performance tooling CLI (baseline + compare)  (updated: 2026-03-04)
+    #139 [CLOSED] v1.2: MCP introspection and diagnostics tooling  (updated: 2026-03-04)
+    #140 [CLOSED] v1.2: Documentation consolidation + upgrade playbooks  (updated: 2026-03-04)
+    #141 [CLOSED] v1.2: Plugin extension points + example module  (updated: 2026-03-04)
+    #142 [CLOSED] v1.2: Verification gate + readiness report  (updated: 2026-03-04)
+    #143 [CLOSED] v1.3 — Ecosystem Adoption, External Extensions, and Integration Readiness  (updated: 2026-03-05)
+         CROSS-REF: waaseyaa, minoo
+    #144 [CLOSED] v1.3: External extension SDK scaffolding and authoring contracts  (updated: 2026-03-04)
+    #145 [CLOSED] v1.3: Plugin runner integration seam in app bootstraps  (updated: 2026-03-04)
+    #146 [CLOSED] v1.3: MCP extension registration and diagnostics hooks  (updated: 2026-03-04)
+    #147 [CLOSED] v1.3: Cross-repo integration harness (Waaseyaa <-> Minoo)  (updated: 2026-03-05)
+    #148 [CLOSED] v1.3: Extension compatibility matrix and contract tests  (updated: 2026-03-05)
+    #149 [CLOSED] v1.3: Extension module packaging and release playbook  (updated: 2026-03-05)
+    #150 [CLOSED] v1.3: Contributor onboarding kit for extension authors  (updated: 2026-03-05)
+    #151 [CLOSED] v1.3: Verification gate and readiness report  (updated: 2026-03-05)
+    #153 [CLOSED] v1.4 — Minoo Productization (Public Discovery, UX, and Launch Readiness)  (updated: 2026-03-05)
+         CROSS-REF: waaseyaa, minoo
+    #154 [CLOSED] v1.4: Public search UX (semantic + graph hybrid)  (updated: 2026-03-05)
+    #155 [CLOSED] v1.4: Topic hubs and relationship cluster surfaces  (updated: 2026-03-05)
+    #156 [CLOSED] v1.4: Timeline navigation (temporal edges + date filters)  (updated: 2026-03-05)
+    #157 [CLOSED] v1.4: Cluster pages (multi-bundle graph views)  (updated: 2026-03-05)
+    #158 [CLOSED] v1.4: AI-assisted discovery surfaces (MCP + semantic blend)  (updated: 2026-03-05)
+    #159 [CLOSED] v1.4: SSR caching + CDN strategy for public routes  (updated: 2026-03-05)
+    #160 [CLOSED] v1.4: Ingestion pipeline (structured + unstructured content inputs)  (updated: 2026-03-05)
+    #161 [CLOSED] v1.4: Verification gate + launch readiness report  (updated: 2026-03-05)
+    #162 [CLOSED] v1.5 — Ingestion & Authoring Acceleration  (updated: 2026-03-05)
+         CROSS-REF: waaseyaa, minoo
+    #163 [CLOSED] v1.5: Bulk ingestion pipeline (structured + unstructured)  (updated: 2026-03-05)
+    #164 [CLOSED] v1.5: AI-assisted authoring (MCP + semantic + relationship inference)  (updated: 2026-03-05)
+    #165 [CLOSED] v1.5: Ingestion validation gates (workflow + visibility + semantic)  (updated: 2026-03-05)
+    #166 [CLOSED] v1.5: Relationship inference engine (graph growth from text)  (updated: 2026-03-05)
+    #167 [CLOSED] v1.5: Editorial dashboards for ingestion review  (updated: 2026-03-05)
+    #168 [CLOSED] v1.5: Semantic refresh triggers tied to ingestion events  (updated: 2026-03-05)
+    #169 [CLOSED] v1.5: Ingestion fixture pack + deterministic scenarios  (updated: 2026-03-05)
+    #170 [CLOSED] v1.5: Verification gate + milestone report  (updated: 2026-03-05)
+    #171 [CLOSED] v1.6 — Multi-Source Ingestion & Source Federation  (updated: 2026-03-05)
+         CROSS-REF: waaseyaa
+    #172 [CLOSED] v1.6 — Multi-Source Ingestion & Source Federation  (updated: 2026-03-06)
+         CROSS-REF: waaseyaa
+    #173 [CLOSED] v1.6: Source adapter contract + typed provenance expansion  (updated: 2026-03-06)
+    #174 [CLOSED] v1.6: Connector set v1 (dataset/api/file/crawl normalization)  (updated: 2026-03-06)
+    #175 [CLOSED] v1.6: Cross-source dedupe + canonical identity resolution  (updated: 2026-03-06)
+    #176 [CLOSED] v1.6: Source-priority merge rules + conflict diagnostics  (updated: 2026-03-06)
+    #177 [CLOSED] v1.6: Multi-source refresh trigger extensions  (updated: 2026-03-06)
+    #178 [CLOSED] v1.6: Multi-source fixture pack expansion  (updated: 2026-03-06)
+    #179 [CLOSED] v1.6: Verification gate + milestone report  (updated: 2026-03-06)
+    #269 [CLOSED] bug: HttpKernel cannot handle JsonResponse — ResponseHeaderBag treated as array  [bug]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #276 [CLOSED] feat: add Application Directory Convention v1.0 to skeleton and docs  [documentation, enhancement]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    #278 [CLOSED] ci: fix CI workflow — bump PHP to 8.4, fix broken schema validation  [bug, ci]  (updated: 2026-03-09)
+    #301 [CLOSED] feat: Minoo 403.html.twig template and Playwright test (unblocks #127)  (updated: 2026-03-16)
+         DEP: ## Depends on
+         CROSS-REF: waaseyaa, minoo
+    #423 [CLOSED] chore: resolve 34 baselined PHPStan errors in claudriel  [tech-debt, audit]  (updated: 2026-03-16)
+         CROSS-REF: claudriel
+    #468 [CLOSED] fix: exempt application/json from CSRF middleware  (updated: 2026-03-18)
+    #469 [CLOSED] feat: expose _data blob fields in GraphQL schema  (updated: 2026-03-18)
+         CROSS-REF: minoo
+
+  ### Waaseyaa v1.1 (0 open, 15 closed)
+    #326 [CLOSED] [H] Middleware uses manual ordering instead of attribute-based discovery  [severity/high, area/backend, type/task, release/v1.0]  (updated: 2026-03-14)
+    #335 [CLOSED] [M] Nav group headers show machine names in admin SPA  [severity/medium, area/admin-spa, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #336 [CLOSED] [M] i18n incomplete for Minoo-specific entity types  [severity/medium, area/admin-spa, type/task, release/v1.0]  (updated: 2026-03-14)
+         CROSS-REF: minoo
+    #338 [CLOSED] [M] AI pipeline packages lack real integration testing  [severity/medium, area/backend, area/tests, type/task, release/v1.0]  (updated: 2026-03-14)
+    #339 [CLOSED] [M] Version string hardcoded as 0.1.0  [severity/medium, area/backend, type/task, release/v1.0]  (updated: 2026-03-14)
+    #341 [CLOSED] [M] Admin SPA proxy configuration is redundant  [severity/medium, area/admin-spa, type/task, release/v1.0]  (updated: 2026-03-14)
+    #342 [CLOSED] [M] No API root index or discovery endpoint  [severity/medium, area/backend, type/task, release/v1.0]  (updated: 2026-03-14)
+    #343 [CLOSED] [L] Missing favicon.ico — console error on every page load  [severity/low, area/ssr, type/task, release/v1.0]  (updated: 2026-03-14)
+    #344 [CLOSED] [L] Nuxt admin SPA has no custom error page (error.vue)  [severity/low, area/admin-spa, type/task, release/v1.0]  (updated: 2026-03-14)
+    #345 [CLOSED] [L] Admin SPA E2E tests only target Chromium  [severity/low, area/tests, type/task, release/v1.0]  (updated: 2026-03-14)
+    #346 [CLOSED] [L] Integration tests only through Phase16  [severity/low, area/tests, type/task, release/v1.0]  (updated: 2026-03-14)
+    #347 [CLOSED] [L] Metapackages (cms, core, full) have no smoke tests  [severity/low, area/tests, type/task, release/v1.0]  (updated: 2026-03-14)
+    #348 [CLOSED] v1.0 Release: Release plan and rollout checklist  [type/task, release/v1.0]  (updated: 2026-03-14)
+         CROSS-REF: waaseyaa
+    #349 [CLOSED] CI: Run Playwright MCP smoke tests on PRs targeting release branch  [area/tests, type/task, release/v1.0]  (updated: 2026-03-14)
+    #380 [CLOSED] fix: Vue hydration mismatch on auth-protected pages (global auth middleware SSR/client timing)  [bug]  (updated: 2026-03-14)
+
+  ### v0.1 — Framework Identity (0 open, 12 closed)
+    # 21 [CLOSED] PackageManifestCompiler PSR-4 fallback: additional test coverage  [enhancement, testing]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 27 [CLOSED] Config entity creation leaves ID field empty — single-load returns 404  [bug]  (updated: 2026-03-04)
+    # 33 [CLOSED] CLI entry point uses stale `Aurora` namespace — fatal error on any command  [bug]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 34 [CLOSED] Implement HttpKernel to replace hardcoded index.php bootstrap  [enhancement, framework]  (updated: 2026-03-04)
+         DEP: - Blocked by #27 (config entity creation must work)
+         DEP: - Blocked by service provider entity registration (#35)
+         CROSS-REF: waaseyaa
+    # 35 [CLOSED] Service provider entity type registration — packages own their entity types  [enhancement, framework]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 36 [CLOSED] Implement ConsoleKernel to replace stale bin/waaseyaa  [enhancement, framework]  (updated: 2026-03-04)
+         DEP: - Blocked by #35 (service provider entity registration)
+         CROSS-REF: waaseyaa
+    # 37 [CLOSED] App-level config loading (`config/*.php` files)  [enhancement, framework]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 38 [CLOSED] Create project skeleton (`skeleton/` directory)  [enhancement, framework]  (updated: 2026-03-04)
+         DEP: - Blocked by #34 (HttpKernel), #36 (ConsoleKernel), #37 (config loading)
+         CROSS-REF: waaseyaa
+    # 39 [CLOSED] Monorepo split and Packagist publishing automation  [enhancement, framework]  (updated: 2026-03-04)
+         DEP: - Blocked by #38 (skeleton must exist before it can be split)
+         CROSS-REF: waaseyaa
+    # 41 [CLOSED] AbstractKernelTest is coupled to real project root  [enhancement]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 42 [CLOSED] HttpKernel and ConsoleKernel lack unit test coverage  [enhancement]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 43 [CLOSED] Double env var resolution for WAASEYAA_DB  [enhancement]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+
+  ### v0.1-defaults (0 open, 1 closed)
+    #196 [CLOSED] Default content type `core.note` — schema and manifest  [schema]  (updated: 2026-03-07)
+
+  ### v0.10 (0 open, 11 closed)
+    #238 [CLOSED] Admin dashboard "Ingestion Status" shows error — ingest_log entity type not registered  [bug, admin]  (updated: 2026-03-08)
+    #239 [CLOSED] Entity list table shows "No items found" while pagination count shows items exist  [bug, admin]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #240 [CLOSED] Pagination shows "Showing 1–0 of 0" for empty entity lists  [enhancement, admin]  (updated: 2026-03-08)
+    #241 [CLOSED] i18n: French translations incomplete — sidebar links, table headers, page headings untranslated  [enhancement, i18n, admin]  (updated: 2026-03-08)
+    #242 [CLOSED] Critical: POST/PATCH request body never parsed — all create/update operations broken  [bug, critical]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #243 [CLOSED] Edit form: datetime fields show browser warnings for ISO 8601 timezone format  [bug, admin]  (updated: 2026-03-08)
+    #244 [CLOSED] Entity list: config entity machine name column empty, delete button shows UUID instead of title  [bug, admin]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #245 [CLOSED] Dev server requires undocumented env vars + missing config file to enable CRUD  [enhancement, dx]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #253 [CLOSED] bug(admin): config entity machine_name column shows UUID instead of actual machine name  [bug]  (updated: 2026-03-08)
+    #254 [CLOSED] bug(api): config entity creation fails with SQL datatype mismatch  [bug]  (updated: 2026-03-08)
+    #255 [CLOSED] bug(admin): newly created content shows epoch date (12/31/1969) for authored_on  [bug]  (updated: 2026-03-08)
+
+  ### v0.11 — Ingestion Pipeline Defaults (0 open, 7 closed)
+    #246 [CLOSED] feat(ingestion): define ingestion envelope schema with x-waaseyaa metadata  [enhancement]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #247 [CLOSED] feat(ingestion): enforce envelope validation before pipeline execution  [enhancement]  (updated: 2026-03-08)
+         DEP: Depends on: envelope schema issue
+    #248 [CLOSED] feat(ingestion): validate payloads using schema registry + content-type rules  [enhancement]  (updated: 2026-03-08)
+         DEP: Depends on: envelope schema + envelope validation issues
+    #249 [CLOSED] feat(ingestion): define canonical ingestion error format  [enhancement]  (updated: 2026-03-08)
+         DEP: Depends on: envelope schema, envelope validation, payload validation issues
+    #250 [CLOSED] feat(ingestion): standardize ingestion logging + metadata fields  [enhancement]  (updated: 2026-03-08)
+         DEP: Depends on: envelope schema, envelope validation, payload validation, error shape issues
+    #251 [CLOSED] ci(ingestion): enforce schema, manifest, and compatibility rules  [enhancement]  (updated: 2026-03-08)
+         DEP: Depends on: all prior v0.11 issues
+    #252 [CLOSED] docs(ingestion): add ingestion-defaults spec + examples  [documentation]  (updated: 2026-03-08)
+         DEP: Depends on: all prior v0.11 issues
+
+  ### v0.12 — Operator Diagnostics & Health (0 open, 6 closed)
+    #256 [CLOSED] CLI health:check command — aggregate boot and runtime diagnostics  [enhancement]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #257 [CLOSED] Runtime diagnostic codes — database, cache, storage health checks  [enhancement]  (updated: 2026-03-08)
+    #258 [CLOSED] CLI health:report command — structured diagnostic report with history  [enhancement]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #259 [CLOSED] Schema drift detection — compare runtime table schema to entity type definitions  [enhancement]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #260 [CLOSED] Ingestion health summary — pipeline status from IngestionLogger  [enhancement]  (updated: 2026-03-08)
+    #261 [CLOSED] Operator diagnostics spec — docs/specs/operator-diagnostics.md  [documentation]  (updated: 2026-03-08)
+
+  ### v0.2 — Auth & Storage (0 open, 9 closed)
+    # 10 [CLOSED] Resolve `keys?` optionality in EntityTypeInfo against API contract  [backlog, admin-spa]  (updated: 2026-03-04)
+    # 11 [CLOSED] Tighten `ResolvedNavGroup.entityTypes` to a non-empty array type  [backlog, admin-spa]  (updated: 2026-03-04)
+    # 23 [CLOSED] SPA client-side navigation hangs on Loading (PHP dev server + SSE)  [bug, dev-server]  (updated: 2026-03-04)
+    # 25 [CLOSED] SSE broadcast disconnects immediately on page load  [bug, dev-server]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 28 [CLOSED] JWT / API key authentication for machine clients  [enhancement, auth]  (updated: 2026-03-04)
+    # 29 [CLOSED] Disk-backed file storage (`LocalFileRepository`)  [enhancement, media]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 30 [CLOSED] File upload endpoint (`POST /api/media/upload`)  [enhancement, admin-spa, media]  (updated: 2026-03-04)
+    # 31 [CLOSED] Add i18n locale files beyond English  [enhancement, admin-spa, i18n]  (updated: 2026-03-04)
+    # 32 [CLOSED] Dynamic CORS origin for dev server  [enhancement, dev-server]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+
+  ### v0.3 — Native SSR Engine (0 open, 7 closed)
+    # 44 [CLOSED] Twig rendering pipeline wired into HttpKernel  [enhancement]  (updated: 2026-03-04)
+    # 45 [CLOSED] Field formatter system (`FieldFormatterInterface`)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by Twig rendering pipeline issue (HttpKernel must support HTML responses first)
+    # 46 [CLOSED] View mode system (teaser, full, embed)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by field formatter system
+    # 47 [CLOSED] Public routing via path aliases  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by Twig rendering pipeline (need HTML response support before resolving to rendered pages)
+    # 48 [CLOSED] Theme system (base theme, template discovery)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by Twig rendering pipeline
+         CROSS-REF: waaseyaa
+    # 49 [CLOSED] Page-level render cache (keyed by entity + view mode)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by view mode system
+         CROSS-REF: waaseyaa
+    # 50 [CLOSED] SSR integration tests  [enhancement, testing]  (updated: 2026-03-04)
+         DEP: - Blocked by render cache (last v0.3 issue — tests cover the full stack)
+
+  ### v0.4 — AI & MCP (0 open, 5 closed)
+    # 51 [CLOSED] Vector embedding storage per entity  [enhancement]  (updated: 2026-03-04)
+         CROSS-REF: waaseyaa
+    # 52 [CLOSED] Embedding generation pipeline (Ollama + OpenAI providers)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by vector embedding storage issue
+         CROSS-REF: waaseyaa
+    # 53 [CLOSED] Semantic search endpoint (`GET /api/search`)  [enhancement]  (updated: 2026-03-04)
+         DEP: - Blocked by embedding generation pipeline
+    # 54 [CLOSED] MCP server endpoint  [enhancement]  (updated: 2026-03-04)
+         DEP: - Bearer token auth (depends on v0.2 JWT auth — #28); public read tools can be `_public: true`
+         DEP: - Blocked by semantic search endpoint (search tool depends on it)
+         DEP: - Blocked by #28 (JWT auth — needed for authenticated tool calls)
+    # 55 [CLOSED] AI & MCP integration tests  [enhancement, testing]  (updated: 2026-03-04)
+         DEP: - Blocked by MCP endpoint (tests cover the full AI stack)
+
+  ### v0.7 (0 open, 10 closed)
+    #181 [CLOSED] Admin SPA: richtext widget crashes create forms with 'props is not defined'  (updated: 2026-03-07)
+         CROSS-REF: minoo
+    #182 [CLOSED] Admin SPA: dashboard cards show machine names instead of descriptions  (updated: 2026-03-07)
+    #183 [CLOSED] Admin SPA: no 404 page for unknown entity type routes  (updated: 2026-03-07)
+    #184 [CLOSED] Admin SPA: browser page title is always 'Waaseyaa' — doesn't reflect current page  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa
+    #185 [CLOSED] Admin SPA: entity type labels not translated in sidebar and dashboard  (updated: 2026-03-07)
+    #186 [CLOSED] Admin SPA: listing table shows all non-hidden fields — no column selection  (updated: 2026-03-07)
+    #187 [CLOSED] Admin SPA: no way for apps to customize site name (always shows 'Waaseyaa')  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa, minoo
+    #189 [CLOSED] SSR: add path-based template resolution  (updated: 2026-03-07)
+    #190 [CLOSED] SSR: add unit tests for tryRenderPathTemplate()  (updated: 2026-03-07)
+    #191 [CLOSED] SSR: extract duplicated path-segment logic in RenderController  (updated: 2026-03-07)
+
+  ### v0.8 (0 open, 9 closed)
+    #195 [CLOSED] Default content type `core.note` — schema and manifest  [defaults, infra, schema, versioning, p0]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #197 [CLOSED] Enforce at least one content type at platform boot  [defaults, infra, p0, ci]  (updated: 2026-03-08)
+         DEP: **Effort:** S | **Priority:** P0 | **Depends on:** #195
+         CROSS-REF: waaseyaa
+    #198 [CLOSED] Default content type lifecycle — disable vs delete policy  [defaults, infra, p0]  (updated: 2026-03-08)
+         DEP: **Effort:** S | **Priority:** P0 | **Depends on:** #195
+         CROSS-REF: waaseyaa
+    #199 [CLOSED] Default access control — baseline roles and field-level ACL for core.note  [defaults, schema, p0, security]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P0 | **Depends on:** #195
+    #200 [CLOSED] Boot validation CI job — schema conformance and versioning gate  [defaults, versioning, p0, ci]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P0 | **Depends on:** #195, ISSUE-15
+    #201 [CLOSED] VERSIONING.md and release quarantine workflow  [defaults, versioning, p0]  (updated: 2026-03-08)
+    #202 [CLOSED] CI gating — block v1.0 tag creation without owner approval  [versioning, p0, ci]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P0 | **Depends on:** ISSUE-15
+    #212 [CLOSED] feat: add codified context MCP server  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa
+    #218 [CLOSED] feat: add .env file loading to Waaseyaa bootstrap  [enhancement, framework]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa, minoo
+
+  ### v0.8.1 — Schema Registry Polish (0 open, 3 closed)
+    #230 [CLOSED] Add SchemaEntry::toArray() for serialization  [infra, schema]  (updated: 2026-03-08)
+    #231 [CLOSED] SchemaListCommandTest: use interface stub instead of concrete DefaultsSchemaRegistry  [testing]  (updated: 2026-03-08)
+    #232 [CLOSED] DefaultsSchemaRegistry: add test for partial empty x-waaseyaa fields  [testing, schema]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+
+  ### v0.9 (0 open, 6 closed)
+    #204 [CLOSED] Ingestion pipeline defaults — envelope format and strict validation  [defaults, infra, schema, p1]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P1 | **Depends on:** #195
+    #205 [CLOSED] Operator diagnostics defaults — canonical error codes and remediation steps  [defaults, infra, operator-ux, p1]  (updated: 2026-03-08)
+         DEP: **Effort:** S | **Priority:** P1 | **Depends on:** #197
+         CROSS-REF: waaseyaa
+    #206 [CLOSED] Namespace and partitioning defaults — reserve core. namespace  [defaults, infra, schema, p1]  (updated: 2026-03-08)
+         DEP: **Effort:** S | **Priority:** P1 | **Depends on:** #195
+    #207 [CLOSED] Schema registry defaults — storage, versioning, and compatibility rules  [infra, schema, p1]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P1 | **Depends on:** #195
+         CROSS-REF: waaseyaa
+    #208 [CLOSED] Telemetry and audit defaults — required fields and 90-day retention  [defaults, infra, p1, security]  (updated: 2026-03-08)
+         DEP: **Effort:** S | **Priority:** P1 | **Depends on:** #199
+         CROSS-REF: waaseyaa
+    #215 [CLOSED] fix: update search API URL from /api/search to /api/v1/search  [bug]  (updated: 2026-03-07)
+
+  ### v0.9 — Tenant Onboarding & Security Defaults (0 open, 23 closed)
+    #203 [CLOSED] Onboarding flow — first content type creation guardrail  [defaults, onboarding, p1]  (updated: 2026-03-10)
+         DEP: **Effort:** M | **Priority:** P1 | **Depends on:** #195, #199
+    #209 [CLOSED] Security defaults — RBAC enforcement, encryption policy, secrets handling  [defaults, p1, security]  (updated: 2026-03-08)
+         DEP: **Effort:** M | **Priority:** P1 | **Depends on:** #199
+    #210 [CLOSED] Feature flags and toggles — safe per-tenant enable/disable of core.note  [defaults, infra, p2]  (updated: 2026-03-12)
+         DEP: **Effort:** S | **Priority:** P2 | **Depends on:** #198
+         DEP: - [ ] Disable blocked if no replacement type active (override with `--force`)
+         CROSS-REF: waaseyaa
+    #211 [CLOSED] Migration plan — existing tenants with no default content type  [defaults, migration, p1]  (updated: 2026-03-12)
+         DEP: **Effort:** M | **Priority:** P1 | **Depends on:** #195, #198
+         CROSS-REF: waaseyaa
+    #235 [CLOSED] Update AccessChecker docblock to include _authenticated route option  [defaults, p3]  (updated: 2026-03-08)
+    #236 [CLOSED] Test and document _public + _authenticated route option interaction  [defaults, p3]  (updated: 2026-03-08)
+    #237 [CLOSED] Add security-defaults.md to CLAUDE.md orchestration table  [defaults, p3]  (updated: 2026-03-08)
+    #262 [CLOSED] HealthChecker: log skipped tables during schema drift check  [enhancement]  (updated: 2026-03-09)
+    #263 [CLOSED] HealthReportCommand: guard against file() failure on ingestion log  [enhancement]  (updated: 2026-03-09)
+    #264 [CLOSED] HealthCheckResult: filter all-null context values from serialization  [enhancement]  (updated: 2026-03-09)
+    #265 [CLOSED] HealthReportCommand: test --output without --json rejects gracefully  [enhancement]  (updated: 2026-03-09)
+         DEP: Depends on what the current behavior actually is — verify first.
+    #266 [CLOSED] Duplicate config entity creation returns 500 instead of 409 Conflict  [bug]  (updated: 2026-03-09)
+    #267 [CLOSED] API accepts node creation without bundle type — empty type field stored  [bug]  (updated: 2026-03-09)
+    #268 [CLOSED] API accepts node creation with empty title — no label validation  [enhancement]  (updated: 2026-03-09)
+    #270 [CLOSED] bug: favicon.ico returns 500 — PathAliasResolver not found  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    #271 [CLOSED] fix: change default uploaded file storage path from /files to /storage/files  [bug]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    #274 [CLOSED] bug: dispatchAppController passes (EntityTypeManager, $twig) — undocumented contract breaks plugin controllers  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    #275 [CLOSED] bug: SqlStorageDriver::findBy() cannot query fields stored in _data JSON blob  (updated: 2026-03-09)
+    #280 [CLOSED] enhancement: welcome page links need contextual hints  [enhancement]  (updated: 2026-03-09)
+    #281 [CLOSED] dx: warn or fail when SsrResponse is returned from a non-render route  [bug, dx]  @jonesrussell  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, minoo
+    #282 [CLOSED] feat: CSRF middleware for POST form protection  [enhancement]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, minoo
+    #283 [CLOSED] fix: Return proper HTTP error pages for 403/401 instead of raw text  [bug]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #286 [CLOSED] tech debt: replace $isAppController heuristic with explicit route option  (updated: 2026-03-09)
+
+  ### v1.0 (0 open, 3 closed)
+    #297 [CLOSED] P0 — Decompose HttpKernel (2262L) into handlers and registrars  [framework, p0]  (updated: 2026-03-12)
+    #298 [CLOSED] P0 — Decompose McpController (1650L) into tools and formatters  [framework, p0]  (updated: 2026-03-12)
+    #300 [CLOSED] feat: pluggable error page renderer for friendly 403 pages  (updated: 2026-03-12)
+         CROSS-REF: minoo
+
+  ### v1.0 Release (0 open, 22 closed)
+    #314 [CLOSED] [C] Fix NoteInMemoryStorage::create() return type — test suite crashes  [severity/critical, area/backend, area/tests, type/bug, release/v1.0, priority/blocker]  (updated: 2026-03-13)
+    #315 [CLOSED] [C] Foundation (layer 0) depends on path (layer 3) — architecture violation  [severity/critical, area/backend, type/bug, release/v1.0]  (updated: 2026-03-13)
+         CROSS-REF: waaseyaa
+    #316 [CLOSED] [C] Validation (layer 0) depends on entity (layer 1) — architecture violation  [severity/critical, area/backend, type/bug, release/v1.0]  (updated: 2026-03-13)
+         CROSS-REF: waaseyaa
+    #317 [CLOSED] [C] CSRF blocks all write operations — admin SPA cannot create/edit/delete content  [severity/critical, area/backend, area/admin-spa, area/security, type/bug, release/v1.0, priority/blocker]  (updated: 2026-03-13)
+         DEP: **Critical** — All content mutations are blocked. The admin SPA is read-only in practice.
+    #318 [CLOSED] [C] Stored-XSS via HtmlFormatter — raw unsanitized HTML output  [severity/critical, area/ssr, area/security, type/bug, release/v1.0, priority/blocker]  (updated: 2026-03-13)
+    #319 [CLOSED] [C] No LICENSE file — blocks any public release  [severity/critical, area/documentation, type/task, release/v1.0]  (updated: 2026-03-13)
+    #320 [CLOSED] [C] CSRF blocks MCP endpoint — AI agents cannot connect  [severity/critical, area/backend, area/security, type/bug, release/v1.0]  (updated: 2026-03-13)
+    #321 [CLOSED] [C] TenantMiddleware not wired — multi-tenant isolation absent  [severity/critical, area/backend, area/security, type/bug, release/v1.0]  (updated: 2026-03-13)
+    #322 [CLOSED] [H] SSR 403 Forbidden returns 404 — security information leak  [severity/high, area/ssr, area/security, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #323 [CLOSED] [H] Missing SSR error templates (500, 403)  [severity/high, area/ssr, type/task, release/v1.0]  (updated: 2026-03-14)
+    #324 [CLOSED] [H] SSR 404 page is unstyled — no navigation or home link  [severity/high, area/ssr, type/task, release/v1.0]  (updated: 2026-03-14)
+    #325 [CLOSED] [H] Admin SPA hydration errors on every page load  [severity/high, area/admin-spa, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #327 [CLOSED] [H] Missing access policies for menu, path, and relationship packages  [severity/high, area/backend, type/task, release/v1.0]  (updated: 2026-03-14)
+    #328 [CLOSED] [H] SSR homepage links to /admin which returns 404  [severity/high, area/ssr, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #329 [CLOSED] [H] HttpKernel has no top-level exception handler  [severity/high, area/backend, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #330 [CLOSED] [H] No admin authentication/login UI  [severity/high, area/admin-spa, area/security, type/task, release/v1.0]  (updated: 2026-03-14)
+         DEP: Any anonymous user can view all entity data and attempt mutations (blocked only by CSRF, not by acce
+    #331 [CLOSED] [H] home.html.twig does not extend base.html.twig — 435 lines of inline CSS  [severity/high, area/ssr, type/task, release/v1.0]  (updated: 2026-03-14)
+    #332 [CLOSED] [H] config() Twig function is dead code  [severity/high, area/ssr, type/bug, release/v1.0]  (updated: 2026-03-14)
+         CROSS-REF: waaseyaa
+    #333 [CLOSED] [H] 37 of 38 packages lack a README  [severity/high, area/documentation, type/documentation, release/v1.0]  (updated: 2026-03-14)
+    #334 [CLOSED] [H] Twig template caching disabled — performance penalty  [severity/high, area/ssr, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #340 [CLOSED] [M] index.php front controller has no boot error handling  [severity/medium, area/backend, type/bug, release/v1.0]  (updated: 2026-03-14)
+    #366 [CLOSED] fix(playwright): entity-form E2E tests fail in CI — elements not found  (updated: 2026-03-14)
+         CROSS-REF: waaseyaa
+
+  ### v1.1 (0 open, 2 closed)
+    #295 [CLOSED] ServiceProvider::commands() cannot resolve registered bindings  [enhancement]  (updated: 2026-03-12)
+         DEP: This means any CLI command that depends on an app-level service (e.g. `MailService`) must be instant
+         CROSS-REF: waaseyaa, minoo
+    #296 [CLOSED] Add waaseyaa/mail package with pluggable transports  [enhancement]  (updated: 2026-03-12)
+         CROSS-REF: waaseyaa, minoo
+
+  ### v1.2 (0 open, 24 closed)
+    #308 [CLOSED] Framework Twig Extension — url(), path(), entity_url(), is_front(), current_path()  [enhancement, framework]  (updated: 2026-03-12)
+         DEP: - [ ] Layer discipline: extension depends on `WaaseyaaRouter` (layer 4) — acceptable since SSR is la
+         CROSS-REF: waaseyaa
+    #309 [CLOSED] Base Layout Template — named blocks for theme authors  [enhancement, framework]  (updated: 2026-03-12)
+         CROSS-REF: waaseyaa
+    #310 [CLOSED] SSR Test Assertion Trait — InteractsWithRenderer  [enhancement, framework]  (updated: 2026-03-12)
+    #337 [CLOSED] [M] graphql package is an empty shell  [severity/medium, area/backend, type/task, release/v1.0]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #405 [CLOSED] i18n: add setCurrentLanguage to LanguageManagerInterface  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa, minoo
+    #406 [CLOSED] bug(ssr): Nuxt SSR hangs indefinitely on first request in dev mode  [bug, admin]  (updated: 2026-03-16)
+    #407 [CLOSED] bug(admin-bridge): SsrPageHandler cannot resolve AdminBootstrapController dependencies  [bug, admin-bridge, ssr]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #408 [CLOSED] bug(admin): Plugin fetches wrong bootstrap URL in dev mode  [bug, admin]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #409 [CLOSED] bug(admin): error.vue crashes when i18n plugin hasn't loaded  [bug, admin]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #410 [CLOSED] docs: Document required env vars for local admin development  [documentation, admin]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #412 [CLOSED] admin.ts bootstrap fetch silently swallows network/CORS errors  [bug]  (updated: 2026-03-16)
+    #413 [CLOSED] SsrPageHandler injects null for unresolvable required constructor params  [bug]  (updated: 2026-03-16)
+    #414 [CLOSED] error.vue discards error messages, shows generic text for all non-404 errors  [enhancement]  (updated: 2026-03-16)
+    #415 [CLOSED] HttpKernel serviceResolver closure lacks error handling for provider exceptions  [bug]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #416 [CLOSED] CI/CD caching and optimization improvements  [enhancement]  (updated: 2026-03-16)
+    #417 [CLOSED] feat: Add packages/admin-surface — canonical admin integration boundary  (updated: 2026-03-16)
+         CROSS-REF: minoo, claudriel
+    #418 [CLOSED] refactor: Deprecate admin-bridge in favor of admin-surface  (updated: 2026-03-16)
+         CROSS-REF: minoo, claudriel
+    #419 [CLOSED] feat: Replace bootstrap controller with AdminSurfaceHost endpoints  (updated: 2026-03-16)
+    #420 [CLOSED] feat: Expose unified /admin/surface API  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #422 [CLOSED] bug: SsrHttpKernelIntegrationTest fails with ServiceProvider not found  [bug]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #424 [CLOSED] chore: harmonize PHP version constraints across packages  [tech-debt, audit]  (updated: 2026-03-16)
+    #425 [CLOSED] chore: expand drift-detector.sh to cover all subsystems  [tech-debt, audit]  (updated: 2026-03-16)
+    #426 [CLOSED] fix: correct symfony/html-sanitizer version constraint  [bug, audit]  (updated: 2026-03-16)
+    #427 [CLOSED] chore: enforce CS fixer in CI (remove continue-on-error)  [tech-debt, audit]  (updated: 2026-03-16)
+
+  ### v1.3 — GraphQL & Cleanup (7 open, 15 closed)
+    #428 [CLOSED] Remove deprecated admin-bridge package  (updated: 2026-03-18)
+    #429 [CLOSED] Implement GraphQL query and mutation layer  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa
+    #430 [CLOSED] Add per-package vendor cleanup script  (updated: 2026-03-18)
+    #431 [OPEN  ] Add GraphQL integration tests with SQLite storage  (updated: 2026-03-16)
+    #432 [CLOSED] Add GraphQL schema caching for production  (updated: 2026-03-18)
+    #433 [CLOSED] Disable GraphQL introspection for anonymous users  (updated: 2026-03-18)
+    #435 [CLOSED] Add unit tests for GraphQL resolver, access guard, and reference loader  (updated: 2026-03-18)
+    #436 [CLOSED] Document GraphQL total count behavior and add to CLAUDE.md  (updated: 2026-03-18)
+    #437 [CLOSED] GraphQL schema validation test harness  [enhancement]  (updated: 2026-03-18)
+         DEP: ## Blocked by
+         CROSS-REF: waaseyaa, claudriel
+    #438 [OPEN  ] Validate filter/sort on _data blob fields  [enhancement]  (updated: 2026-03-16)
+         DEP: - Depends on #437 (schema validation test harness)
+         CROSS-REF: waaseyaa, claudriel
+    #439 [OPEN  ] Separate create/update input types for PATCH semantics  [enhancement]  (updated: 2026-03-16)
+         DEP: - Depends on #437 (schema validation test harness)
+         CROSS-REF: claudriel
+    #440 [OPEN  ] Validate pagination arguments on list queries  [enhancement]  (updated: 2026-03-16)
+         DEP: - Depends on #437 (schema validation test harness)
+         CROSS-REF: waaseyaa, claudriel
+    #441 [CLOSED] Tag v0.1.0-alpha.10  [enhancement]  (updated: 2026-03-16)
+         DEP: - Depends on #438 (validate filter/sort on _data blob fields)
+         DEP: - Depends on #439 (separate create/update input types)
+         DEP: - Depends on #440 (validate pagination arguments)
+         CROSS-REF: claudriel
+    #443 [CLOSED] GraphQL: silent filter drop for malformed filter entries  [bug]  (updated: 2026-03-18)
+    #444 [CLOSED] GraphQL: no validation of filter operator — potential SQL injection vector  [bug, security]  (updated: 2026-03-18)
+    #445 [CLOSED] GraphQL: resolveList total count includes access-denied entities  [enhancement]  (updated: 2026-03-17)
+    #446 [CLOSED] GraphQL: silent Type::string() fallback for missing entity reference targets  [bug]  (updated: 2026-03-18)
+    #464 [CLOSED] make:migration --package flag for writing to package migration directories  [enhancement]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa
+    #471 [CLOSED] Migrate remaining entity_reference fields from settings.target_type to target_entity_type_id  (updated: 2026-03-18)
+    #475 [OPEN  ] feat: extract PayloadValidator and ValidationResult into waaseyaa/ingestion  [enhancement, sprint]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+    #476 [OPEN  ] feat: add per-domain provider scaffolding to framework CLI  [enhancement, sprint]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+    #477 [OPEN  ] feat: extract shared Deployer recipe for waaseyaa apps  [enhancement, sprint]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+
+  ### v1.4 — Remove database-legacy & Unify Under DBAL (17 open, 0 closed)
+    #447 [OPEN  ] Audit: identify all framework components depending on PdoDatabase or DatabaseServiceProvider  [infra, audit]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #448 [OPEN  ] Audit: map all entity storage operations using the legacy query builder  [infra, audit]  (updated: 2026-03-17)
+    #449 [OPEN  ] Audit: document all kernel assumptions about PdoDatabase  [infra, audit]  (updated: 2026-03-17)
+    #450 [OPEN  ] Design: propose DBAL-backed replacement for PdoDatabase with identical ergonomics  [enhancement, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+    #451 [OPEN  ] Design: define migration path from legacy PDO to DBAL QueryBuilder for entity storage  [enhancement, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+    #452 [OPEN  ] Design: specify kernel DBAL boot path and removal of legacy boot  [enhancement, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+         CROSS-REF: waaseyaa
+    #453 [OPEN  ] Design: define compatibility shims for transition period  [enhancement, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+    #454 [OPEN  ] Implement: introduce DBALDatabase class implementing DatabaseInterface  [framework, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+         CROSS-REF: waaseyaa
+    #455 [OPEN  ] Implement: replace legacy database calls in Foundation, Routing, Config, and EntityTypeManager  [framework, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+         CROSS-REF: waaseyaa
+    #456 [OPEN  ] Implement: update AbstractKernel::bootDatabase() to use DBALDatabase  [framework, infra]  (updated: 2026-03-17)
+         DEP: ## Depends On
+         CROSS-REF: waaseyaa
+    #457 [OPEN  ] Implement: remove DatabaseServiceProvider and legacy query builder  [framework, tech-debt]  (updated: 2026-03-17)
+         DEP: ## Depends On
+    #458 [OPEN  ] Implement: drop waaseyaa/database-legacy from composer.json  [framework, tech-debt]  (updated: 2026-03-17)
+         DEP: ## Depends On
+         CROSS-REF: waaseyaa
+    #459 [OPEN  ] Test: integration tests for DBAL-backed entity storage  [testing, infra]  (updated: 2026-03-17)
+    #460 [OPEN  ] Test: kernel boot tests verifying DBAL-only boot path  [testing, infra]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #461 [OPEN  ] Test: regression tests for config storage, entity CRUD, and routing lookups  [testing, infra]  (updated: 2026-03-17)
+    #462 [OPEN  ] Docs: write migration guide for apps depending on PdoDatabase  [documentation, migration]  (updated: 2026-03-17)
+    #463 [OPEN  ] Implement: provide compatibility layer for one release cycle if needed  [framework, migration]  (updated: 2026-03-17)
+
+
+================================================================================
+  MINOO
+================================================================================
+
+## MILESTONES (25 total)
+
+  #  1 [CLOSED] v0.2 – First Entities + NorthCloud Ingestion
+       Issues: 38 closed, 0 open
+       Desc: Entity types, access policies, seeders, NorthCloud integration, and initial public UI.
+
+  #  2 [CLOSED] v0.2
+       Issues: 0 closed, 0 open
+       Desc: Foundation shipped — 13 entity types, ingestion pipeline, search, SSR pages, codified context
+
+  #  3 [CLOSED] v0.3
+       Issues: 3 closed, 0 open
+       Desc: Content authoring for all 5 entity domains via admin interface (depends on framework v0.7)
+
+  #  4 [CLOSED] v0.4
+       Issues: 1 closed, 0 open
+       Desc: Resource People directory — entity, provider, policy, taxonomies, SSR listing+detail, admin CRUD (auto-generated)
+
+  #  5 [CLOSED] v1.0
+       Issues: 2 closed, 0 open
+       Desc: Content model and UX stable — product ready for public launch
+
+  #  6 [CLOSED] v0.5
+       Issues: 8 closed, 0 open
+       Desc: Resource People Enhancements — search, filtering by role/offering, photo support, web presence fields, card improvements
+
+  #  7 [CLOSED] v0.6 — Navigation & App Structure
+       Issues: 2 closed, 1 open
+       Desc: Navigation, discoverability, and home page. Fills the gap between v0.5 People polish and v0.7 GIS-Aware Assignment. Keep
+
+  #  8 [CLOSED] v0.5.1
+       Issues: 9 closed, 0 open
+       Desc: Stabilization & Bugfix Sprint — make Minoo fully functional before new features. Covers P1 bugs (500 errors on core page
+
+  #  9 [CLOSED] v0.7 — Volunteer Self-Service & Request Lifecycle
+       Issues: 4 closed, 2 open
+       Desc: Give volunteers control over their profile and availability, add request cancellation, surface request history, add How 
+
+  # 10 [CLOSED] v0.8 — Location Awareness & Local Relevance
+       Issues: 6 closed, 2 open
+       Desc: Add location detection (IP + browser + manual) so the platform feels local to each visitor. Context bar, form pre-fill, 
+
+  # 11 [CLOSED] v0.9 — Public UX Branding Redesign
+       Issues: 10 closed, 0 open
+       Desc: Transform Minoo's public site into a polished, trustworthy, launch-ready product. Every top-level page becomes a portal 
+
+  # 12 [CLOSED] v0.10 — IA & Homepage Corrections
+       Issues: 5 closed, 0 open
+       Desc: Corrective pass to fix IA/UX drift: navigation hierarchy, homepage identity, Elder Support scoping.
+
+  # 13 [CLOSED] v0.11
+       Issues: 1 closed, 0 open
+       Desc: Polish & User Flow Completion — close security gaps (CSRF), replace hardcoded demo data, complete broken/incomplete flow
+
+  # 14 [CLOSED] v0.12
+       Issues: 6 closed, 0 open
+       Desc: Narrative & Identity — Establish Minoo's mission, voice, and narrative direction across all public pages. Add introducto
+
+  # 15 [CLOSED] v0.13 — Elder Support: End-to-End Completion
+       Issues: 23 closed, 0 open
+       Desc: Stabilize and complete the Elder Support workflow end-to-end: fix the framework POST bug, unify volunteer signup + accou
+
+  # 16 [CLOSED] Community Registry Sync
+       Issues: 6 closed, 0 open
+       Desc: Migrate Minoo from local community storage to NorthCloud as the authoritative registry. Stop storing community metadata 
+
+  # 17 [CLOSED] People + Band Office Integration
+       Issues: 7 closed, 0 open
+       Desc: Display leadership and band office data from NorthCloud on community detail pages. Support outreach workflows with NC co
+
+  # 18 [CLOSED] v0.14 — Quality & Polish
+       Issues: 5 closed, 0 open
+       Desc: Deferred fixes, test coverage, and copy improvements from v0.11/v0.12
+
+  # 19 [CLOSED] V1 Release
+       Issues: 29 closed, 0 open
+       Desc: Stable, non-commercial V1 release. Elder matching, community registry, NorthCloud migration, leadership data, compliance
+
+  # 20 [OPEN  ] v1.0 - Admin Surface
+       Issues: 0 closed, 4 open
+       Desc: Integrate Waaseyaa admin surface into Minoo
+
+  # 21 [OPEN  ] Anishinaabemowin Localization
+       Issues: 0 closed, 1 open
+       Desc: Make translations dialect-aware and region-specific across Anishinaabemowin-speaking communities.
+
+## Goals
+
+- **Dialect
+
+  # 22 [CLOSED] Genealogy & Family Connections
+       Issues: 0 closed, 0 open
+       Desc: Build a genealogy feature enabling community members to document and explore family connections, lineage, and clan relat
+
+  # 23 [OPEN  ] Page Enrichment & Polishing for Waaseyaa Flagship Launch
+       Issues: 23 closed, 3 open
+       Desc: Review every page type in Minoo and enrich them using all available data, relationships, and metadata. The outcome: a fu
+
+  # 24 [OPEN  ] Waaseyaa Alpha Upgrade
+       Issues: 2 closed, 2 open
+       Desc: Upgrade Minoo to the latest Waaseyaa framework alpha release. Includes breaking changes, dependency updates, and compati
+
+  # 25 [OPEN  ] GraphQL API
+       Issues: 1 closed, 0 open
+       Desc: Add GraphQL API layer to Minoo entities, enabling API-first access for mobile, SPA, and third-party integrations.
+
+## ISSUES (227 total)
+
+  ### (no milestone) (13 open, 9 closed)
+    # 21 [CLOSED] Code review fixes: normalize policies, add tests, fix spec drift  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    # 59 [CLOSED] fix: update search API URL from /api/search to /api/v1/search  [bug]  (updated: 2026-03-08)
+    # 72 [CLOSED] feat: NorthCloud community integration — entity, SSR pages, autocomplete  (updated: 2026-03-08)
+         CROSS-REF: minoo
+    # 85 [CLOSED] fix: login page says "Register as a volunteer" — should say "Create an account"  [enhancement]  (updated: 2026-03-08)
+    #113 [CLOSED] bug: Production missing NORTHCLOUD_API_URL env var  [bug, infra]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    #119 [CLOSED] refactor: adopt Waaseyaa Application Directory Convention v1.0  [refactor]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, minoo
+    #121 [CLOSED] ci: add CI workflow for PRs (PHPUnit + Playwright)  [ci]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, minoo
+    #179 [CLOSED] feat: outreach workflow with NC contact data  [enhancement, priority::Could]  (updated: 2026-03-15)
+         DEP: **Depends on:** #178 (leadership + band office display), jonesrussell/north-cloud#272
+         CROSS-REF: minoo
+    #241 [OPEN  ] fix(deploy): *.png exclusion drops og-default.png from releases  (updated: 2026-03-17)
+    #245 [OPEN  ] refactor: restore final on CommunityController with alternative test approach  [quality]  (updated: 2026-03-17)
+    #246 [OPEN  ] feat: pass community lookup to detail views for future community links  [quality]  (updated: 2026-03-17)
+    #270 [OPEN  ] chore: fix pre-push hook Playwright dependency on running server  [enhancement, audit]  (updated: 2026-03-17)
+         DEP: The `.husky/pre-push` hook runs Playwright E2E tests, which require a running dev server. If no serv
+    #271 [OPEN  ] chore: add PHPStan static analysis to CI  [enhancement, audit]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #272 [OPEN  ] chore: add post-deploy health check  [enhancement, audit]  (updated: 2026-03-17)
+    #273 [OPEN  ] fix: visually-hidden utility class not applying in @layer utilities  [bug]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #274 [CLOSED] chore: verify type scale bump on form-heavy pages  [chore]  (updated: 2026-03-17)
+    #275 [OPEN  ] chore: move SQLite database to storage/ directory  [chore]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa, minoo
+    #276 [OPEN  ] Research: Mine Nishnaabemwin Dictionary (atlas-ling.ca) for language data  [research, language, data-source]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #278 [OPEN  ] fix: homepage mobile responsiveness — search bar and tab overflow  [bug]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #279 [OPEN  ] chore: verify Toronto-area users see substantial content  [chore]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #280 [OPEN  ] fix: location bar community search returns no results  [bug]  (updated: 2026-03-17)
+         CROSS-REF: minoo
+    #281 [OPEN  ] fix: homepage business cards link to /groups/ instead of /businesses/  [bug]  (updated: 2026-03-17)
+
+  ### Anishinaabemowin Localization (1 open, 0 closed)
+    #277 [OPEN  ] feat: full sweep of untranslated English strings across all /oj/ pages  [enhancement]  (updated: 2026-03-17)
+
+  ### Community Registry Sync (0 open, 6 closed)
+    #133 [CLOSED] fix: Location bar error state when geolocation fails  [bug, ux, priority::Should]  (updated: 2026-03-13)
+    #135 [CLOSED] refactor: Extract resolveLocation() to shared trait or service  [refactor, priority::Could]  (updated: 2026-03-13)
+         CROSS-REF: waaseyaa
+    #169 [CLOSED] Seed 637 First Nations from CIRNAC open data CSV  [enhancement]  (updated: 2026-03-11)
+    #170 [CLOSED] Enrich First Nations community records with NorthCloud source metadata  [enhancement]  (updated: 2026-03-11)
+         DEP: - Depends on: CIRNAC seed issue (communities must exist first)
+    #173 [CLOSED] Duplicate community records after CIRNAC seed (inac_id-less pre-existing records)  [bug]  (updated: 2026-03-11)
+         CROSS-REF: waaseyaa
+    #177 [CLOSED] feat: community list page — municipality support and mixed nearby  [enhancement, priority::Should]  (updated: 2026-03-13)
+         DEP: **Depends on:** Minoo sync rewrite (#prev), NC StatsCan seed (jonesrussell/north-cloud#267)
+         CROSS-REF: minoo
+
+  ### GraphQL API (0 open, 1 closed)
+    #311 [CLOSED] feat: wire GraphQL schema for Minoo entity types  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa, minoo
+
+  ### Page Enrichment & Polishing for Waaseyaa Flagship Launch (3 open, 23 closed)
+    #282 [CLOSED] feat: standardize hero sections across all page types  [enhancement]  (updated: 2026-03-17)
+    #283 [CLOSED] feat: add breadcrumb navigation to detail pages  [enhancement]  (updated: 2026-03-17)
+    #284 [CLOSED] feat: ensure consistent OG metadata across all pages  [enhancement]  (updated: 2026-03-17)
+    #285 [CLOSED] feat: improve homepage card density and metadata  [enhancement]  (updated: 2026-03-17)
+    #286 [CLOSED] feat: add entity-type badge colors to homepage cards  [enhancement]  (updated: 2026-03-17)
+    #287 [CLOSED] feat: add related content sections to event detail pages  [enhancement]  (updated: 2026-03-17)
+    #288 [CLOSED] feat: add date/venue display and status indicator to events  [enhancement]  (updated: 2026-03-17)
+    #289 [CLOSED] feat: add related content sections to teaching detail pages  [enhancement]  (updated: 2026-03-17)
+    #290 [CLOSED] feat: add cultural context metadata to teachings  [enhancement]  (updated: 2026-03-17)
+    #291 [CLOSED] feat: enrich business detail pages with map and hours  [enhancement]  (updated: 2026-03-17)
+    #292 [CLOSED] feat: add community affiliation to business pages  [enhancement]  (updated: 2026-03-17)
+    #293 [CLOSED] feat: add related content sections to group detail pages  [enhancement]  (updated: 2026-03-17)
+    #294 [CLOSED] feat: enrich resource person pages with roles and connections  [enhancement]  (updated: 2026-03-17)
+    #295 [CLOSED] feat: add bio and media sections to people pages  [enhancement]  (updated: 2026-03-17)
+    #296 [CLOSED] feat: add local content sections to community detail pages  [enhancement]  (updated: 2026-03-17)
+    #297 [CLOSED] feat: add nearby communities section to community pages  [enhancement]  (updated: 2026-03-17)
+    #298 [CLOSED] feat: improve search result cards with entity-type badges  [enhancement]  (updated: 2026-03-17)
+    #299 [CLOSED] feat: add cross-entity suggestions to search results  [enhancement]  (updated: 2026-03-17)
+    #300 [CLOSED] chore: audit and populate missing entity metadata  [enhancement]  (updated: 2026-03-17)
+    #301 [CLOSED] chore: populate cross-entity relationships  [enhancement]  (updated: 2026-03-17)
+    #302 [CLOSED] feat: audit and polish card styles for consistency  [enhancement]  (updated: 2026-03-17)
+    #303 [CLOSED] feat: add hero images to detail pages when media available  [enhancement]  (updated: 2026-03-17)
+    #304 [CLOSED] feat: improve mobile responsiveness across all pages  [enhancement]  (updated: 2026-03-17)
+         DEP: Audit all pages at 320/375/414px viewports. Fix overflow, ensure 44px touch targets, single-column c
+    #305 [OPEN  ] chore: add Playwright smoke tests for enriched pages  [enhancement]  (updated: 2026-03-17)
+    #306 [OPEN  ] chore: Lighthouse audit for performance and accessibility  [enhancement]  (updated: 2026-03-17)
+    #307 [OPEN  ] chore: manual verification checklist for flagship launch  [enhancement]  (updated: 2026-03-17)
+
+  ### People + Band Office Integration (0 open, 7 closed)
+    #178 [CLOSED] feat: display leadership and band office on community detail page  [enhancement]  (updated: 2026-03-11)
+         DEP: **Depends on:** jonesrussell/north-cloud#272 (NC people + band office API)
+         CROSS-REF: minoo
+    #186 [CLOSED] Add --dry-run flag to bin/backfill-nc-ids  [enhancement, priority::Could]  (updated: 2026-03-13)
+    #187 [CLOSED] Production deployment: schema migration + backfill for nc_id  [ops, blocked]  (updated: 2026-03-11)
+         DEP: ## Blocked on
+         CROSS-REF: waaseyaa, minoo
+    #188 [CLOSED] feat: add leadership_scrape job type to crawler scheduler  (updated: 2026-03-11)
+    #189 [CLOSED] feat: link community sources for leadership scraping  [priority::Should, crawler]  (updated: 2026-03-14)
+         CROSS-REF: minoo
+    #190 [CLOSED] feat: create production leadership scrape jobs  [priority::Should, crawler]  (updated: 2026-03-14)
+         CROSS-REF: minoo
+    #191 [CLOSED] feat: integrate leadership extraction into main crawler pipeline  [priority::Should, crawler]  (updated: 2026-03-14)
+
+  ### V1 Release (0 open, 29 closed)
+    #127 [CLOSED] sec: Friendly error pages for 403/401 responses  [bug, ux, priority::Must, sprint::1]  (updated: 2026-03-12)
+         DEP: ## Depends on
+         CROSS-REF: waaseyaa
+    #128 [CLOSED] fix: Replace hardcoded demo data in teachings, events, language, groups templates  [bug, content, priority::Must, sprint::2]  (updated: 2026-03-12)
+    #129 [CLOSED] fix: Community autocomplete returns HTML instead of JSON  [bug, priority::Must, sprint::1]  (updated: 2026-03-12)
+         CROSS-REF: minoo
+    #130 [CLOSED] feat: Add password reset flow  [feature, priority::Must, sprint::2]  (updated: 2026-03-12)
+    #131 [CLOSED] fix: Add validation error display to volunteer edit form  [bug, ux, priority::Must, sprint::1]  (updated: 2026-03-12)
+    #134 [CLOSED] fix: Prevent duplicate volunteer signups  [bug, priority::Must, sprint::1]  (updated: 2026-03-12)
+    #136 [CLOSED] test: Add Playwright tests for auth flows (login, register, logout)  [test, priority::Must, sprint::3]  (updated: 2026-03-12)
+    #137 [CLOSED] test: Add Playwright tests for elder request and volunteer signup submission  [test, priority::Must, sprint::3]  (updated: 2026-03-12)
+    #138 [CLOSED] test: Add Playwright tests for content browsing pages  [test, priority::Must, sprint::3]  (updated: 2026-03-12)
+    #171 [CLOSED] Fix bin/sync-communities: update for v0.14.5-NC community metadata endpoints  [bug, priority::Must, sprint::1]  (updated: 2026-03-12)
+         DEP: - Blocked until: NorthCloud v0.14.5-NC ships
+    #175 [CLOSED] feat: export communities as JSON for NorthCloud import  [enhancement, priority::Must, sprint::2]  (updated: 2026-03-12)
+    #176 [CLOSED] feat: replace local community storage with NC API sync  [enhancement, priority::Must, sprint::2]  (updated: 2026-03-12)
+         DEP: **Depends on:** jonesrussell/north-cloud#265 (NC community API)
+         CROSS-REF: minoo
+    #184 [CLOSED] perf: Add SQLite cache layer for NorthCloud API responses  [enhancement, priority::Must, sprint::2]  (updated: 2026-03-12)
+         CROSS-REF: waaseyaa
+    #185 [CLOSED] Cache NorthCloud API responses for community detail pages  [enhancement, priority::Must, sprint::2]  (updated: 2026-03-12)
+    #194 [CLOSED] CC BY-NC-SA attribution metadata on all OPD-derived content  [priority::Must, area::compliance, sprint::1]  (updated: 2026-03-12)
+    #195 [CLOSED] Media copyright flag and approval workflow  [priority::Must, area::compliance, sprint::3]  (updated: 2026-03-12)
+    #196 [CLOSED] Data sovereignty controls and consent metadata  [priority::Must, area::compliance, sprint::2]  (updated: 2026-03-12)
+    #197 [CLOSED] No-commercial-use enforcement gate  [priority::Must, area::compliance, area::ci, sprint::1]  (updated: 2026-03-12)
+    #198 [CLOSED] Security review (OWASP top 10)  [priority::Must, area::security, area::production-readiness, sprint::3]  (updated: 2026-03-12)
+    #199 [CLOSED] Accessibility audit (WCAG 2.1 AA)  [priority::Must, area::accessibility, area::production-readiness, sprint::3]  (updated: 2026-03-12)
+    #200 [CLOSED] CI/CD pipeline for V1  [priority::Must, area::ci, area::production-readiness, sprint::1]  (updated: 2026-03-12)
+    #201 [CLOSED] Epic: V1 Release Plan (target 2026-04-22)  [priority::Must, epic]  (updated: 2026-03-14)
+    #202 [CLOSED] Governance: V1 Human Signoffs Required  [blocked, area::compliance, epic, governance]  (updated: 2026-03-14)
+    #203 [CLOSED] Switch dictionary to NorthCloud source  [priority::Should]  (updated: 2026-03-14)
+         DEP: Minoo should stop scraping OPD directly and instead consume dictionary data from NorthCloud's API. T
+         CROSS-REF: waaseyaa, minoo
+    #204 [CLOSED] doc: Document that events and groups intentionally lack consent fields  [documentation]  (updated: 2026-03-12)
+    #205 [CLOSED] feat: Account Home dashboard for non-volunteer users  (updated: 2026-03-12)
+    #209 [CLOSED] fix: Server 500 on stale or corrupted location cookie  [bug, ux, priority::Should]  (updated: 2026-03-13)
+         CROSS-REF: minoo
+    #211 [CLOSED] ux: Improve empty-state messaging on all listing pages  [ux, priority::Should]  (updated: 2026-03-13)
+         CROSS-REF: minoo
+    #222 [CLOSED] Infra: Add migration runner + schema-as-code support  [infra, migrations, deploy]  (updated: 2026-03-13)
+         CROSS-REF: waaseyaa, minoo
+
+  ### Waaseyaa Alpha Upgrade (2 open, 2 closed)
+    #308 [CLOSED] chore: sync framework to v0.1.0-alpha.13  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #309 [OPEN  ] feat: adopt migration system for schema management  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #310 [CLOSED] chore: verify all tests pass after framework upgrade  (updated: 2026-03-17)
+    #312 [OPEN  ] chore: deploy upgraded framework to production  (updated: 2026-03-17)
+         CROSS-REF: minoo
+
+  ### v0.10 — IA & Homepage Corrections (0 open, 4 closed)
+    #114 [CLOSED] Correct global navigation IA with Programs dropdown  [enhancement]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #115 [CLOSED] Homepage hero and sections redesign (Minoo-wide)  [enhancement]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #116 [CLOSED] Move Elder Support "How It Works" to /elders portal  [enhancement]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #117 [CLOSED] Copy and visual alignment pass for v0.10  [enhancement]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+
+  ### v0.11 (0 open, 1 closed)
+    #126 [CLOSED] sec: Add CSRF protection to all POST form routes  [bug]  (updated: 2026-03-11)
+         DEP: ## Depends on
+         CROSS-REF: waaseyaa, minoo
+
+  ### v0.12 (0 open, 6 closed)
+    #142 [CLOSED] copy: Add "Who is Minoo for?" section to homepage  [copy]  (updated: 2026-03-10)
+         CROSS-REF: minoo
+    #143 [CLOSED] copy: Add "Looking for a mentor?" callout to People page  [copy]  (updated: 2026-03-10)
+    #144 [CLOSED] feat: Create About Minoo page (/about)  [feature]  (updated: 2026-03-10)
+         CROSS-REF: minoo
+    #145 [CLOSED] feat: Add About link to footer navigation  [feature]  (updated: 2026-03-10)
+         DEP: Blocked by About page creation issue.
+    #146 [CLOSED] refactor: Normalize cultural terminology across all templates  [copy]  (updated: 2026-03-10)
+    #147 [CLOSED] docs: Create Minoo content tone guide  [documentation]  (updated: 2026-03-10)
+
+  ### v0.13 — Elder Support: End-to-End Completion (0 open, 23 closed)
+    #148 [CLOSED] fix(framework): HTML form POSTs return 400 "Invalid JSON in request body"  [bug, framework]  (updated: 2026-03-11)
+         DEP: This is the v0.13 blocker. All form-submission work (B1, B2, B3, F1–F6) depends on this fix landing 
+         CROSS-REF: waaseyaa
+    #149 [CLOSED] fix: SSR auth errors return raw JSON 403 instead of redirecting to /login  [bug, framework, auth]  (updated: 2026-03-11)
+         DEP: Depends on #A1 (framework POST fix) being merged first.
+         CROSS-REF: waaseyaa
+    #150 [CLOSED] fix: volunteer signup and user account creation are completely disconnected  [bug, workflow]  (updated: 2026-03-11)
+         DEP: Depends on the framework POST fix (#A1) and SSR auth redirect (#A2).
+    #151 [CLOSED] feat: add volunteer accept/decline state to Elder Support workflow  [feature, workflow]  (updated: 2026-03-11)
+         DEP: Depends on #148 (framework POST fix), #150 (volunteer account unification).
+    #152 [CLOSED] feat: redirect to originally intended page after login  [ux, feature, auth]  (updated: 2026-03-11)
+         DEP: Depends on #149 (SSR auth redirect).
+    #153 [CLOSED] feat: add flash messages for all Elder Support workflow actions  [ux, feature, coordinator]  (updated: 2026-03-10)
+         DEP: Depends on #148 (POST fix). Independent of other workflow issues.
+    #154 [CLOSED] feat: add reassign UI to coordinator dashboard for assigned requests  [ux, feature, coordinator]  (updated: 2026-03-11)
+         DEP: Depends on #148 (POST fix), #153 (flash messages).
+    #155 [CLOSED] fix: show Elder's phone number on assigned request cards in coordinator dashboard  [bug, ux, coordinator]  (updated: 2026-03-10)
+    #156 [CLOSED] fix: show Elder's contact info on volunteer dashboard assignment cards  [bug, ux, volunteer]  (updated: 2026-03-11)
+         DEP: Depends on #148 (POST fix), #150 (volunteer account unification). Template-only change.
+    #157 [CLOSED] feat: allow volunteer to add completion notes when marking a request complete  [ux, feature, volunteer]  (updated: 2026-03-11)
+         DEP: Depends on #148 (POST fix), #151 (volunteer accept/decline — for state machine context).
+         CROSS-REF: waaseyaa
+    #158 [CLOSED] copy: warmth pass on Elder request pages — form, confirmation, landing  [ux, copy]  (updated: 2026-03-09)
+    #159 [CLOSED] copy: reciprocity and dignity framing on volunteer signup and confirmation pages  [ux, copy]  (updated: 2026-03-09)
+    #160 [CLOSED] copy: add human framing to coordinator and volunteer dashboards  [ux, copy]  (updated: 2026-03-09)
+    #161 [CLOSED] test(playwright): Elder request form submission — happy path and validation  [test, playwright]  (updated: 2026-03-11)
+         DEP: Depends on #148 (POST fix) — tests will fail until the framework bug is resolved. Add tests after #1
+    #162 [CLOSED] test(playwright): volunteer signup, login, and register form submission flows  [test, playwright]  (updated: 2026-03-11)
+         DEP: Depends on #148 (POST fix), #150 (volunteer account unification for login test to work end-to-end).
+    #163 [CLOSED] test(playwright): volunteer dashboard — assignments, status transitions, profile edit  [test, playwright]  (updated: 2026-03-11)
+         DEP: Depends on #148, #150, #151 (accept/decline), #153 (flash), #156 (Elder contact info), #157 (complet
+    #164 [CLOSED] test(playwright): coordinator dashboard — assign, confirm, cancel, reassign  [test, playwright]  (updated: 2026-03-11)
+         DEP: Depends on #148, #149, #153 (flash), #154 (reassign UI), #155 (Elder contact info on coordinator).
+    #165 [CLOSED] test(playwright): auth redirects and role-based access control  [test, playwright]  (updated: 2026-03-11)
+         DEP: Depends on #149 (SSR auth redirect), #152 (redirect-after-login).
+    #166 [CLOSED] test(phpunit): volunteer accept/decline state machine transitions  [test, phpunit]  (updated: 2026-03-11)
+         DEP: Depends on #151 (accept/decline state implementation).
+         CROSS-REF: minoo
+    #167 [CLOSED] test(phpunit): access policy — volunteer can only view own assignments  [test, phpunit]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #168 [CLOSED] test(phpunit): integration — full Elder Support request→assign→complete round trip  [test, phpunit]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, minoo
+    #182 [CLOSED] Add unit tests for Flash helper class  (updated: 2026-03-10)
+    #183 [CLOSED] Verify session is started before Flash::set() writes to $_SESSION  (updated: 2026-03-10)
+
+  ### v0.14 — Quality & Polish (0 open, 5 closed)
+    #132 [CLOSED] feat: Add flash message support for form success feedback  [ux, feature, priority::Should]  (updated: 2026-03-13)
+    #139 [CLOSED] copy: Add mission-aligned hero copy to homepage  [copy, priority::Should]  (updated: 2026-03-13)
+         CROSS-REF: minoo
+    #140 [CLOSED] copy: Add introductory subtitles to all listing pages  [copy, priority::Should]  (updated: 2026-03-13)
+    #141 [CLOSED] copy: Update Elder Support and Volunteer copy with reciprocity framing  [copy, priority::Should]  (updated: 2026-03-13)
+    #192 [CLOSED] Add unit tests for MailService and MailServiceProvider  [testing]  (updated: 2026-03-11)
+         CROSS-REF: minoo
+
+  ### v0.2 – First Entities + NorthCloud Ingestion (0 open, 38 closed)
+    #  1 [CLOSED] Configure ojibwe.lib.umn.edu source in NorthCloud source-manager  (updated: 2026-03-06)
+    #  2 [CLOSED] Build Minoo-side structured importer for ojibwe.lib.umn.edu  (updated: 2026-03-06)
+         CROSS-REF: waaseyaa
+    #  3 [CLOSED] Wire standard NorthCloud article ingestion via Node entities  (updated: 2026-03-06)
+    #  4 [CLOSED] Add ingestion diagnostics and admin review queue  (updated: 2026-03-06)
+    #  5 [CLOSED] Design new Minoo visual identity  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    #  6 [CLOSED] Build SSR public pages for events and community groups  (updated: 2026-03-07)
+    #  7 [CLOSED] Build SSR public pages for cultural knowledge  (updated: 2026-03-07)
+    #  8 [CLOSED] Build SSR public pages for language content  (updated: 2026-03-07)
+    #  9 [CLOSED] Build global navigation and layout  (updated: 2026-03-06)
+    # 10 [CLOSED] Add search and filtering across entity types  (updated: 2026-03-07)
+    # 11 [CLOSED] Minoo entity types grouped under 'Other' in admin sidebar  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    # 12 [CLOSED] Initialize Minoo project as thin Waaseyaa application  (updated: 2026-03-06)
+         CROSS-REF: waaseyaa, minoo
+    # 13 [CLOSED] Add Event and EventType entity types  (updated: 2026-03-06)
+    # 14 [CLOSED] Add Group, GroupType, and CulturalGroup entity types  (updated: 2026-03-06)
+    # 15 [CLOSED] Add Teaching, TeachingType, and CulturalCollection entity types  (updated: 2026-03-06)
+    # 16 [CLOSED] Add Language domain entities (DictionaryEntry, ExampleSentence, WordPart, Speaker)  (updated: 2026-03-06)
+    # 17 [CLOSED] Add access policies for all Minoo entity types  (updated: 2026-03-06)
+    # 18 [CLOSED] Add taxonomy and config seeders  (updated: 2026-03-06)
+    # 19 [CLOSED] Add integration smoke test for full kernel boot  (updated: 2026-03-06)
+         CROSS-REF: waaseyaa, minoo
+    # 20 [CLOSED] Add codified context infrastructure  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    # 24 [CLOSED] fix: move ValidationResult to its own file for PSR-4 compliance  [bug]  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    # 25 [CLOSED] fix: narrow PDOException catch in IngestMaterializer dedup queries  [bug]  (updated: 2026-03-06)
+    # 26 [CLOSED] fix: throw on unmapped entity type in IngestImporter  [bug]  (updated: 2026-03-06)
+    # 27 [CLOSED] fix: throw on unknown entity type in IngestMaterializer  [bug]  (updated: 2026-03-06)
+    # 28 [CLOSED] fix: add validation for speaker and cultural_collection data fields  [bug]  (updated: 2026-03-06)
+    # 29 [CLOSED] fix: strip_tags concatenates words across block elements  [bug]  (updated: 2026-03-06)
+    # 30 [CLOSED] refactor: extract generateSlug to standalone utility class  [enhancement]  (updated: 2026-03-06)
+         CROSS-REF: minoo
+    # 31 [CLOSED] refactor: make MaterializationResult properties private  [enhancement]  (updated: 2026-03-06)
+    # 32 [CLOSED] refactor: introduce IngestStatus backed enum for status strings  [enhancement]  (updated: 2026-03-06)
+    # 33 [CLOSED] fix: validate JSON decode in IngestMaterializer before processing  [bug]  (updated: 2026-03-06)
+    # 34 [CLOSED] fix: track skipped word parts in MaterializationResult  [bug]  (updated: 2026-03-06)
+    # 35 [CLOSED] refactor: introduce value objects for mapper returns  [enhancement]  (updated: 2026-03-06)
+    # 37 [CLOSED] SSR: add event card component and CSS badge/date/detail styles  (updated: 2026-03-07)
+    # 38 [CLOSED] SSR: add events listing and detail page  (updated: 2026-03-07)
+    # 39 [CLOSED] SSR: add group card component and groups listing/detail page  (updated: 2026-03-07)
+    # 40 [CLOSED] SSR: add teaching card component and teachings listing/detail page  (updated: 2026-03-07)
+    # 41 [CLOSED] SSR: upgrade language page with dictionary entry detail views  (updated: 2026-03-07)
+    # 43 [CLOSED] Fix highlight rendering showing 'Array' and increase search timeout  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa
+
+  ### v0.3 (0 open, 3 closed)
+    # 44 [CLOSED] feat: indigenous content hard filter for search  (updated: 2026-03-07)
+         CROSS-REF: minoo
+    # 45 [CLOSED] fix: access policies don't cover *_type config entities — creates return 403  (updated: 2026-03-07)
+    # 46 [CLOSED] feat: relocate codified context MCP server to mcp/  (updated: 2026-03-07)
+         CROSS-REF: minoo
+
+  ### v0.4 (0 open, 1 closed)
+    # 48 [CLOSED] feat: Resource People directory  (updated: 2026-03-07)
+
+  ### v0.5 (0 open, 8 closed)
+    # 53 [CLOSED] feat: add web presence fields to resource_person  (updated: 2026-03-07)
+    # 54 [CLOSED] feat: photo support in people SSR templates  (updated: 2026-03-08)
+    # 55 [CLOSED] feat: filtering by role and offering on /people  (updated: 2026-03-08)
+    # 56 [CLOSED] feat: search on /people listing  (updated: 2026-03-08)
+    # 57 [CLOSED] feat: enhanced people cards and detail styling  (updated: 2026-03-08)
+         CROSS-REF: minoo
+    # 60 [CLOSED] feat: Elder Support MVP — request forms and volunteer signup  @jonesrussell  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa, minoo
+    # 62 [CLOSED] fix: use UUID confirmation URLs for elder support forms  (updated: 2026-03-08)
+    # 63 [CLOSED] fix: return HTTP 422 on form validation failure in elder support controllers  (updated: 2026-03-08)
+
+  ### v0.5.1 (0 open, 9 closed)
+    # 70 [CLOSED] infra: Waaseyaa framework does not load .env — env vars must be injected at PHP-FPM pool level  [bug]  (updated: 2026-03-11)
+         CROSS-REF: waaseyaa, minoo
+    # 74 [CLOSED] bug: /people and /communities return 500 — stale SQLite schema missing `status` column  [bug]  (updated: 2026-03-08)
+    # 75 [CLOSED] bug: CommunityController constructor takes 3 args but framework only injects 2  [bug]  (updated: 2026-03-08)
+         CROSS-REF: minoo
+    # 78 [CLOSED] content: Register page heading says "Volunteer Registration" instead of "Create Account"  [content]  (updated: 2026-03-08)
+    # 82 [CLOSED] bug: entity query fails on _data fields (sort/condition on non-column fields)  [bug]  (updated: 2026-03-08)
+    # 83 [CLOSED] bug: session not started — framework never calls session_start()  [bug]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    # 84 [CLOSED] bug: register page 500 — submitRegister fails  [bug]  (updated: 2026-03-08)
+    # 86 [CLOSED] feat: use max_travel_km in volunteer ranking  [enhancement]  (updated: 2026-03-08)
+    # 87 [CLOSED] bug: community entity_reference displays raw ID instead of name  [bug]  (updated: 2026-03-08)
+
+  ### v0.6 — Navigation & App Structure (0 open, 3 closed)
+    # 76 [CLOSED] ux: Communities not linked from main navigation  [ux]  (updated: 2026-03-08)
+    # 77 [CLOSED] ux: Elder support pages not discoverable from navigation  [ux]  (updated: 2026-03-08)
+    # 79 [CLOSED] content: Home page title shows "Waaseyaa" instead of "Minoo"  [content]  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa, minoo
+
+  ### v0.7 — Volunteer Self-Service & Request Lifecycle (0 open, 6 closed)
+    # 89 [CLOSED] feat: Volunteer profile edit from dashboard  [feature]  @jonesrussell  (updated: 2026-03-09)
+    # 90 [CLOSED] feat: Volunteer availability toggle  [feature]  @jonesrussell  (updated: 2026-03-09)
+    # 91 [CLOSED] feat: Request cancellation by coordinator  [feature]  @jonesrussell  (updated: 2026-03-09)
+    # 92 [CLOSED] enhance: Request history in dashboards  [enhancement]  @jonesrussell  (updated: 2026-03-09)
+    # 93 [CLOSED] feat: Elder Support \"How It Works\" public page  [feature]  @jonesrussell  (updated: 2026-03-09)
+    # 94 [CLOSED] test: Playwright smoke tests for critical user flows  [test]  @jonesrussell  (updated: 2026-03-09)
+
+  ### v0.8 — Location Awareness & Local Relevance (0 open, 8 closed)
+    # 95 [CLOSED] feat: LocationContext value object + CommunityFinder  [feature]  (updated: 2026-03-09)
+    # 96 [CLOSED] feat: LocationService with IP/session/cookie resolution  [feature]  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    # 97 [CLOSED] feat: Location API endpoints (set/update/current)  [feature]  (updated: 2026-03-09)
+    # 98 [CLOSED] feat: Location bar UI with autocomplete + browser geolocation  [feature]  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    # 99 [CLOSED] feat: Form pre-fill with location context  [feature]  (updated: 2026-03-09)
+    #100 [CLOSED] feat: Location-aware homepage with nearby communities + events  [feature]  (updated: 2026-03-09)
+    #101 [CLOSED] enhance: Communities page proximity sort + nearest highlight  [enhancement]  (updated: 2026-03-09)
+    #102 [CLOSED] test: Playwright smoke tests for location flows  [test]  (updated: 2026-03-09)
+
+  ### v0.9 — Public UX Branding Redesign (0 open, 10 closed)
+    #103 [CLOSED] Homepage Portal Redesign  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #104 [CLOSED] Elders Portal Redesign  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #105 [CLOSED] Volunteer Portal Redesign  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #106 [CLOSED] Communities and People Landing Pages  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #107 [CLOSED] How It Works and Safety Pages  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #108 [CLOSED] Branding System Implementation  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #109 [CLOSED] Legal Pages  (updated: 2026-03-09)
+    #110 [CLOSED] Template Polish Sweep  (updated: 2026-03-09)
+         CROSS-REF: minoo
+    #111 [CLOSED] Content and Copy Pass  (updated: 2026-03-09)
+    #112 [CLOSED] Playwright Smoke Test Expansion  (updated: 2026-03-09)
+
+  ### v1.0 (0 open, 2 closed)
+    # 64 [CLOSED] feat: production deployment infrastructure for minoo.live  (updated: 2026-03-07)
+         CROSS-REF: waaseyaa, minoo
+    #124 [CLOSED] bug: POST /register and /login return JSON:API 400 instead of SSR response  [bug]  @jonesrussell  (updated: 2026-03-09)
+         CROSS-REF: minoo
+
+  ### v1.0 - Admin Surface (4 open, 0 closed)
+    #247 [OPEN  ] feat: Implement AdminSurfaceHost for Minoo  (updated: 2026-03-15)
+         CROSS-REF: waaseyaa, minoo, claudriel
+    #248 [OPEN  ] feat: Define AdminSurfaceCatalog for all 19 entity types  (updated: 2026-03-15)
+         CROSS-REF: minoo
+    #249 [OPEN  ] feat: Wire access policies into AdminSurfaceSession  (updated: 2026-03-15)
+         CROSS-REF: minoo
+    #250 [OPEN  ] feat: Expose /admin/surface endpoints  (updated: 2026-03-15)
+         CROSS-REF: waaseyaa, minoo
+
+
+================================================================================
+  CLAUDRIEL
+================================================================================
+
+## MILESTONES (24 total)
+
+  #  1 [CLOSED] v0.1 — Seed Features
+       Issues: 2 closed, 0 open
+       Desc: First real use cases seeding MyClaudia's purpose as a personal ops system
+
+  #  2 [CLOSED] v0.2 — Daily Use
+       Issues: 21 closed, 0 open
+       Desc: Phase 2: make MyClaudia useful every morning — CLI wiring, Day Brief v1 sections, commitment actions, session tracking
+
+  #  3 [CLOSED] v0.3 — Claudia ↔ MyClaudia Integration
+       Issues: 8 closed, 0 open
+       Desc: Define and implement the integration model between Claudia (local AI agent runtime) and MyClaudia (Waaseyaa cloud dashbo
+
+  #  4 [CLOSED] v0.4 — Claudriel Rename
+       Issues: 4 closed, 0 open
+       Desc: Rename MyClaudia → Claudriel across all layers: namespace, CLI/env, docs/templates/MCP, repo/install.
+
+  #  5 [CLOSED] v0.4 — Data Quality
+       Issues: 3 closed, 0 open
+       Desc: Clean the pipes. Deduplication, event categorization, and person tiering — the minimum viable intelligence layer that ma
+
+  #  6 [CLOSED] v0.5 — Smart Briefs
+       Issues: 0 closed, 0 open
+       Desc: Briefs that use categorization and tiering to prioritize. Priority sorting, grouped sections, actionable items, notifica
+
+  #  7 [CLOSED] v0.6 — Multi-Source
+       Issues: 2 closed, 0 open
+       Desc: Beyond Gmail. Calendar, Slack, GitHub, and other ingest sources — only after the pipeline is clean and the brief is smar
+
+  #  8 [CLOSED] v1.0 Multi-Tenant Foundation
+       Issues: 6 closed, 0 open
+       Desc: Transition Claudriel from prototype to multi-tenant production architecture. Includes removal of basic auth, stable depl
+
+  #  9 [CLOSED] v1.1 Conversational Control Surface
+       Issues: 5 closed, 0 open
+       Desc: Structured Claude Code telemetry, durable tabbed chat history, and a first-class conversational API for workspace and sc
+
+  # 10 [CLOSED] v1.2 Public Signup & Account System
+       Issues: 10 closed, 0 open
+       Desc: Implement the full public entry path for claudriel.ai, including user signup, email verification, login, logout, passwor
+
+  # 11 [CLOSED] Temporal Core & Schedule UX v1.0
+       Issues: 8 closed, 4 open
+       Desc: Implement the unified temporal foundation for Claudriel, including the atomic time service, drift detection, timezone re
+
+  # 12 [CLOSED] Temporal Agents & Proactive Schedule Intelligence v1.0
+       Issues: 11 closed, 0 open
+       Desc: Implement the first generation of temporal agents that operate on top of the new deterministic time substrate. This mile
+
+  # 13 [CLOSED] v1.3 Marketing Homepage & Public Entry Funnel
+       Issues: 6 closed, 0 open
+       Desc: Make https://claudriel.northcloud.one/ a true public marketing homepage that leads visitors into signup, login, and onbo
+
+  # 14 [CLOSED] v1.3.1 Public Auth Surface Polish
+       Issues: 2 closed, 0 open
+       Desc: Polish the public-facing auth and onboarding presentation after the v1.3 route split landed. This milestone covers a sha
+
+  # 15 [CLOSED] v1.4 Admin Surface Migration
+       Issues: 15 closed, 0 open
+       Desc: Migrate to canonical waaseyaa/admin-surface package
+
+  # 16 [CLOSED] v1.5 GraphQL Adoption
+       Issues: 11 closed, 0 open
+       Desc: Incremental migration to client-side GraphQL, starting with Commitments + People data paths. Depends on Waaseyaa v0.1.0-
+
+  # 17 [OPEN  ] v1.6 Voice Input
+       Issues: 0 closed, 0 open
+       Desc: Add voice control to Claudriel: speech-to-text for commands, dictation, and voice notes. Enables hands-free interaction 
+
+  # 18 [OPEN  ] v1.7 Speech Output
+       Issues: 0 closed, 0 open
+       Desc: Add text-to-speech to Claudriel: spoken briefs, alerts, and conversational responses. Completes the voice interaction lo
+
+  # 19 [OPEN  ] v1.5.1 Google OAuth Verification
+       Issues: 1 closed, 6 open
+       Desc: Submit Claudriel's Google Cloud OAuth app for verification. Includes creating a privacy policy page, homepage, and compl
+
+  # 20 [CLOSED] v1.4.1 Sidecar Removal Cleanup
+       Issues: 10 closed, 0 open
+       Desc: Short-lived operational milestone for post-sidecar-removal cleanup. All issues stem from the architectural pivot in PR #
+
+  # 21 [CLOSED] v1.6.0 Framework Upgrade
+       Issues: 1 closed, 0 open
+       Desc: Upgrade waaseyaa framework packages to alpha.12
+
+  # 22 [OPEN  ] v1.5.2 Framework Compliance
+       Issues: 0 closed, 5 open
+       Desc: Corrective work from the 2026-03-18 baseline cross-project audit. Brings Claudriel from 46% to 100% compliance with waas
+
+  # 23 [OPEN  ] v1.5.3 User Settings & Account
+       Issues: 0 closed, 1 open
+       Desc: User settings page and account management. Includes Google OAuth connection management (connect/disconnect), account pre
+
+  # 24 [OPEN  ] v1.8 Projects & Workspaces
+       Issues: 1 closed, 32 open
+       Desc: Introduces the Project system (multi-repo), enhanced Workspace system (git-backed, persistent-first with ephemeral mode)
+
+## ISSUES (197 total)
+
+  ### (no milestone) (3 open, 22 closed)
+    #  1 [CLOSED] feat: Gmail message normalizer  (updated: 2026-03-08)
+         CROSS-REF: waaseyaa
+    #  2 [CLOSED] feat: Commitment extraction pipeline step  (updated: 2026-03-08)
+    #  3 [CLOSED] feat: Commitment handler  (updated: 2026-03-08)
+    #  4 [CLOSED] feat: Event handler  (updated: 2026-03-08)
+    #  5 [CLOSED] feat: Drift detector  (updated: 2026-03-08)
+    #  6 [CLOSED] feat: CLI commands (brief + commitments)  (updated: 2026-03-08)
+         CROSS-REF: myclaudia
+    #  7 [CLOSED] feat: Web Day Brief view  (updated: 2026-03-08)
+    #  8 [CLOSED] feat: Day Brief assembler  (updated: 2026-03-08)
+    # 15 [CLOSED] bug: waaseyaa/ssr missing from composer.json — HttpKernel fails to boot  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    # 16 [CLOSED] feat: build Day Brief frontend view (Vue/Twig template)  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa
+    # 17 [CLOSED] refactor: adopt Waaseyaa Application Directory Convention v1.0  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, myclaudia
+    # 19 [CLOSED] ci: add CI workflow for PRs (PHPUnit + lint)  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, myclaudia
+    # 83 [CLOSED] chore: remove all Claudia references, rebrand to Claudriel  (updated: 2026-03-11)
+         CROSS-REF: claudriel
+    # 84 [CLOSED] fix: GenericEventHandler bypasses EventCategorizer, all events stored as notification  (updated: 2026-03-11)
+    # 95 [CLOSED] Workspace creation can succeed without the sidebar reflecting it  (updated: 2026-03-13)
+         CROSS-REF: claudriel
+    #149 [CLOSED] Update Claudriel to waaseyaa v0.1.0-alpha.1  (updated: 2026-03-15)
+         CROSS-REF: waaseyaa, claudriel
+    #151 [CLOSED] Integrate Waaseyaa admin UI at /admin with Claudriel auth and tenant boundaries  (updated: 2026-03-15)
+         CROSS-REF: waaseyaa, claudriel
+    #152 [CLOSED] Integrate Waaseyaa admin UI at /admin with Claudriel auth and tenant boundaries  (updated: 2026-03-14)
+         CROSS-REF: waaseyaa, claudriel
+    #161 [CLOSED] chore: create docs/specs/workflow.md referenced in CLAUDE.md  [documentation, audit]  (updated: 2026-03-16)
+    #162 [CLOSED] chore: remove continue-on-error from admin bundle CI job  [audit, tech-debt]  (updated: 2026-03-16)
+    #163 [CLOSED] chore: clean up dead $twig property writes in controllers  [audit, tech-debt]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #224 [CLOSED] fix: chat/send 500 from SQLite readonly database (directory permissions)  [bug]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #225 [OPEN  ] fix: PHP-FPM catch_workers_output not enabled, error_log() silently discarded  [bug]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #226 [OPEN  ] chore: remove waaseyaa/database-legacy dependency  [chore]  (updated: 2026-03-18)
+         DEP: 2. Check if `waaseyaa/entity-storage` still depends on `waaseyaa/database-legacy`
+         CROSS-REF: waaseyaa, claudriel
+    #227 [OPEN  ] fix: app sidebar should be open by default  [enhancement]  (updated: 2026-03-18)
+
+  ### Temporal Agents & Proactive Schedule Intelligence v1.0 (0 open, 11 closed)
+    #123 [CLOSED] Design Proactive Temporal Guidance Surfaces and Interaction Model  [frontend, ux, design, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #124: Define Temporal Agent Runtime Contract and Lifecycle
+    #124 [CLOSED] Define Temporal Agent Runtime Contract and Lifecycle  [backend, feature, infra, ready]  (updated: 2026-03-14)
+    #125 [CLOSED] Implement Temporal Signal Normalization and Agent Context Builder  [backend, feature, infra, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #124: Define Temporal Agent Runtime Contract and Lifecycle
+         DEP: - Depends on #127: Build Temporal Agent Orchestration and Evaluation Loop
+    #127 [CLOSED] Build Temporal Agent Orchestration and Evaluation Loop  [backend, feature, infra, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #124: Define Temporal Agent Runtime Contract and Lifecycle
+    #128 [CLOSED] Implement Upcoming-Block Prep Agents  [backend, feature, ux, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #125: Implement Temporal Signal Normalization and Agent Context Builder
+         DEP: - Depends on #126: Build Temporal Agent Orchestration and Evaluation Loop
+    #129 [CLOSED] Implement Overrun, Shift, and Wrap-Up Agents  [backend, feature, ux, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #125: Implement Temporal Signal Normalization and Agent Context Builder
+         DEP: - Depends on #126: Build Temporal Agent Orchestration and Evaluation Loop
+    #130 [CLOSED] Build Notification Delivery and Agent Action Pipeline  [backend, frontend, feature, ux, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #125: Implement Temporal Signal Normalization and Agent Context Builder
+         DEP: - Depends on #127: Implement Upcoming-Block Prep Agents
+         DEP: - Depends on #128: Implement Overrun, Shift, and Wrap-Up Agents
+    #131 [CLOSED] Implement Real-Time Schedule Guidance Panel and Ambient Nudge UI  [frontend, feature, ux, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #123: Design Proactive Temporal Guidance Surfaces and Interaction Model
+         DEP: - Depends on #129: Build Notification Delivery and Agent Action Pipeline
+    #132 [CLOSED] Wire Temporal Agent Decisions Into Observability  [backend, frontend, feature, observability, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #125: Implement Temporal Signal Normalization and Agent Context Builder
+         DEP: - Depends on #126: Build Temporal Agent Orchestration and Evaluation Loop
+         DEP: - Depends on #129: Build Notification Delivery and Agent Action Pipeline
+    #133 [CLOSED] Add Smoke Validation for Proactive Schedule Intelligence  [backend, frontend, feature, observability, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #129: Build Notification Delivery and Agent Action Pipeline
+         DEP: - Depends on #130: Implement Real-Time Schedule Guidance Panel and Ambient Nudge UI
+         DEP: - Depends on #131: Wire Temporal Agent Decisions Into Observability
+    #134 [CLOSED] Document Temporal Agents Architecture and Operating Model  [backend, frontend, feature, observability, ready]  (updated: 2026-03-14)
+         DEP: - Depends on #124: Define Temporal Agent Runtime Contract and Lifecycle
+         DEP: - Depends on #129: Build Notification Delivery and Agent Action Pipeline
+         DEP: - Depends on #131: Wire Temporal Agent Decisions Into Observability
+         DEP: - Depends on #132: Add Smoke Validation for Proactive Schedule Intelligence
+
+  ### Temporal Core & Schedule UX v1.0 (0 open, 12 closed)
+    #111 [CLOSED] Build Atomic Time Service Core  [backend, feature, infra, ready]  (updated: 2026-03-13)
+    #112 [CLOSED] Add Clock Sync, Drift Detection, and Time Health Monitoring  [backend, feature, observability, infra, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 1: Build Atomic Time Service Core
+    #113 [CLOSED] Add User and Workspace Timezone Resolution  [backend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 1: Build Atomic Time Service Core
+    #114 [CLOSED] Inject Stable Now Snapshots Into Tool Calls and Schedule Pipelines  [backend, feature, infra, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 1: Build Atomic Time Service Core
+         DEP: - Depends on Issue 3: Add User and Workspace Timezone Resolution
+    #115 [CLOSED] Implement Temporal Awareness Engine for Current, Next, Gap, and Overrun Detection  [backend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 4: Inject Stable Now Snapshots Into Tool Calls and Schedule Pipelines
+    #116 [CLOSED] Add Contextual Temporal Suggestions  [backend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 5: Implement Temporal Awareness Engine for Current, Next, Gap, and Overrun Detect
+    #117 [CLOSED] Enforce Relative-to-Now Schedule Query Semantics  [backend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 4: Inject Stable Now Snapshots Into Tool Calls and Schedule Pipelines
+         DEP: - Depends on Issue 5: Implement Temporal Awareness Engine for Current, Next, Gap, and Overrun Detect
+    #118 [CLOSED] Design the Schedule UX v1 Timeline and Interaction Model  [frontend, ux, design, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 5: Implement Temporal Awareness Engine for Current, Next, Gap, and Overrun Detect
+         DEP: - Depends on Issue 7: Enforce Relative-to-Now Schedule Query Semantics
+    #119 [CLOSED] Implement Full-Day Timeline and Temporal Event States  [frontend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 8: Design the Schedule UX v1 Timeline and Interaction Model
+    #120 [CLOSED] Add Event-Level Quick Actions to Schedule Timeline  [frontend, feature, ux, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 9: Implement Full-Day Timeline and Temporal Event States
+    #121 [CLOSED] Redesign Observability UI as Hierarchical Call-Chain Panel  [frontend, feature, observability, ux, design, ready]  (updated: 2026-03-13)
+    #122 [CLOSED] Wire Temporal and Tooling Events Into Observability Panel  [backend, frontend, feature, observability, ready]  (updated: 2026-03-13)
+         DEP: - Depends on Issue 2: Add Clock Sync, Drift Detection, and Time Health Monitoring
+         DEP: - Depends on Issue 4: Inject Stable Now Snapshots Into Tool Calls and Schedule Pipelines
+         DEP: - Depends on Issue 11: Redesign Observability UI as Hierarchical Call-Chain Panel
+
+  ### v0.1 — Seed Features (0 open, 2 closed)
+    # 10 [CLOSED] feat: skill vault — ingest, tag, and retrieve Claude skills  (updated: 2026-03-09)
+         CROSS-REF: myclaudia
+    # 11 [CLOSED] chore: codified-context skill must verify MCP server runs before exit  (updated: 2026-03-09)
+
+  ### v0.2 — Daily Use (0 open, 19 closed)
+    #  9 [CLOSED] chore: wire CLI commands into ConsoleKernel  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, myclaudia
+    # 12 [CLOSED] feat: Day Brief v1 sections and grouping  (updated: 2026-03-09)
+    # 13 [CLOSED] feat: commitment actions (done / ignore / track)  (updated: 2026-03-09)
+         CROSS-REF: myclaudia
+    # 14 [CLOSED] feat: session tracking for Day Brief  (updated: 2026-03-09)
+    # 21 [CLOSED] bug: 404 page returns 500 — PathAliasResolver not found  (updated: 2026-03-10)
+         CROSS-REF: waaseyaa
+    # 22 [CLOSED] bug: /brief ignores Accept header — no JSON content negotiation  (updated: 2026-03-10)
+    # 23 [CLOSED] chore: add favicon to prevent 500 errors on every page load  (updated: 2026-03-10)
+    # 24 [CLOSED] feat: add site navigation (header/nav)  (updated: 2026-03-10)
+         CROSS-REF: myclaudia
+    # 25 [CLOSED] bug: inconsistent empty-state for Drifting Commitments section  (updated: 2026-03-10)
+    # 27 [CLOSED] refactor: extract shared nav/CSS into Twig base layout  (updated: 2026-03-10)
+    # 28 [CLOSED] chore: type DayBriefController::show() request param as Symfony Request  (updated: 2026-03-10)
+    # 29 [CLOSED] chore: replace placeholder favicon with real MyClaudia icon  (updated: 2026-03-10)
+         CROSS-REF: myclaudia
+    # 30 [CLOSED] test: add unit test for DayBriefController JSON content negotiation  (updated: 2026-03-10)
+    # 36 [CLOSED] bug: nav link 'Brief' invisible — white-on-white rendering  [bug]  (updated: 2026-03-09)
+    # 61 [CLOSED] Add test coverage for vnd.api+json and text/html Accept headers on /brief  (updated: 2026-03-10)
+    # 79 [CLOSED] chore: add Laravel Pint for PHP code formatting  [enhancement]  (updated: 2026-03-11)
+    # 80 [CLOSED] chore: add PHPStan for static analysis  [enhancement]  (updated: 2026-03-11)
+    # 81 [CLOSED] chore: add phpunit.xml and composer test script  [enhancement]  (updated: 2026-03-11)
+    # 82 [CLOSED] chore: add sidecar pytest to CI pipeline  [enhancement]  (updated: 2026-03-11)
+
+  ### v0.3 — Claudia ↔ MyClaudia Integration (0 open, 8 closed)
+    # 37 [CLOSED] feat: chat interface for Claudia in the browser  (updated: 2026-03-09)
+         CROSS-REF: waaseyaa, myclaudia
+    # 39 [CLOSED] arch: Claudia ↔ MyClaudia integration architecture proposal  (updated: 2026-03-11)
+         CROSS-REF: waaseyaa, myclaudia
+    # 40 [CLOSED] feat: ingestion API — POST /api/ingest endpoint  (updated: 2026-03-09)
+         DEP: Depends on: #39 (architecture proposal)
+         CROSS-REF: waaseyaa, myclaudia
+    # 41 [CLOSED] feat: Claudia → MyClaudia event bridge (bin/mc-ingest + skill wiring)  (updated: 2026-03-09)
+         DEP: Depends on: #40 (ingestion API)
+         CROSS-REF: myclaudia
+    # 42 [CLOSED] feat: chat interface — ChatSession/ChatMessage entities + browser UI  (updated: 2026-03-09)
+         DEP: Depends on: #39 (architecture)
+         CROSS-REF: waaseyaa, myclaudia
+    # 43 [CLOSED] feat: memory unification — MyClaudia as memory backend for Claudia skills  (updated: 2026-03-09)
+         DEP: Depends on: #39 (architecture), #40 (ingestion API)
+         CROSS-REF: myclaudia
+    # 44 [CLOSED] feat: read API — GET endpoints for entities, search, and context  (updated: 2026-03-09)
+         DEP: Depends on: #39 (architecture)
+         CROSS-REF: waaseyaa, myclaudia
+    # 45 [CLOSED] feat: Waaseyaa enhancements — SSE streaming, bearer auth middleware, search  (updated: 2026-03-09)
+         DEP: Depends on: #39 (architecture)
+         CROSS-REF: waaseyaa, myclaudia
+
+  ### v0.4 — Claudriel Rename (0 open, 4 closed)
+    # 50 [CLOSED] refactor: rename PHP namespace MyClaudia → Claudriel + composer package  (updated: 2026-03-09)
+         CROSS-REF: claudriel, myclaudia
+    # 51 [CLOSED] refactor: rename CLI commands myclaudia:* → claudriel:* and env vars  (updated: 2026-03-09)
+         CROSS-REF: claudriel, myclaudia
+    # 52 [CLOSED] refactor: rename MyClaudia → Claudriel in templates, docs, and MCP servers  (updated: 2026-03-09)
+         CROSS-REF: claudriel
+    # 53 [CLOSED] refactor: rename repo, install path, and deploy scripts to claudriel  (updated: 2026-03-09)
+         CROSS-REF: claudriel, myclaudia
+
+  ### v0.4 — Data Quality (0 open, 3 closed)
+    # 67 [CLOSED] feat: event deduplication via content hash  (updated: 2026-03-11)
+    # 68 [CLOSED] feat: person tiering (contact/creator/automated)  (updated: 2026-03-11)
+    # 69 [CLOSED] feat: event categorization (schedule/job_hunt/people/creator/notification)  (updated: 2026-03-11)
+
+  ### v0.6 — Multi-Source (0 open, 1 closed)
+    # 87 [CLOSED] feat: Workspace entity — first vertical slice  (updated: 2026-03-11)
+         CROSS-REF: claudriel
+
+  ### v1.0 Multi-Tenant Foundation (0 open, 6 closed)
+    # 89 [CLOSED] Remove basic auth from production Caddyfile  (updated: 2026-03-13)
+    # 90 [CLOSED] Stabilize GitHub Actions deployment for sidecar container  (updated: 2026-03-13)
+    # 91 [CLOSED] Define multi-tenant workspace boundaries  [architecture, ops, security]  (updated: 2026-03-13)
+         DEP: - Must precede issue #94, which depends on this boundary definition for implementation.
+         CROSS-REF: claudriel
+    # 92 [CLOSED] Add production smoke tests for daily brief and chat interface  (updated: 2026-03-13)
+    # 93 [CLOSED] Establish Codex environment skill workflow  (updated: 2026-03-13)
+         CROSS-REF: claudriel
+    # 94 [CLOSED] Implement tenant-aware routing layer  (updated: 2026-03-13)
+
+  ### v1.1 Conversational Control Surface (0 open, 5 closed)
+    # 96 [CLOSED] Stream structured Claude Code progress into dashboard chat  (updated: 2026-03-13)
+         CROSS-REF: claudriel
+    # 97 [CLOSED] Promote commitments, people, and triage to first-class entities  (updated: 2026-03-13)
+    # 98 [CLOSED] Promote dashboard sessions into tabbed, durable chat history  (updated: 2026-03-13)
+    # 99 [CLOSED] Define first-class conversational API for Claudriel actions  (updated: 2026-03-13)
+         CROSS-REF: claudriel
+    #100 [CLOSED] Make recurring schedule edits safe by default  (updated: 2026-03-13)
+
+  ### v1.2 Public Signup & Account System (0 open, 10 closed)
+    #101 [CLOSED] Build public signup and email verification flow  (updated: 2026-03-14)
+         CROSS-REF: claudriel
+    #102 [CLOSED] Implement tenant bootstrap pipeline for newly verified accounts  (updated: 2026-03-14)
+    #103 [CLOSED] Implement default workspace bootstrap for new tenants  (updated: 2026-03-14)
+         CROSS-REF: claudriel
+    #104 [CLOSED] Add login, logout, session persistence, and CSRF integration  (updated: 2026-03-14)
+    #105 [CLOSED] Implement password reset flow with SendGrid delivery  (updated: 2026-03-14)
+    #106 [CLOSED] Update routing and middleware for public and tenant-aware account flows  (updated: 2026-03-14)
+    #107 [CLOSED] Integrate sidecar tenant isolation and workspace initialization into signup bootstrap  (updated: 2026-03-14)
+    #108 [CLOSED] Add smoke coverage for signup, auth, reset, and new-tenant first-run flows  (updated: 2026-03-14)
+    #109 [CLOSED] Extend deployment validation for public signup and login probes  (updated: 2026-03-14)
+    #110 [CLOSED] Document public signup, account lifecycle, tenant bootstrap, and SendGrid operations  (updated: 2026-03-14)
+
+  ### v1.3 Marketing Homepage & Public Entry Funnel (0 open, 6 closed)
+    #138 [CLOSED] Define the public entry information architecture and route contract  (updated: 2026-03-15)
+    #139 [CLOSED] Implement the marketing homepage at / with primary signup and login CTAs  (updated: 2026-03-15)
+         CROSS-REF: claudriel
+    #140 [CLOSED] Move the authenticated product shell behind /app and preserve dashboard behavior  (updated: 2026-03-15)
+    #141 [CLOSED] Wire session-aware entry and post-auth redirects into the new app route  (updated: 2026-03-15)
+    #142 [CLOSED] Add public-vs-app route guards and regression coverage for the new entry flow  (updated: 2026-03-15)
+    #143 [CLOSED] Extend smoke validation, deploy probes, and docs for the public homepage to app journey  (updated: 2026-03-15)
+
+  ### v1.3.1 Public Auth Surface Polish (0 open, 2 closed)
+    #146 [CLOSED] Build a shared public auth shell for login, signup, reset, and verification pages  (updated: 2026-03-15)
+    #147 [CLOSED] Polish public auth conversion UX, cross-links, and visual regression coverage  (updated: 2026-03-15)
+
+  ### v1.4 Admin Surface Migration (0 open, 15 closed)
+    #156 [CLOSED] refactor: Migrate to Admin Surface contract  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa, claudriel
+    #157 [CLOSED] refactor: Replace host adapter with AdminSurfaceHost  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #158 [CLOSED] refactor: Replace custom catalog with AdminSurfaceCatalog  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa, claudriel
+    #159 [CLOSED] chore: Remove legacy admin integration code  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #167 [CLOSED] chore: resolve 34 baselined PHPStan errors  [audit, tech-debt]  (updated: 2026-03-16)
+         CROSS-REF: waaseyaa
+    #183 [CLOSED] bug: OAuth callback returns 500 on Google authorization  [bug]  (updated: 2026-03-17)
+    #184 [CLOSED] enhancement: OAuth success should redirect to /app not /  [enhancement]  (updated: 2026-03-17)
+    #185 [CLOSED] enhancement: add production error logging for controller exceptions  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa, claudriel
+    #188 [CLOSED] bug: non-SSR routes silently receive AnonymousUser for authenticated requests  [bug]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #189 [CLOSED] bug: framework error handler swallows exceptions with no file logging  [bug]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #190 [CLOSED] enhancement: OAuth callback should include email scope for provider_email  [enhancement]  (updated: 2026-03-17)
+    #205 [CLOSED] Remove dead REST ENTITY_CONFIG entries from claudrielAdapter.ts  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #206 [CLOSED] ScheduleEntry recurring series domain logic needs custom GraphQL resolver  [enhancement]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #207 [CLOSED] Nuxt vitest environment times out on setupNuxt()  [bug]  (updated: 2026-03-18)
+    #211 [CLOSED] enhancement: cache EntityTypeManager in ClaudrielSurfaceHost per request  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+
+  ### v1.4.1 Sidecar Removal Cleanup (0 open, 10 closed)
+    #192 [CLOSED] chore: remove SidecarWorkspaceBootstrapService dead code  [cleanup]  (updated: 2026-03-17)
+    #193 [CLOSED] test: add unit tests for InternalGoogleController  [testing]  (updated: 2026-03-17)
+    #194 [CLOSED] fix: internal API calendar_list returns 500 — account ID mismatch in GoogleTokenManager  [bug]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #195 [CLOSED] ops: add www-data to docker group in server provisioning docs  [documentation]  (updated: 2026-03-17)
+    #196 [CLOSED] chore: clean up legacy sidecar env vars from production .env  [cleanup]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #197 [CLOSED] security: validate AGENT_INTERNAL_SECRET is not default value at boot  [security]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #198 [CLOSED] test: add Python agent unit tests  [testing]  (updated: 2026-03-17)
+    #199 [CLOSED] docs: update agent design spec from sidecar to subprocess  [documentation]  (updated: 2026-03-17)
+    #201 [CLOSED] docs: update CLAUDE.md with GraphQL and agent architecture  [documentation]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+    #202 [CLOSED] chore: document missing env vars in .env.example  [documentation]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+
+  ### v1.5 GraphQL Adoption (0 open, 11 closed)
+    #170 [CLOSED] Bump Waaseyaa to alpha.10, add waaseyaa/graphql  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on waaseyaa/framework#441 (Tag v0.1.0-alpha.10)
+         CROSS-REF: waaseyaa, claudriel
+    #171 [CLOSED] Schema contract test for Commitment + Person  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #170 (Bump Waaseyaa to alpha.10)
+         CROSS-REF: waaseyaa, claudriel
+    #172 [CLOSED] Validate tenant_id, last_interaction_at, confidence field definitions  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #171 (Schema contract test)
+         CROSS-REF: waaseyaa, claudriel
+    #173 [CLOSED] graphqlFetch() helper + gql tag  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #170 (Bump Waaseyaa to alpha.10)
+         CROSS-REF: waaseyaa, claudriel
+    #174 [CLOSED] useCommitmentsQuery() composable  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #172 (Validate field definitions)
+         DEP: - Depends on #173 (graphqlFetch helper)
+         CROSS-REF: waaseyaa, claudriel
+    #175 [CLOSED] usePeopleQuery() composable  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #172 (Validate field definitions)
+         DEP: - Depends on #173 (graphqlFetch helper)
+         CROSS-REF: waaseyaa, claudriel
+    #176 [CLOSED] Migrate Commitment components to GraphQL  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #174 (useCommitmentsQuery composable)
+         CROSS-REF: waaseyaa, claudriel
+    #177 [CLOSED] Migrate People components to GraphQL  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #175 (usePeopleQuery composable)
+         CROSS-REF: waaseyaa, claudriel
+    #178 [CLOSED] Deprecate CommitmentApiController  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #176 (Migrate Commitment components)
+         CROSS-REF: waaseyaa, claudriel
+    #179 [CLOSED] Deprecate PeopleApiController  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #177 (Migrate People components)
+         CROSS-REF: waaseyaa, claudriel
+    #180 [CLOSED] Remove deprecated Commitment + People controllers  [enhancement]  (updated: 2026-03-17)
+         DEP: - Depends on #178 (Deprecate CommitmentApiController)
+         DEP: - Depends on #179 (Deprecate PeopleApiController)
+         CROSS-REF: waaseyaa, claudriel
+
+  ### v1.5.1 Google OAuth Verification (6 open, 1 closed)
+    #186 [OPEN  ] enhancement: submit Google OAuth app for verification  [enhancement]  (updated: 2026-03-17)
+    #187 [OPEN  ] enhancement: set up production environment at claudriel.ai  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #200 [OPEN  ] docs: add Google OAuth scope reference to docs/specs  [documentation]  (updated: 2026-03-17)
+         CROSS-REF: claudriel
+    #203 [CLOSED] test: add list result structure and argument assertions to GraphQL schema contract test  [testing]  (updated: 2026-03-17)
+    #221 [OPEN  ] bug: admin entity list fails with schema endpoint error  [bug]  (updated: 2026-03-18)
+    #222 [OPEN  ] chore: set up ansible vault with production secrets  [enhancement]  (updated: 2026-03-18)
+         CROSS-REF: claudriel
+    #223 [OPEN  ] chore: admin dashboard ingestion status widget error  [bug]  (updated: 2026-03-18)
+
+  ### v1.5.2 Framework Compliance (5 open, 0 closed)
+    #228 [OPEN  ] fix: entity constructors use string literals instead of $this->entityTypeId  [audit, tech-debt]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo
+    #229 [OPEN  ] fix: add missing fieldDefinitions to 13 entity type registrations  [audit, tech-debt]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #230 [OPEN  ] refactor: split monolithic ClaudrielServiceProvider into per-domain providers  [architecture, audit]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+    #231 [OPEN  ] feat: add access policies for entity types  [architecture, audit]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+    #232 [OPEN  ] fix: standardize controller signatures to use AccountInterface type-hint  [audit, tech-debt]  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, minoo, claudriel
+
+  ### v1.5.3 User Settings & Account (1 open, 0 closed)
+    #233 [OPEN  ] feat: Google OAuth connection management (connect/disconnect)  (updated: 2026-03-18)
+         CROSS-REF: claudriel
+
+  ### v1.6.0 Framework Upgrade (0 open, 1 closed)
+    #204 [CLOSED] chore: upgrade waaseyaa packages to alpha.12  [enhancement]  (updated: 2026-03-17)
+         CROSS-REF: waaseyaa
+
+  ### v1.8 Projects & Workspaces (32 open, 1 closed)
+    #234 [OPEN  ] feat: Project entity (multi-repo support)  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #235 [OPEN  ] feat: Project settings (name, description, integrations)  (updated: 2026-03-18)
+    #236 [OPEN  ] feat: Project dashboard UI  (updated: 2026-03-18)
+    #237 [OPEN  ] feat: Project → workspace mapping model  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa
+    #238 [OPEN  ] feat: Project-level context + history storage  (updated: 2026-03-18)
+    #239 [OPEN  ] feat: Project deletion + cleanup  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #240 [OPEN  ] enhancement: Extend Workspace entity to support persistent + ephemeral modes  (updated: 2026-03-18)
+    #241 [OPEN  ] enhancement: Add Workspace lifecycle manager (persistent-first hybrid model)  (updated: 2026-03-18)
+    #242 [OPEN  ] enhancement: Integrate GitRepositoryManager with lifecycle manager  (updated: 2026-03-18)
+    #243 [OPEN  ] enhancement: Add git worktree support (new capability)  (updated: 2026-03-18)
+         CROSS-REF: claudriel
+    #244 [OPEN  ] refactor: Align Workspace entity fields with new Project/Workspace ontology  (updated: 2026-03-18)
+         CROSS-REF: waaseyaa, claudriel
+    #245 [OPEN  ] enhancement: Add workspace status indicators (clean, dirty, drifted)  (updated: 2026-03-18)
+    #246 [OPEN  ] enhancement: Repo connection flow (manual URL entry)  (updated: 2026-03-18)
+    #247 [OPEN  ] enhancement: Multi-repo linking for a project  (updated: 2026-03-18)
+    #248 [OPEN  ] enhancement: Unified commit + push pipeline (wrap existing GitOperator)  (updated: 2026-03-18)
+    #249 [OPEN  ] enhancement: Unified diff generation (wrap existing GitOperator)  (updated: 2026-03-18)
+    #250 [OPEN  ] enhancement: Agent-aware git operations (commit, push, diff)  (updated: 2026-03-18)
+    #251 [OPEN  ] chore: Stub GitHub OAuth integration (future milestone)  (updated: 2026-03-18)
+    #252 [OPEN  ] feat: Agent context bound to project  (updated: 2026-03-18)
+    #253 [OPEN  ] feat: Agent execution bound to workspace  (updated: 2026-03-18)
+    #254 [OPEN  ] feat: Workspace-aware prompts  (updated: 2026-03-18)
+    #255 [OPEN  ] feat: Workspace-aware diffs  (updated: 2026-03-18)
+    #256 [OPEN  ] feat: Workspace-aware commit/push  (updated: 2026-03-18)
+         CROSS-REF: claudriel
+    #257 [OPEN  ] feat: Workspace-aware DayBrief integration  (updated: 2026-03-18)
+    #258 [CLOSED] feat: Project dashboard page  (updated: 2026-03-18)
+    #259 [OPEN  ] feat: Workspace list UI  (updated: 2026-03-18)
+    #260 [OPEN  ] feat: Repo connection UI  (updated: 2026-03-18)
+    #261 [OPEN  ] feat: Workspace mode selector (persistent/ephemeral)  (updated: 2026-03-18)
+    #262 [OPEN  ] feat: Workspace drift indicators in UI  (updated: 2026-03-18)
+    #263 [OPEN  ] feat: Git drift detection (local vs remote)  (updated: 2026-03-18)
+    #264 [OPEN  ] feat: Git drift alerts  (updated: 2026-03-18)
+    #265 [OPEN  ] feat: Automatic git pull/update on drift  (updated: 2026-03-18)
+    #266 [OPEN  ] feat: Ephemeral rebuild triggers  (updated: 2026-03-18)
+

@@ -6,7 +6,9 @@ namespace Claudriel\Controller;
 
 use Claudriel\Access\AuthenticatedAccount;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\SSR\SsrResponse;
 
 final class PublicHomepageController
@@ -15,7 +17,7 @@ final class PublicHomepageController
         private readonly ?Environment $twig = null,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): RedirectResponse|SsrResponse
+    public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
     {
         if ($account instanceof AuthenticatedAccount) {
             return new RedirectResponse($this->appUrl($account), 302);

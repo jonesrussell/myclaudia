@@ -14,6 +14,7 @@ use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\BriefSignal;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 
 /**
@@ -35,7 +36,7 @@ final class IngestController
         $this->registry->addHandler(new PersonIngestHandler($this->entityTypeManager));
     }
 
-    public function handle(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): JsonResponse
+    public function handle(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): JsonResponse
     {
         // Validate bearer token.
         $token = $this->extractBearerToken($httpRequest);
@@ -79,7 +80,6 @@ final class IngestController
         if (! $httpRequest instanceof Request) {
             return null;
         }
-
         $header = $httpRequest->headers->get('Authorization', '');
         if (! is_string($header) || ! str_starts_with($header, 'Bearer ')) {
             return null;

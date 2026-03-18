@@ -11,6 +11,7 @@ use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Support\DriftDetector;
 use Claudriel\Temporal\TemporalContextFactory;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -27,7 +28,7 @@ final class DayBriefController
         private readonly mixed $twig = null,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         try {
             $scope = (new TenantWorkspaceResolver($this->entityTypeManager))->resolve($query, $account, $httpRequest);

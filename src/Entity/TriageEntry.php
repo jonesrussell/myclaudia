@@ -6,6 +6,12 @@ namespace Claudriel\Entity;
 
 use Waaseyaa\Entity\ContentEntityBase;
 
+/**
+ * Unprocessed message buffer entry, consumed by the ingestion pipeline.
+ *
+ * Internal-only: no CRUD surfaces (admin UI, REST, or GraphQL) are needed.
+ * Triage entries are created by ingest endpoints and consumed by pipeline processing.
+ */
 final class TriageEntry extends ContentEntityBase
 {
     protected string $entityTypeId = 'triage_entry';
@@ -18,7 +24,7 @@ final class TriageEntry extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'triage_entry', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('status') === null) {
             $this->set('status', 'open');

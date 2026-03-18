@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Claudriel\Controller\Ai;
 
 use Claudriel\Service\Ai\TrainingExportService;
+use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -14,7 +16,7 @@ final class TrainingExportController
         private readonly EntityTypeManager $entityTypeManager,
     ) {}
 
-    public function daily(array $params = [], array $query = [], mixed $account = null): SsrResponse
+    public function daily(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $service = new TrainingExportService($this->entityTypeManager);
         $days = max(1, (int) ($query['days'] ?? 7));
@@ -22,7 +24,7 @@ final class TrainingExportController
         return $this->json($service->exportDailySamples($days));
     }
 
-    public function sender(array $params = [], array $query = [], mixed $account = null): SsrResponse
+    public function sender(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $service = new TrainingExportService($this->entityTypeManager);
         $days = max(1, (int) ($query['days'] ?? 30));
@@ -31,7 +33,7 @@ final class TrainingExportController
         return $this->json($service->exportSenderSamples($email, $days));
     }
 
-    public function failures(array $params = [], array $query = [], mixed $account = null): SsrResponse
+    public function failures(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $service = new TrainingExportService($this->entityTypeManager);
         $days = max(1, (int) ($query['days'] ?? 90));

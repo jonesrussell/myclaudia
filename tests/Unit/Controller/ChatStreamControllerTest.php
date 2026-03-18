@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Tests\Unit\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Controller\ChatStreamController;
 use Claudriel\Domain\Chat\SubprocessChatClient;
 use Claudriel\Entity\Account;
@@ -387,7 +388,7 @@ final class ChatStreamControllerTest extends TestCase
             },
         );
 
-        $response = $controller->stream(['messageId' => 'msg-acctid'], [], $account, null);
+        $response = $controller->stream(['messageId' => 'msg-acctid'], [], new AuthenticatedAccount($account), null);
         self::assertInstanceOf(StreamedResponse::class, $response);
 
         ob_start();

@@ -22,7 +22,7 @@ final class McEvent extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'mc_event', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('category') === null) {
             $this->set('category', 'notification');

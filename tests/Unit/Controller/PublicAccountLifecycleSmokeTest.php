@@ -97,7 +97,7 @@ final class PublicAccountLifecycleSmokeTest extends TestCase
         self::assertStringContainsString('workspace_uuid=', $login->getTargetUrl());
 
         $dashboard = new DashboardController($entityTypeManager);
-        $dashboardResponse = $dashboard->show(account: $authenticated);
+        $dashboardResponse = $dashboard->show(account: $authenticated, httpRequest: Request::create('/dashboard'));
         self::assertSame(200, $dashboardResponse->statusCode);
         self::assertStringContainsString('Main Workspace', $dashboardResponse->content);
 

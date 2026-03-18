@@ -6,8 +6,8 @@ namespace Claudriel\CLI;
 
 use Claudriel\AI\CodexExecutionPipeline;
 use Claudriel\AI\PromptBuilder;
+use Claudriel\Domain\Git\GitOperator;
 use Claudriel\Entity\Workspace;
-use Claudriel\Service\GitOperator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

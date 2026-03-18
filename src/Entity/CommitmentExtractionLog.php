@@ -32,6 +32,6 @@ final class CommitmentExtractionLog extends ContentEntityBase
             $values['failure_category'] = null;
         }
 
-        parent::__construct($values, 'commitment_extraction_log', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
     }
 }

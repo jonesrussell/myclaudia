@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
@@ -20,7 +21,7 @@ final class CommitmentUpdateController
         private readonly EntityTypeManager $entityTypeManager,
     ) {}
 
-    public function update(array $params, array $query, mixed $account, ?Request $httpRequest = null): SsrResponse
+    public function update(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $uuid = $params['uuid'] ?? '';
 

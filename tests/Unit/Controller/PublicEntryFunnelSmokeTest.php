@@ -82,7 +82,7 @@ final class PublicEntryFunnelSmokeTest extends TestCase
         self::assertInstanceOf(RedirectResponse::class, $authenticatedHomepage);
         self::assertSame('/app?tenant_id=tenant-entry', $authenticatedHomepage->getTargetUrl());
 
-        $authenticatedApp = $appShell->show(account: new AuthenticatedAccount($verifiedAccount));
+        $authenticatedApp = $appShell->show(account: new AuthenticatedAccount($verifiedAccount), httpRequest: Request::create('/app'));
         self::assertSame(200, $authenticatedApp->statusCode);
         self::assertStringContainsString('Entry Workspace', $authenticatedApp->content);
     }

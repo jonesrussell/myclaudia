@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Claudriel\Service;
+namespace Claudriel\Domain\Git;
 
 final class GitOperator
 {

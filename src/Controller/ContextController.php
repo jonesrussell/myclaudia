@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
@@ -17,7 +19,7 @@ final class ContextController
         private readonly EntityTypeManager $entityTypeManager,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $projectRoot = getenv('CLAUDRIEL_PROJECT_ROOT') ?: dirname(__DIR__, 2);
 

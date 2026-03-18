@@ -17,7 +17,7 @@ final class TemporalNotification extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'temporal_notification', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('workspace_uuid') === null) {
             $this->set('workspace_uuid', null);

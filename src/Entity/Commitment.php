@@ -24,6 +24,6 @@ final class Commitment extends ContentEntityBase
         if (! array_key_exists('confidence', $values)) {
             $values['confidence'] = 1.0;
         }
-        parent::__construct($values, 'commitment', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
     }
 }

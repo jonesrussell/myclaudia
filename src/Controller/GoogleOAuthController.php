@@ -10,6 +10,7 @@ use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 
 final class GoogleOAuthController
@@ -54,9 +55,8 @@ final class GoogleOAuthController
     public function redirect(
         array $params = [],
         array $query = [],
-        mixed $account = null,
+        ?AccountInterface $account = null,
         ?Request $httpRequest = null,
-        ?Environment $twig = null,
     ): RedirectResponse {
         $authenticatedAccount = $this->resolveAccount($account);
         if ($authenticatedAccount === null) {
@@ -82,9 +82,8 @@ final class GoogleOAuthController
     public function callback(
         array $params = [],
         array $query = [],
-        mixed $account = null,
+        ?AccountInterface $account = null,
         ?Request $httpRequest = null,
-        ?Environment $twig = null,
     ): RedirectResponse {
         $authenticatedAccount = $this->resolveAccount($account);
 

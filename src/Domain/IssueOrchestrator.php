@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Claudriel\Domain;
 
 use Claudriel\AI\CodexExecutionPipeline;
+use Claudriel\Domain\Git\GitOperator;
 use Claudriel\Entity\IssueRun;
 use Claudriel\Entity\Workspace;
-use Claudriel\Service\GitOperator;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\GitHub\GitHubClient;
 

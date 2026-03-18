@@ -36,7 +36,7 @@ final class DashboardControllerTest extends TestCase
         $this->seedSession($etm, 'sess-b', 'Session B', '2026-03-13T11:00:00+00:00');
         $controller = new DashboardController($etm);
 
-        $response = $controller->show();
+        $response = $controller->show(httpRequest: Request::create('/dashboard'));
         self::assertSame(200, $response->statusCode);
 
         $data = json_decode($response->content, true);
@@ -67,7 +67,7 @@ final class DashboardControllerTest extends TestCase
         }
 
         $controller = new DashboardController($etm);
-        $response = $controller->show();
+        $response = $controller->show(httpRequest: Request::create('/dashboard'));
         $data = json_decode($response->content, true, 512, JSON_THROW_ON_ERROR);
 
         self::assertCount(12, $data['sessions']);

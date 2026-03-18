@@ -17,7 +17,7 @@ final class AccountPasswordResetToken extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'account_password_reset_token', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('used_at') === null) {
             $this->set('used_at', null);

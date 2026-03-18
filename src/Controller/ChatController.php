@@ -9,6 +9,7 @@ use Claudriel\Entity\ChatSession;
 use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
@@ -26,11 +27,11 @@ final class ChatController
     /**
      * GET /chat — render the chat UI.
      */
-    public function index(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function index(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
-            $scope = $resolver->resolve($query, $account, $httpRequest instanceof Request ? $httpRequest : null);
+            $scope = $resolver->resolve($query, $account, $httpRequest);
         } catch (RequestScopeViolation $exception) {
             return $this->json(['error' => $exception->getMessage()], $exception->statusCode());
         }
@@ -85,11 +86,11 @@ final class ChatController
     /**
      * GET /api/chat/sessions/{uuid}/messages — load messages for a session.
      */
-    public function messages(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function messages(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
-            $scope = $resolver->resolve($query, $account, $httpRequest instanceof Request ? $httpRequest : null);
+            $scope = $resolver->resolve($query, $account, $httpRequest);
         } catch (RequestScopeViolation $exception) {
             return $this->json(['error' => $exception->getMessage()], $exception->statusCode());
         }
@@ -138,13 +139,13 @@ final class ChatController
     /**
      * POST /api/chat/send — send a message and get the assistant response.
      */
-    public function send(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function send(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $raw = method_exists($httpRequest, 'getContent') ? $httpRequest->getContent() : '';
         $body = json_decode($raw, true) ?? [];
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
-            $scope = $resolver->resolve($query, $account, $httpRequest instanceof Request ? $httpRequest : null, $body);
+            $scope = $resolver->resolve($query, $account, $httpRequest, $body);
             $resolver->assertPayloadTenantMatchesContext($body, $scope->tenantId);
         } catch (RequestScopeViolation $exception) {
             return $this->json(['error' => $exception->getMessage()], $exception->statusCode());

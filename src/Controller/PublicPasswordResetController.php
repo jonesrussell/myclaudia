@@ -9,6 +9,7 @@ use Claudriel\Service\PasswordResetService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 use Waaseyaa\User\Middleware\CsrfMiddleware;
@@ -32,7 +33,7 @@ final class PublicPasswordResetController
         ]);
     }
 
-    public function requestReset(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
+    public function requestReset(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
     {
         $request = $httpRequest ?? Request::create('/forgot-password', 'POST');
         $email = strtolower(trim((string) $request->request->get('email', '')));
@@ -71,7 +72,7 @@ final class PublicPasswordResetController
         ]);
     }
 
-    public function resetPassword(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
+    public function resetPassword(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): RedirectResponse|SsrResponse
     {
         $request = $httpRequest ?? Request::create('/reset-password', 'POST');
         $token = (string) ($params['token'] ?? $request->request->get('token', ''));

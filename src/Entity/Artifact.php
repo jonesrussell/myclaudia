@@ -6,6 +6,12 @@ namespace Claudriel\Entity;
 
 use Waaseyaa\Entity\ContentEntityBase;
 
+/**
+ * Repository reference used by the workspace system internally.
+ *
+ * Internal-only: no CRUD surfaces (admin UI, REST, or GraphQL) are needed.
+ * Artifacts are managed programmatically by GitRepositoryManager and workspace commands.
+ */
 final class Artifact extends ContentEntityBase
 {
     protected string $entityTypeId = 'artifact';
@@ -18,7 +24,7 @@ final class Artifact extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'artifact', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('workspace_uuid') === null) {
             $this->set('workspace_uuid', '');

@@ -59,7 +59,7 @@ final class DayBriefControllerTest extends TestCase
     public function test_json_response_has_categorized_shape(): void
     {
         $controller = new DayBriefController($this->entityTypeManager, null);
-        $response = $controller->show();
+        $response = $controller->show(httpRequest: Request::create('/brief'));
 
         self::assertSame(200, $response->statusCode);
         self::assertSame('application/json', $response->headers['Content-Type']);
@@ -86,7 +86,7 @@ final class DayBriefControllerTest extends TestCase
         $twig = new Environment($loader);
 
         $controller = new DayBriefController($this->entityTypeManager, $twig);
-        $response = $controller->show();
+        $response = $controller->show(httpRequest: Request::create('/brief'));
 
         self::assertSame(200, $response->statusCode);
         self::assertSame('text/html; charset=UTF-8', $response->headers['Content-Type']);
@@ -183,7 +183,7 @@ final class DayBriefControllerTest extends TestCase
         $this->entityTypeManager->getStorage('mc_event')->save($event);
 
         $controller = new DayBriefController($this->entityTypeManager, null);
-        $response = $controller->show();
+        $response = $controller->show(httpRequest: Request::create('/brief'));
 
         $body = json_decode($response->content, true);
         self::assertCount(1, $body['people']);

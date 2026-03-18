@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Claudriel\Layer2;
+namespace Claudriel\Domain\Git;
 
 use Claudriel\Entity\Artifact;
 

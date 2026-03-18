@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Claudriel\AI;
 
 use Claudriel\Domain\Chat\SubprocessChatClient;
+use Claudriel\Domain\Git\GitOperator;
 use Claudriel\Entity\Operation;
 use Claudriel\Entity\Workspace;
-use Claudriel\Service\GitOperator;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class CodexExecutionPipeline

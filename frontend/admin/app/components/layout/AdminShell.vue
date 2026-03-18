@@ -4,17 +4,30 @@ import { useLanguage } from '~/composables/useLanguage'
 const { t, locale, locales, setLocale } = useLanguage()
 const config = useRuntimeConfig()
 const appName = config.public.appName as string
+const isDesktop = ref(false)
 const sidebarOpen = ref(false)
 const { logout } = useAuth()
+
+onMounted(() => {
+  const mql = window.matchMedia('(min-width: 769px)')
+  isDesktop.value = mql.matches
+  sidebarOpen.value = mql.matches
+  mql.addEventListener('change', (e) => {
+    isDesktop.value = e.matches
+    sidebarOpen.value = e.matches
+  })
+})
 
 function toggleSidebar() {
   sidebarOpen.value = !sidebarOpen.value
 }
 
-// Close sidebar on route change (mobile).
+// Close sidebar on route change (mobile only).
 const route = useRoute()
 watch(() => route.fullPath, () => {
-  sidebarOpen.value = false
+  if (!isDesktop.value) {
+    sidebarOpen.value = false
+  }
 })
 
 function onLocaleChange(event: Event) {

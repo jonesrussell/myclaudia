@@ -7,6 +7,7 @@ namespace Claudriel\Controller;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Support\GoogleTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\SSR\SsrResponse;
 
 final class InternalGoogleController
@@ -16,7 +17,7 @@ final class InternalGoogleController
         private readonly InternalApiTokenGenerator $apiTokenGenerator,
     ) {}
 
-    public function gmailList(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function gmailList(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $accountId = $this->authenticate($httpRequest);
         if ($accountId === null) {
@@ -40,7 +41,7 @@ final class InternalGoogleController
         return $this->jsonResponse($response);
     }
 
-    public function gmailRead(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function gmailRead(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $accountId = $this->authenticate($httpRequest);
         if ($accountId === null) {
@@ -64,7 +65,7 @@ final class InternalGoogleController
         return $this->jsonResponse($response);
     }
 
-    public function gmailSend(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function gmailSend(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $accountId = $this->authenticate($httpRequest);
         if ($accountId === null) {
@@ -103,7 +104,7 @@ final class InternalGoogleController
         return $this->jsonResponse($response);
     }
 
-    public function calendarList(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function calendarList(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $accountId = $this->authenticate($httpRequest);
         if ($accountId === null) {
@@ -136,7 +137,7 @@ final class InternalGoogleController
         return $this->jsonResponse($response);
     }
 
-    public function calendarCreate(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function calendarCreate(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $accountId = $this->authenticate($httpRequest);
         if ($accountId === null) {
@@ -234,7 +235,6 @@ final class InternalGoogleController
         if (! $httpRequest instanceof Request) {
             return null;
         }
-
         $content = $httpRequest->getContent();
         if ($content === '') {
             return null;

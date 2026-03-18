@@ -19,6 +19,7 @@ use Claudriel\Entity\TriageEntry;
 use Claudriel\Entity\Workspace;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 use Waaseyaa\Database\PdoDatabase;
@@ -66,7 +67,7 @@ final class AppShellControllerTest extends TestCase
             'tenant_id' => 'tenant-123',
         ]);
 
-        $response = $this->controller($entityTypeManager)->show(account: new AuthenticatedAccount($account));
+        $response = $this->controller($entityTypeManager)->show(account: new AuthenticatedAccount($account), httpRequest: Request::create('/app'));
 
         self::assertInstanceOf(SsrResponse::class, $response);
         self::assertSame(200, $response->statusCode);
@@ -97,7 +98,7 @@ final class AppShellControllerTest extends TestCase
         $response = $this->controller($entityTypeManager)->show(query: [
             'tenant_id' => 'tenant-session',
             'workspace_uuid' => 'workspace-session-shell',
-        ]);
+        ], httpRequest: Request::create('/app'));
 
         self::assertInstanceOf(SsrResponse::class, $response);
         self::assertSame(200, $response->statusCode);

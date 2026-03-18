@@ -13,6 +13,7 @@ use Claudriel\Temporal\Agent\TemporalGuidanceAssembler;
 use Claudriel\Temporal\TemporalContextFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\ContentEntityInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
@@ -25,11 +26,11 @@ final class DashboardController
         private readonly ?Environment $twig = null,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
-            $scope = $resolver->resolve($query, $account, $httpRequest instanceof Request ? $httpRequest : null);
+            $scope = $resolver->resolve($query, $account, $httpRequest);
         } catch (RequestScopeViolation $exception) {
             return new SsrResponse(
                 content: json_encode(['error' => $exception->getMessage()], JSON_THROW_ON_ERROR),

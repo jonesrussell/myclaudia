@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Claudriel\Tests\Unit\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Controller\BriefStreamController;
+use Claudriel\Entity\Account;
 use Claudriel\Entity\Commitment;
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
@@ -75,9 +77,15 @@ final class BriefStreamControllerTest extends TestCase
         $controller = new BriefStreamController($etm);
         $request = Request::create('/stream/brief', 'GET', server: ['HTTP_X_REQUEST_ID' => 'req-fallback-1']);
 
+        $account = new AuthenticatedAccount(new Account([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'status' => 'active',
+            'tenant_id' => 'user-42',
+        ]));
         $response = $controller->stream(
             query: ['transport' => 'fallback'],
-            account: 'user-42',
+            account: $account,
             httpRequest: $request,
         );
 
@@ -102,9 +110,15 @@ final class BriefStreamControllerTest extends TestCase
         $this->seedUpcomingScheduleEntry($etm, 'Planning');
 
         $controller = new BriefStreamController($etm);
+        $account = new AuthenticatedAccount(new Account([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'status' => 'active',
+            'tenant_id' => 'user-77',
+        ]));
         $response = $controller->stream(
             query: ['transport' => 'fallback'],
-            account: 'user-77',
+            account: $account,
             httpRequest: Request::create('/stream/brief', 'GET', server: ['HTTP_X_REQUEST_ID' => 'req-fallback-guidance']),
         );
 

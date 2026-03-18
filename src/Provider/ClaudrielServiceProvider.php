@@ -52,6 +52,8 @@ use Claudriel\Controller\TemporalNotificationApiController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
+use Claudriel\Domain\Git\GitOperator;
+use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Domain\IssueInstructionBuilder;
 use Claudriel\Domain\IssueOrchestrator;
 use Claudriel\Domain\Schedule\ScheduleSeriesResolver;
@@ -75,9 +77,7 @@ use Claudriel\Entity\Tenant;
 use Claudriel\Entity\TriageEntry;
 use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
-use Claudriel\Layer2\GitRepositoryManager;
 use Claudriel\Routing\AccountSessionMiddleware;
-use Claudriel\Service\GitOperator;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
 use Claudriel\Support\GoogleTokenManager;
@@ -98,6 +98,45 @@ use Waaseyaa\Routing\WaaseyaaRouter;
 
 final class ClaudrielServiceProvider extends ServiceProvider
 {
+    /**
+     * Validate that critical environment variables are present at boot time.
+     * Produces clear error messages so operators know exactly what to set.
+     */
+    public function boot(): void
+    {
+        $required = [
+            'ANTHROPIC_API_KEY' => 'Anthropic API key for chat and AI pipelines',
+            'AGENT_INTERNAL_SECRET' => 'HMAC secret for agent subprocess internal API auth (min 32 bytes)',
+            'GOOGLE_CLIENT_ID' => 'Google OAuth client ID',
+            'GOOGLE_CLIENT_SECRET' => 'Google OAuth client secret',
+            'GOOGLE_REDIRECT_URI' => 'Google OAuth redirect URI',
+        ];
+
+        $missing = [];
+        foreach ($required as $var => $description) {
+            $value = $_ENV[$var] ?? getenv($var) ?: '';
+            if ($value === '') {
+                $missing[] = sprintf('  - %s (%s)', $var, $description);
+            }
+        }
+
+        if ($missing !== []) {
+            $env = $_ENV['CLAUDRIEL_ENV'] ?? getenv('CLAUDRIEL_ENV') ?: 'development';
+            $message = sprintf(
+                "Claudriel: %d required environment variable(s) missing:\n%s\nSee .env.example for reference.",
+                count($missing),
+                implode("\n", $missing),
+            );
+
+            if ($env === 'production') {
+                throw new \RuntimeException($message);
+            }
+
+            // In development, log a warning but do not crash
+            error_log($message);
+        }
+    }
+
     public function register(): void
     {
         $this->entityType(new EntityType(
@@ -105,6 +144,22 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Account',
             class: Account::class,
             keys: ['id' => 'aid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'aid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'email' => ['type' => 'email', 'required' => true],
+                'password' => ['type' => 'string'],
+                'status' => ['type' => 'string'],
+                'roles' => ['type' => 'string'],
+                'permissions' => ['type' => 'string'],
+                'email_verified_at' => ['type' => 'datetime'],
+                'settings' => ['type' => 'text_long'],
+                'metadata' => ['type' => 'text_long'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -112,6 +167,16 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Account Verification Token',
             class: AccountVerificationToken::class,
             keys: ['id' => 'avtid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'avtid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'account_uuid' => ['type' => 'string', 'required' => true],
+                'token' => ['type' => 'string', 'required' => true],
+                'expires_at' => ['type' => 'datetime'],
+                'used_at' => ['type' => 'datetime'],
+                'metadata' => ['type' => 'text_long'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -119,6 +184,15 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Account Password Reset Token',
             class: AccountPasswordResetToken::class,
             keys: ['id' => 'aprtid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'aprtid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'account_uuid' => ['type' => 'string', 'required' => true],
+                'token' => ['type' => 'string', 'required' => true],
+                'expires_at' => ['type' => 'datetime'],
+                'used_at' => ['type' => 'datetime'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -126,6 +200,15 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Tenant',
             class: Tenant::class,
             keys: ['id' => 'tid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'tid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'slug' => ['type' => 'string'],
+                'metadata' => ['type' => 'text_long'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -133,6 +216,24 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Event',
             class: McEvent::class,
             keys: ['id' => 'eid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'eid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'source' => ['type' => 'string'],
+                'category' => ['type' => 'string'],
+                'subject' => ['type' => 'string'],
+                'body' => ['type' => 'text_long'],
+                'sender_name' => ['type' => 'string'],
+                'sender_email' => ['type' => 'string'],
+                'external_id' => ['type' => 'string'],
+                'content_hash' => ['type' => 'string'],
+                'raw_payload' => ['type' => 'text_long'],
+                'occurred_at' => ['type' => 'datetime'],
+                'tenant_id' => ['type' => 'string'],
+                'workspace_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -184,6 +285,17 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Integration',
             class: Integration::class,
             keys: ['id' => 'iid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'iid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'type' => ['type' => 'string'],
+                'config' => ['type' => 'text_long'],
+                'status' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -211,6 +323,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Commitment Extraction Log',
             class: CommitmentExtractionLog::class,
             keys: ['id' => 'celid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'celid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'event_uuid' => ['type' => 'string'],
+                'model' => ['type' => 'string'],
+                'prompt_tokens' => ['type' => 'integer'],
+                'completion_tokens' => ['type' => 'integer'],
+                'candidates_count' => ['type' => 'integer'],
+                'saved_count' => ['type' => 'integer'],
+                'raw_response' => ['type' => 'text_long'],
+                'failure_category' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -218,6 +344,17 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Skill',
             class: Skill::class,
             keys: ['id' => 'sid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'sid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'description' => ['type' => 'string'],
+                'type' => ['type' => 'string'],
+                'config' => ['type' => 'text_long'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -225,6 +362,17 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Chat Session',
             class: ChatSession::class,
             keys: ['id' => 'csid', 'uuid' => 'uuid', 'label' => 'title'],
+            fieldDefinitions: [
+                'csid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'title' => ['type' => 'string'],
+                'model' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'account_uuid' => ['type' => 'string'],
+                'workspace_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -232,6 +380,19 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Chat Message',
             class: ChatMessage::class,
             keys: ['id' => 'cmid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'cmid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'session_uuid' => ['type' => 'string', 'required' => true],
+                'role' => ['type' => 'string', 'required' => true],
+                'content' => ['type' => 'text_long'],
+                'tool_calls' => ['type' => 'text_long'],
+                'tool_results' => ['type' => 'text_long'],
+                'token_count' => ['type' => 'integer'],
+                'tenant_id' => ['type' => 'string'],
+                'workspace_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -287,6 +448,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Artifact',
             class: Artifact::class,
             keys: ['id' => 'artid', 'uuid' => 'uuid', 'label' => 'name'],
+            fieldDefinitions: [
+                'artid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'name' => ['type' => 'string', 'required' => true],
+                'type' => ['type' => 'string'],
+                'workspace_uuid' => ['type' => 'string'],
+                'repo_url' => ['type' => 'string'],
+                'branch' => ['type' => 'string'],
+                'local_path' => ['type' => 'string'],
+                'last_commit' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -294,6 +469,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Operation',
             class: Operation::class,
             keys: ['id' => 'opid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'opid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'workspace_id' => ['type' => 'string'],
+                'input_instruction' => ['type' => 'text_long'],
+                'generated_prompt' => ['type' => 'text_long'],
+                'model_response' => ['type' => 'text_long'],
+                'applied_patch' => ['type' => 'text_long'],
+                'commit_hash' => ['type' => 'string'],
+                'status' => ['type' => 'string'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+                'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -301,6 +490,23 @@ final class ClaudrielServiceProvider extends ServiceProvider
             label: 'Temporal Notification',
             class: TemporalNotification::class,
             keys: ['id' => 'tnid', 'uuid' => 'uuid'],
+            fieldDefinitions: [
+                'tnid' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'title' => ['type' => 'string'],
+                'message' => ['type' => 'text_long'],
+                'type' => ['type' => 'string'],
+                'state' => ['type' => 'string'],
+                'scheduled_at' => ['type' => 'datetime'],
+                'delivered_at' => ['type' => 'datetime'],
+                'snoozed_until' => ['type' => 'datetime'],
+                'workspace_uuid' => ['type' => 'string'],
+                'actions' => ['type' => 'text_long'],
+                'action_states' => ['type' => 'text_long'],
+                'metadata' => ['type' => 'text_long'],
+                'tenant_id' => ['type' => 'string'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
         ));
 
         $this->entityType(new EntityType(
@@ -423,6 +629,16 @@ final class ClaudrielServiceProvider extends ServiceProvider
         // Admin surface routes (session, catalog, entity CRUD)
         $surfaceHost = new ClaudrielSurfaceHost(fn () => $entityTypeManager);
         AdminSurfaceServiceProvider::registerRoutes($router, $surfaceHost);
+
+        // Schema endpoint for admin entity forms
+        $router->addRoute(
+            'claudriel.api.schema',
+            RouteBuilder::create('/api/schema/{type}')
+                ->controller(fn (array $params) => $surfaceHost->handleSchema($params['type'] ?? ''))
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
 
         // Legacy endpoints consumed by the frontend SPA
         $router->addRoute(

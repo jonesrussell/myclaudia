@@ -6,6 +6,12 @@ namespace Claudriel\Entity;
 
 use Waaseyaa\Entity\ContentEntityBase;
 
+/**
+ * Work unit tracking for AI code-generation operations within a workspace.
+ *
+ * Internal-only: no CRUD surfaces (admin UI, REST, or GraphQL) are needed.
+ * Operations are created and managed by the CodexExecutionPipeline and workspace commands.
+ */
 final class Operation extends ContentEntityBase
 {
     protected string $entityTypeId = 'operation';
@@ -17,7 +23,7 @@ final class Operation extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'operation', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('workspace_id') === null) {
             $this->set('workspace_id', null);

@@ -18,7 +18,7 @@ final class ScheduleEntry extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'schedule_entry', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('source') === null) {
             $this->set('source', 'manual');

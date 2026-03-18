@@ -20,6 +20,7 @@ use Claudriel\Temporal\TemporalContextFactory;
 use Claudriel\Temporal\TimeSnapshot;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -35,11 +36,11 @@ final class ChatStreamController
     /**
      * GET /stream/chat/{messageId} — SSE stream of Anthropic response tokens.
      */
-    public function stream(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): StreamedResponse|SsrResponse
+    public function stream(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): StreamedResponse|SsrResponse
     {
         $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
         try {
-            $requestScope = $resolver->resolve($query, $account, $httpRequest instanceof Request ? $httpRequest : null);
+            $requestScope = $resolver->resolve($query, $account, $httpRequest);
         } catch (RequestScopeViolation $exception) {
             return $this->jsonError($exception->getMessage(), $exception->statusCode());
         }
@@ -97,13 +98,13 @@ final class ChatStreamController
             );
         }
 
-        $requestId = $this->resolveRequestId($httpRequest instanceof Request ? $httpRequest : null, $query, (string) $messageId);
+        $requestId = $this->resolveRequestId($httpRequest, $query, (string) $messageId);
         $snapshot = (new TemporalContextFactory($this->entityTypeManager))->snapshotForInteraction(
             scopeKey: 'chat-stream:'.$requestId,
             tenantId: $tenantId,
             workspaceUuid: $workspaceId,
             account: $account,
-            requestTimezone: $this->resolveRequestedTimezone($httpRequest instanceof Request ? $httpRequest : null, $query),
+            requestTimezone: $this->resolveRequestedTimezone($httpRequest, $query),
         );
 
         return new StreamedResponse(

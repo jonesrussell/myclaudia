@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Command;
 
 use Claudriel\Command\WorkspacePullCommand;
+use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Artifact;
 use Claudriel\Entity\Workspace;
-use Claudriel\Layer2\GitRepositoryManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\EventDispatcher\EventDispatcher;

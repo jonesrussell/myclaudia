@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\SSR\SsrResponse;
 
 /**
@@ -21,7 +23,7 @@ final class NotFoundController
         private readonly mixed $twig = null,
     ) {}
 
-    public function show(array $params = [], array $query = [], mixed $account = null, mixed $httpRequest = null): SsrResponse
+    public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $path = '/'.ltrim((string) ($params['path'] ?? ''), '/');
 

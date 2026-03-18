@@ -188,6 +188,83 @@ final class ClaudrielSurfaceHost extends AbstractAdminSurfaceHost
         ];
     }
 
+    /**
+     * /api/schema/{type} — returns field definitions as JSON Schema for the admin SPA.
+     */
+    public function handleSchema(string $type): SsrResponse
+    {
+        $etm = $this->etm();
+
+        if (! $etm->hasDefinition($type)) {
+            return $this->jsonResponse(['error' => "Unknown entity type: {$type}"], 404);
+        }
+
+        $definition = $etm->getDefinition($type);
+        $fieldDefs = $definition->getFieldDefinitions();
+        $keys = $definition->getKeys();
+        $label = $definition->getLabel();
+
+        $properties = [];
+        $required = [];
+        $weight = 0;
+
+        foreach ($fieldDefs as $fieldName => $fieldDef) {
+            $prop = [
+                'type' => $this->mapFieldType($fieldDef['type'] ?? 'string'),
+                'x-label' => $fieldDef['label'] ?? ucfirst(str_replace('_', ' ', $fieldName)),
+                'x-weight' => $weight,
+            ];
+
+            if (! empty($fieldDef['readOnly'])) {
+                $prop['readOnly'] = true;
+            }
+
+            if (! empty($fieldDef['required'])) {
+                $required[] = $fieldName;
+                $prop['x-required'] = true;
+            }
+
+            if (($fieldDef['type'] ?? '') === 'text_long') {
+                $prop['x-widget'] = 'textarea';
+            }
+
+            if (($fieldDef['type'] ?? '') === 'email') {
+                $prop['format'] = 'email';
+            }
+
+            if (($fieldDef['type'] ?? '') === 'datetime' || ($fieldDef['type'] ?? '') === 'timestamp') {
+                $prop['format'] = 'date-time';
+            }
+
+            $properties[$fieldName] = $prop;
+            $weight += 10;
+        }
+
+        $schema = [
+            '$schema' => 'https://json-schema.org/draft/2020-12/schema',
+            'title' => $label,
+            'description' => "{$label} entity",
+            'type' => 'object',
+            'x-entity-type' => $type,
+            'x-translatable' => false,
+            'x-revisionable' => false,
+            'properties' => $properties,
+            'required' => $required,
+        ];
+
+        return $this->jsonResponse(['meta' => ['schema' => $schema]]);
+    }
+
+    private function mapFieldType(string $waaseyaaType): string
+    {
+        return match ($waaseyaaType) {
+            'integer' => 'integer',
+            'float' => 'number',
+            'boolean' => 'boolean',
+            default => 'string',
+        };
+    }
+
     private function jsonResponse(mixed $data, int $statusCode = 200): SsrResponse
     {
         return new SsrResponse(

@@ -8,6 +8,7 @@ use Claudriel\Controller\Platform\ObservabilityDashboardController;
 use Claudriel\Service\Governance\CodifiedContextIntegrityScanner;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -20,7 +21,7 @@ final class CodifiedContextIntegrityController
         private readonly ?string $batchStorageDirectory = null,
     ) {}
 
-    public function index(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function index(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $payload = $this->buildPayload();
 
@@ -37,7 +38,7 @@ final class CodifiedContextIntegrityController
         return $this->json($payload);
     }
 
-    public function jsonView(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function jsonView(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         return $this->json($this->buildPayload());
     }

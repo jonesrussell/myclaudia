@@ -18,6 +18,6 @@ final class Skill extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'skill', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
     }
 }

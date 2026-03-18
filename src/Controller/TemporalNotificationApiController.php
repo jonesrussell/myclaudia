@@ -9,6 +9,7 @@ use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Temporal\Agent\TemporalNotificationDeliveryService;
 use Symfony\Component\HttpFoundation\Request;
+use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\SSR\SsrResponse;
 
@@ -18,9 +19,9 @@ final class TemporalNotificationApiController
         private readonly EntityTypeManager $entityTypeManager,
     ) {}
 
-    public function dismiss(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function dismiss(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
-        $body = json_decode($httpRequest?->getContent() ?? '', true) ?? [];
+        $body = json_decode($httpRequest->getContent(), true) ?? [];
         $notification = $this->resolveNotification((string) ($params['uuid'] ?? ''), $query, $account, $httpRequest, $body);
         if (! $notification instanceof TemporalNotification) {
             return $this->json(['error' => 'Temporal notification not found.'], 404);
@@ -31,9 +32,9 @@ final class TemporalNotificationApiController
         return $this->json(['notification' => $this->serialize($updated)]);
     }
 
-    public function snooze(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function snooze(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
-        $body = json_decode($httpRequest?->getContent() ?? '', true) ?? [];
+        $body = json_decode($httpRequest->getContent(), true) ?? [];
         $notification = $this->resolveNotification((string) ($params['uuid'] ?? ''), $query, $account, $httpRequest, $body);
         if (! $notification instanceof TemporalNotification) {
             return $this->json(['error' => 'Temporal notification not found.'], 404);
@@ -52,9 +53,9 @@ final class TemporalNotificationApiController
         return $this->json(['notification' => $this->serialize($updated)]);
     }
 
-    public function updateAction(array $params = [], array $query = [], mixed $account = null, ?Request $httpRequest = null): SsrResponse
+    public function updateAction(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
-        $body = json_decode($httpRequest?->getContent() ?? '', true) ?? [];
+        $body = json_decode($httpRequest->getContent(), true) ?? [];
         $notification = $this->resolveNotification((string) ($params['uuid'] ?? ''), $query, $account, $httpRequest, $body);
         if (! $notification instanceof TemporalNotification) {
             return $this->json(['error' => 'Temporal notification not found.'], 404);

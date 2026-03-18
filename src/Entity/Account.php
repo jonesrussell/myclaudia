@@ -18,7 +18,7 @@ final class Account extends ContentEntityBase
 
     public function __construct(array $values = [])
     {
-        parent::__construct($values, 'account', $this->entityKeys);
+        parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('roles') === null) {
             $this->set('roles', []);
