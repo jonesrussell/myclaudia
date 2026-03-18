@@ -39,6 +39,7 @@ use Claudriel\Controller\ContextController;
 use Claudriel\Controller\DashboardController;
 use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\GoogleOAuthController;
+use Claudriel\Controller\GoogleSettingsController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\IngestController;
 use Claudriel\Controller\InternalGoogleController;
@@ -1193,6 +1194,35 @@ final class ClaudrielServiceProvider extends ServiceProvider
             ->build();
         $googleCallbackRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.auth.google.callback', $googleCallbackRoute);
+
+        // Google settings API
+        $router->addRoute(
+            'claudriel.api.google.status',
+            RouteBuilder::create('/api/google/status')
+                ->controller(GoogleSettingsController::class.'::status')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $googleDisconnectRoute = RouteBuilder::create('/api/google/disconnect')
+            ->controller(GoogleSettingsController::class.'::disconnect')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $googleDisconnectRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.google.disconnect', $googleDisconnectRoute);
+
+        // Settings page
+        $router->addRoute(
+            'claudriel.settings',
+            RouteBuilder::create('/settings')
+                ->controller(GoogleSettingsController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
 
         // Catch-all: renders 404 for any unmatched path, preventing the
         // foundation render pipeline from failing on PathAliasResolver.
