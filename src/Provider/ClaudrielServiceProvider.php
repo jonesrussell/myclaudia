@@ -357,11 +357,9 @@ final class ClaudrielServiceProvider extends ServiceProvider
         });
     }
 
-    public function graphqlMutationOverrides(): array
+    public function graphqlMutationOverrides(EntityTypeManager $entityTypeManager): array
     {
-        $resolver = new ScheduleSeriesResolver(
-            $this->resolve(EntityTypeManager::class),
-        );
+        $resolver = new ScheduleSeriesResolver($entityTypeManager);
 
         return [
             'updateScheduleEntry' => [
@@ -382,12 +380,10 @@ final class ClaudrielServiceProvider extends ServiceProvider
         ];
     }
 
-    public function middleware(): array
+    public function middleware(EntityTypeManager $entityTypeManager): array
     {
         return [
-            new AccountSessionMiddleware(
-                $this->resolve(EntityTypeManager::class),
-            ),
+            new AccountSessionMiddleware($entityTypeManager),
         ];
     }
 
