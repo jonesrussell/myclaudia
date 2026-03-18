@@ -3,30 +3,24 @@
     "description": "Claudriel — AI personal operations system",
     "type": "project",
     "license": "GPL-2.0-or-later",
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/waaseyaa/graphql.git"
-        }
-    ],
     "require": {
         "php": ">=8.4",
-        "waaseyaa/ai-pipeline": "v0.1.0-alpha.13",
-        "waaseyaa/api": "v0.1.0-alpha.13",
-        "waaseyaa/cli": "v0.1.0-alpha.13",
-        "waaseyaa/config": "v0.1.0-alpha.13",
-        "waaseyaa/core": "v0.1.0-alpha.13",
-        "waaseyaa/database-legacy": "v0.1.0-alpha.13",
-        "waaseyaa/entity": "v0.1.0-alpha.13",
-        "waaseyaa/entity-storage": "v0.1.0-alpha.13",
-        "waaseyaa/foundation": "v0.1.0-alpha.16",
-        "waaseyaa/github": "v0.1.0-alpha.13",
-        "waaseyaa/graphql": "v0.1.0-alpha.15",
-        "waaseyaa/path": "v0.1.0-alpha.13",
-        "waaseyaa/routing": "v0.1.0-alpha.13",
-        "waaseyaa/ssr": "v0.1.0-alpha.13",
-        "waaseyaa/admin-surface": "v0.1.0-alpha.13",
-        "waaseyaa/user": "v0.1.0-alpha.13"
+        "waaseyaa/ai-pipeline": "v0.1.0-alpha.17",
+        "waaseyaa/api": "v0.1.0-alpha.17",
+        "waaseyaa/cli": "v0.1.0-alpha.17",
+        "waaseyaa/config": "v0.1.0-alpha.17",
+        "waaseyaa/core": "v0.1.0-alpha.17",
+        "waaseyaa/database-legacy": "v0.1.0-alpha.17",
+        "waaseyaa/entity": "v0.1.0-alpha.17",
+        "waaseyaa/entity-storage": "v0.1.0-alpha.17",
+        "waaseyaa/foundation": "v0.1.0-alpha.17",
+        "waaseyaa/github": "v0.1.0-alpha.17",
+        "waaseyaa/graphql": "v0.1.0-alpha.17",
+        "waaseyaa/path": "v0.1.0-alpha.17",
+        "waaseyaa/routing": "v0.1.0-alpha.17",
+        "waaseyaa/ssr": "v0.1.0-alpha.17",
+        "waaseyaa/admin-surface": "v0.1.0-alpha.17",
+        "waaseyaa/user": "v0.1.0-alpha.17"
     },
     "require-dev": {
         "deployer/deployer": "^7.5",
