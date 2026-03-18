@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "671ac2461c6b7c6c5699a8511b82fe88",
+    "content-hash": "a79f7cc3be294d2606e71fd178318fc0",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -4684,16 +4684,16 @@
         },
         {
             "name": "waaseyaa/foundation",
-            "version": "v0.1.0-alpha.19",
+            "version": "v0.1.0-alpha.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/waaseyaa/foundation.git",
-                "reference": "fca18151ed6b84a697b80433a26f9aec7ed04862"
+                "reference": "c9cdc270291acf798c7dc13ea2eddc6746a9bb8a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/waaseyaa/foundation/zipball/fca18151ed6b84a697b80433a26f9aec7ed04862",
-                "reference": "fca18151ed6b84a697b80433a26f9aec7ed04862",
+                "url": "https://api.github.com/repos/waaseyaa/foundation/zipball/c9cdc270291acf798c7dc13ea2eddc6746a9bb8a",
+                "reference": "c9cdc270291acf798c7dc13ea2eddc6746a9bb8a",
                 "shasum": ""
             },
             "require": {
@@ -4728,9 +4728,9 @@
             "description": "Core framework primitives: service providers, domain events, results, error handling",
             "support": {
                 "issues": "https://github.com/waaseyaa/foundation/issues",
-                "source": "https://github.com/waaseyaa/foundation/tree/v0.1.0-alpha.19"
+                "source": "https://github.com/waaseyaa/foundation/tree/v0.1.0-alpha.20"
             },
-            "time": "2026-03-18T02:34:25+00:00"
+            "time": "2026-03-18T02:46:10+00:00"
         },
         {
             "name": "waaseyaa/github",
@@ -4958,7 +4958,7 @@
         },
         {
             "name": "waaseyaa/queue",
-            "version": "v0.1.0-alpha.18",
+            "version": "v0.1.0-alpha.19",
             "source": {
                 "type": "git",
                 "url": "https://github.com/waaseyaa/queue.git",
@@ -4996,7 +4996,7 @@
             "description": "Asynchronous task queue and job processing for Waaseyaa",
             "support": {
                 "issues": "https://github.com/waaseyaa/queue/issues",
-                "source": "https://github.com/waaseyaa/queue/tree/v0.1.0-alpha.18"
+                "source": "https://github.com/waaseyaa/queue/tree/v0.1.0-alpha.19"
             },
             "time": "2026-03-16T21:50:01+00:00"
         },

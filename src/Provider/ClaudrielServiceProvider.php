@@ -387,7 +387,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         ];
     }
 
-    public function routes(WaaseyaaRouter $router): void
+    public function routes(WaaseyaaRouter $router, ?EntityTypeManager $entityTypeManager = null): void
     {
         // Public homepage
         $router->addRoute(
@@ -421,7 +421,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         );
 
         // Admin surface routes (session, catalog, entity CRUD)
-        $surfaceHost = new ClaudrielSurfaceHost(fn () => $this->resolve(EntityTypeManager::class));
+        $surfaceHost = new ClaudrielSurfaceHost(fn () => $entityTypeManager);
         AdminSurfaceServiceProvider::registerRoutes($router, $surfaceHost);
 
         // Legacy endpoints consumed by the frontend SPA
