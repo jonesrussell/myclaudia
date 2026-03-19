@@ -65,7 +65,7 @@ use Claudriel\Support\DriftDetector;
 use GraphQL\Type\Definition\Type;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\AdminSurface\AdminSurfaceServiceProvider;
-use Waaseyaa\Database\PdoDatabase;
+use Waaseyaa\Database\DatabaseInterface;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\EntityStorage\Connection\SingleConnectionResolver;
@@ -563,7 +563,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
 
     public function commands(
         EntityTypeManager $entityTypeManager,
-        PdoDatabase $database,
+        DatabaseInterface $database,
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
