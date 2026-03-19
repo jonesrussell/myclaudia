@@ -125,6 +125,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan claudriel.northcloud.one >> ~/.ssh/known_hosts
+          ssh-keyscan 147.182.150.145 >> ~/.ssh/known_hosts
 
       - name: Deploy
         working-directory: claudriel
