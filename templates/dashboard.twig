@@ -1217,8 +1217,9 @@
 
         // ── Panel Toggle ──
         var panelKey = 'claudriel_panel_collapsed';
-        var isCollapsed = localStorage.getItem(panelKey) === 'true';
-        if (window.innerWidth <= 1024) isCollapsed = true;
+        var stored = localStorage.getItem(panelKey);
+        var isCollapsed = stored === 'true';
+        if (stored === null && window.innerWidth <= 1024) isCollapsed = true;
 
         function updatePanel() {
             if (isCollapsed) {

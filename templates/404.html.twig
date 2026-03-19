@@ -3,16 +3,10 @@
 {% block title %}404 Not Found — Claudriel{% endblock %}
 
 {% block styles %}
-  body {
+  main {
     max-width: 720px;
-    margin: 2rem auto;
-    padding: 0 1.25rem;
-  }
-  .site-nav {
-    margin: -2rem calc(-50vw + 50%) 2rem;
-  }
-  .site-nav-inner {
-    max-width: 720px;
+    margin: var(--space-xl) auto;
+    padding: 0 var(--space-lg);
   }
   h1 {
     font-family: var(--font-display);

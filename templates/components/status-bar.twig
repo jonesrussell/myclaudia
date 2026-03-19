@@ -63,7 +63,7 @@
   {% endfor %}
   <article class="status-bar-card">
     <div class="status-bar-label">Last System Scan</div>
-    <div class="status-bar-value">{{ data.heartbeat }}</div>
+    <div class="status-bar-value" title="{{ data.heartbeat }}">{{ data.heartbeat|date('M j, g:i A') }}</div>
     <span class="status-badge {{ data.heartbeatBadge }}">{{ data.heartbeatBadge }}</span>
   </article>
 </section>
