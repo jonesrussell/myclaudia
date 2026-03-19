@@ -33,17 +33,18 @@ const navGroups = computed(() => groupEntityTypes(entityTypes.value))
   padding: 12px 16px 4px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .nav-item {
   padding: 8px 16px;
-  color: var(--color-text);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
-  transition: background 0.15s;
+  font-family: var(--font-body);
+  transition: background 0.15s, color 0.15s;
 }
-.nav-item:hover { background: var(--color-bg); }
-.nav-item.router-link-active { color: var(--color-primary); font-weight: 500; }
+.nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.nav-item.router-link-active { color: var(--accent-amber); font-weight: 500; background: var(--bg-elevated); }
 </style>
