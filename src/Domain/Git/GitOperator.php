@@ -30,6 +30,18 @@ final class GitOperator
         ));
     }
 
+    public function diffRefs(string $repoPath, string $fromRef, string $toRef): string
+    {
+        $this->assertRepoPath($repoPath);
+
+        return $this->run(sprintf(
+            'git -C %s diff %s %s',
+            escapeshellarg($repoPath),
+            escapeshellarg($fromRef),
+            escapeshellarg($toRef),
+        ));
+    }
+
     public function getStatus(string $repoPath): string
     {
         $this->assertRepoPath($repoPath);
