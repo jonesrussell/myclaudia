@@ -39,7 +39,7 @@ final class PublicSessionControllerTest extends TestCase
 
         self::assertInstanceOf(SsrResponse::class, $response);
         self::assertSame(200, $response->statusCode);
-        self::assertStringContainsString('Pick up where you left off.', $response->content);
+        self::assertStringContainsString('Your day is waiting.', $response->content);
     }
 
     public function test_login_form_redirects_authenticated_session_into_app_shell(): void

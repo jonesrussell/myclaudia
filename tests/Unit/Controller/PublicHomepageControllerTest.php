@@ -21,7 +21,7 @@ final class PublicHomepageControllerTest extends TestCase
         $data = json_decode($response->content, true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('/signup', $data['primary_cta_href']);
         self::assertSame('/login', $data['secondary_cta_href']);
-        self::assertStringContainsString('Run your day', $data['headline']);
+        self::assertStringContainsString('Run your operation', $data['headline']);
     }
 
     public function test_show_renders_marketing_homepage_with_signup_and_login_ctas(): void

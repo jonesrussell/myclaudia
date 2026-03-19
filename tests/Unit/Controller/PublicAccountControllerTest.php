@@ -32,7 +32,7 @@ final class PublicAccountControllerTest extends TestCase
         $response = $controller->signupForm();
 
         self::assertSame(200, $response->statusCode);
-        self::assertStringContainsString('Your second in command', $response->content);
+        self::assertStringContainsString('Your operations, handled.', $response->content);
         self::assertStringContainsString('Get Early Access', $response->content);
     }
 
