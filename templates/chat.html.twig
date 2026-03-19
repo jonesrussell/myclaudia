@@ -169,6 +169,76 @@
             border-radius: 3px;
             font-size: 0.85em;
         }
+
+        .progress-indicator {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 0.4rem 0.85rem;
+            font-style: italic;
+        }
+
+        .continuation-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-surface);
+            border: 1px solid var(--accent-blue);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .continuation-bar .continuation-message {
+            flex: 1;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .continuation-bar .continuation-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .continuation-bar button {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: var(--font-body);
+            white-space: nowrap;
+        }
+
+        .btn-continue {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .btn-continue:hover {
+            background: #4a7de0;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border) !important;
+        }
+
+        .btn-cancel:hover {
+            background: var(--bg-hover);
+        }
+
+        .limit-reached {
+            color: #f87171;
+            font-size: 0.85rem;
+            padding: 0.6rem 0.85rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+        }
 {% endblock %}
 
 {% block content %}
@@ -195,12 +265,12 @@
         const form = document.getElementById('chatForm');
         const messagesEl = document.getElementById('chatMessages');
         const textarea = form.querySelector('textarea');
+        let currentSessionId = null;
+        let currentEventSource = null;
 
         function addMessage(content, role) {
             const emptyState = messagesEl.querySelector('.empty-state');
-            if (emptyState) {
-                emptyState.remove();
-            }
+            if (emptyState) emptyState.remove();
 
             const msg = document.createElement('div');
             msg.className = `message ${role}`;
@@ -211,12 +281,213 @@
 
             const body = document.createElement('div');
             body.className = 'message-content';
-            body.textContent = content;
 
             msg.appendChild(label);
             msg.appendChild(body);
             messagesEl.appendChild(msg);
             messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            return body;
+        }
+
+        function setInputEnabled(enabled) {
+            textarea.disabled = !enabled;
+            form.querySelector('button').disabled = !enabled;
+            if (enabled) textarea.focus();
+        }
+
+        function removeContinuationBar() {
+            const existing = messagesEl.querySelector('.continuation-bar');
+            if (existing) existing.remove();
+        }
+
+        function removeLimitReached() {
+            const existing = messagesEl.querySelector('.limit-reached');
+            if (existing) existing.remove();
+        }
+
+        function showContinuationBar(sessionUuid, turnsConsumed, agentMessage) {
+            removeContinuationBar();
+            removeLimitReached();
+
+            const bar = document.createElement('div');
+            bar.className = 'continuation-bar';
+
+            const info = document.createElement('div');
+            info.innerHTML = `
+                <div class="continuation-message">${escapeHtml(agentMessage)}</div>
+                <div class="continuation-meta">${turnsConsumed} turns used</div>
+            `;
+
+            const continueBtn = document.createElement('button');
+            continueBtn.className = 'btn-continue';
+            continueBtn.textContent = 'Continue';
+            continueBtn.addEventListener('click', () => handleContinue(sessionUuid));
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn-cancel';
+            cancelBtn.textContent = 'Stop';
+            cancelBtn.addEventListener('click', () => {
+                removeContinuationBar();
+                setInputEnabled(true);
+            });
+
+            bar.appendChild(info);
+            bar.appendChild(continueBtn);
+            bar.appendChild(cancelBtn);
+            messagesEl.appendChild(bar);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function showLimitReached() {
+            removeContinuationBar();
+            removeLimitReached();
+
+            const el = document.createElement('div');
+            el.className = 'limit-reached';
+            el.textContent = 'Daily turn limit reached. Please try again tomorrow.';
+            messagesEl.appendChild(el);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            setInputEnabled(true);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function removeProgressIndicator() {
+            const existing = messagesEl.querySelector('.progress-indicator');
+            if (existing) existing.remove();
+        }
+
+        function showProgress(summary) {
+            removeProgressIndicator();
+            const el = document.createElement('div');
+            el.className = 'progress-indicator';
+            el.textContent = summary;
+            messagesEl.appendChild(el);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function streamResponse(messageId) {
+            if (currentEventSource) {
+                currentEventSource.close();
+            }
+
+            const contentEl = addMessage('', 'assistant');
+            let fullText = '';
+
+            const es = new EventSource(`/stream/chat/${messageId}`);
+            currentEventSource = es;
+
+            es.addEventListener('chat-token', (e) => {
+                const data = JSON.parse(e.data);
+                fullText += data.token || '';
+                contentEl.textContent = fullText;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+            });
+
+            es.addEventListener('chat-progress', (e) => {
+                const data = JSON.parse(e.data);
+                showProgress(data.summary || 'Working...');
+            });
+
+            es.addEventListener('chat-done', (e) => {
+                es.close();
+                currentEventSource = null;
+                removeProgressIndicator();
+                const data = JSON.parse(e.data);
+                if (data.full_response && !fullText) {
+                    contentEl.textContent = data.full_response;
+                }
+                setInputEnabled(true);
+            });
+
+            es.addEventListener('chat-needs-continuation', (e) => {
+                es.close();
+                currentEventSource = null;
+                removeProgressIndicator();
+                const data = JSON.parse(e.data);
+                showContinuationBar(
+                    data.session_uuid || currentSessionId,
+                    data.turns_consumed || 0,
+                    data.message || 'The agent needs more turns to complete this task.'
+                );
+            });
+
+            es.addEventListener('chat-error', (e) => {
+                es.close();
+                currentEventSource = null;
+                removeProgressIndicator();
+                const data = JSON.parse(e.data);
+                contentEl.textContent = `Error: ${data.error || 'Unknown error'}`;
+                setInputEnabled(true);
+            });
+
+            es.onerror = () => {
+                es.close();
+                currentEventSource = null;
+                removeProgressIndicator();
+                if (!fullText) {
+                    contentEl.textContent = 'Connection lost. Please try again.';
+                }
+                setInputEnabled(true);
+            };
+        }
+
+        async function handleContinue(sessionUuid) {
+            removeContinuationBar();
+            showProgress('Continuing...');
+
+            try {
+                const res = await fetch(`/api/internal/session/${sessionUuid}/continue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (res.status === 429) {
+                    removeProgressIndicator();
+                    showLimitReached();
+                    return;
+                }
+
+                if (!res.ok) {
+                    removeProgressIndicator();
+                    addMessage(`Error: could not continue (${res.status})`, 'assistant');
+                    setInputEnabled(true);
+                    return;
+                }
+
+                const data = await res.json();
+                removeProgressIndicator();
+
+                // Re-send the last user message to get a new stream with continued=true
+                const continueRes = await fetch('/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: '[continue]',
+                        session_id: sessionUuid,
+                        continued: true,
+                    }),
+                });
+
+                if (!continueRes.ok) {
+                    addMessage('Error: could not continue the conversation.', 'assistant');
+                    setInputEnabled(true);
+                    return;
+                }
+
+                const continueData = await continueRes.json();
+                currentSessionId = continueData.session_id;
+                streamResponse(continueData.message_id);
+            } catch (err) {
+                removeProgressIndicator();
+                addMessage('Network error while continuing. Please try again.', 'assistant');
+                setInputEnabled(true);
+            }
         }
 
         form.addEventListener('submit', async (e) => {
@@ -226,31 +497,30 @@
 
             addMessage(text, 'user');
             textarea.value = '';
-            textarea.disabled = true;
-            form.querySelector('button').disabled = true;
+            setInputEnabled(false);
 
             try {
+                const body = { message: text };
+                if (currentSessionId) body.session_id = currentSessionId;
+
                 const res = await fetch('/api/chat/send', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: text }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
                 });
 
                 if (!res.ok) {
                     addMessage(`Error: ${res.status} ${res.statusText}`, 'assistant');
+                    setInputEnabled(true);
                     return;
                 }
 
                 const data = await res.json();
-                addMessage(data.reply || 'No response', 'assistant');
+                currentSessionId = data.session_id;
+                streamResponse(data.message_id);
             } catch (err) {
                 addMessage('Network error. Please try again.', 'assistant');
-            } finally {
-                textarea.disabled = false;
-                form.querySelector('button').disabled = false;
-                textarea.focus();
+                setInputEnabled(true);
             }
         });
     </script>

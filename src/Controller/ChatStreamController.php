@@ -377,6 +377,14 @@ final class ChatStreamController
             $this->emitSseEvent('chat-progress', $normalized);
         };
 
+        $onNeedsContinuation = function (array $payload) use ($sessionUuid): void {
+            $this->emitSseEvent('chat-needs-continuation', [
+                'session_uuid' => $sessionUuid,
+                'turns_consumed' => $payload['turns_consumed'] ?? 0,
+                'message' => $payload['message'] ?? 'The agent needs more turns to complete this task.',
+            ]);
+        };
+
         $accountId = $tenantId;
         $tokenGenerator = $this->tokenGenerator ?? new InternalApiTokenGenerator(
             $_ENV['AGENT_INTERNAL_SECRET'] ?? getenv('AGENT_INTERNAL_SECRET') ?: '',
@@ -404,6 +412,7 @@ final class ChatStreamController
             onDone: $onDone,
             onError: $onError,
             onProgress: $onProgress,
+            onNeedsContinuation: $onNeedsContinuation,
         );
     }
 

@@ -23,6 +23,7 @@ final class SubprocessChatClient
      * @param  Closure(string): void  $onDone
      * @param  Closure(string): void  $onError
      * @param  Closure(array): void|null  $onProgress
+     * @param  Closure(array): void|null  $onNeedsContinuation
      */
     public function stream(
         string $systemPrompt,
@@ -36,6 +37,7 @@ final class SubprocessChatClient
         Closure $onError,
         ?Closure $onProgress = null,
         ?string $model = null,
+        ?Closure $onNeedsContinuation = null,
     ): void {
         $request = json_encode([
             'messages' => $messages,
@@ -146,6 +148,10 @@ final class SubprocessChatClient
                     'tool' => $event['tool'] ?? '',
                     'summary' => 'Received result from '.($event['tool'] ?? 'tool'),
                     'level' => 'info',
+                ]) : null,
+                'needs_continuation' => $onNeedsContinuation !== null ? $onNeedsContinuation([
+                    'turns_consumed' => $event['turns_consumed'] ?? 0,
+                    'message' => $event['message'] ?? 'The agent needs more turns to complete this task.',
                 ]) : null,
                 'error' => $onError($event['message'] ?? 'Unknown agent error'),
                 'done' => $receivedDone = true,
