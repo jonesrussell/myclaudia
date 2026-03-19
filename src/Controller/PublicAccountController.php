@@ -158,6 +158,48 @@ final class PublicAccountController
         ]);
     }
 
+    public function waitlistSignup(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
+    {
+        $request = $httpRequest ?? Request::create('/api/waitlist', 'POST');
+        $body = json_decode((string) $request->getContent(), true);
+        $email = strtolower(trim((string) ($body['email'] ?? '')));
+
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return new SsrResponse(
+                content: json_encode(['error' => 'A valid email address is required.'], JSON_THROW_ON_ERROR),
+                statusCode: 422,
+                headers: ['Content-Type' => 'application/json'],
+            );
+        }
+
+        $storage = $this->entityTypeManager->getStorage('waitlist_entry');
+        $existing = $storage->getQuery()
+            ->condition('email', $email)
+            ->range(0, 1)
+            ->execute();
+
+        if ($existing !== []) {
+            return new SsrResponse(
+                content: json_encode(['success' => true, 'message' => "You're already on the list. We'll be in touch."], JSON_THROW_ON_ERROR),
+                statusCode: 200,
+                headers: ['Content-Type' => 'application/json'],
+            );
+        }
+
+        $entry = $storage->create([
+            'email' => $email,
+            'status' => 'pending',
+            'created_at' => time(),
+        ]);
+        $storage->save($entry);
+
+        return new SsrResponse(
+            content: json_encode(['success' => true, 'message' => "You're on the list! We'll notify you when early access opens."], JSON_THROW_ON_ERROR),
+            statusCode: 201,
+            headers: ['Content-Type' => 'application/json'],
+        );
+    }
+
     private function service(): PublicAccountSignupService
     {
         return new PublicAccountSignupService(

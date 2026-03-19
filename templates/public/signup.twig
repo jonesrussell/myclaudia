@@ -1,26 +1,242 @@
-{% extends "public/auth-layout.twig" %}
+{% extends "base.html.twig" %}
 
-{% block auth_page_title %}Join the Waitlist{% endblock %}
+{% block title %}Join the Waitlist — Claudriel{% endblock %}
 
-{% block auth_eyebrow %}Early access{% endblock %}
-{% block auth_headline %}We're building something different.{% endblock %}
-{% block auth_subtext %}Claudriel turns your schedule, commitments, and active work into one focused operating surface. Join the waitlist to get early access.{% endblock %}
-
-{% block auth_form %}
-    <h2>Join the waitlist</h2>
-
-    <div style="min-height: 400px;">
-        <iframe
-            src="https://goformx.com/forms/claudriel-waitlist"
-            width="100%"
-            height="400"
-            frameborder="0"
-            style="border: none; border-radius: 0.65rem; background: transparent;"
-            title="Claudriel waitlist signup"
-        ></iframe>
-    </div>
+{% block styles %}
+    .site-nav { background: transparent; border-bottom: 0; }
+    body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 50% 20%, rgba(107, 155, 255, 0.14), transparent 40%),
+            radial-gradient(circle at 30% 70%, rgba(45, 212, 191, 0.08), transparent 30%),
+            linear-gradient(180deg, #0b0d12 0%, #111521 52%, #0f1117 100%);
+    }
+    .waitlist-shell {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 4rem 1.4rem 3rem;
+        text-align: center;
+    }
+    .waitlist-badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-teal);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+        border-radius: 999px;
+        padding: 0.35rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .waitlist-shell h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+        line-height: 1;
+        letter-spacing: -0.035em;
+        margin-bottom: 0.75rem;
+    }
+    .waitlist-shell .lead {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        max-width: 480px;
+        margin: 0 auto 2rem;
+    }
+    .waitlist-form {
+        display: flex;
+        gap: 0.6rem;
+        max-width: 480px;
+        margin: 0 auto 1rem;
+    }
+    .waitlist-form input[type="email"] {
+        flex: 1;
+        padding: 0.85rem 1rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        transition: border-color 0.15s;
+    }
+    .waitlist-form input[type="email"]:focus {
+        outline: none;
+        border-color: var(--accent-teal);
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+    }
+    .waitlist-form input[type="email"]::placeholder {
+        color: var(--text-muted);
+    }
+    .waitlist-form button {
+        padding: 0.85rem 1.4rem;
+        border: 0;
+        border-radius: 0.65rem;
+        font-weight: 600;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        cursor: pointer;
+        background: linear-gradient(135deg, #f0b040 0%, #d46337 100%);
+        color: #15120e;
+        box-shadow: 0 12px 30px rgba(212, 99, 55, 0.2);
+        transition: transform 0.18s;
+        white-space: nowrap;
+    }
+    .waitlist-form button:hover { transform: translateY(-1px); }
+    .waitlist-form button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .waitlist-message {
+        max-width: 480px;
+        margin: 0 auto 2rem;
+        padding: 0.85rem 1rem;
+        border-radius: 0.65rem;
+        font-size: 0.9rem;
+        display: none;
+    }
+    .waitlist-message.success {
+        display: block;
+        background: rgba(45, 212, 191, 0.12);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+        color: #5eead4;
+    }
+    .waitlist-message.error {
+        display: block;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
+    }
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 3rem;
+    }
+    .feature-card {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: left;
+    }
+    .feature-icon {
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 0.6rem;
+        background: rgba(107, 155, 255, 0.1);
+        border: 1px solid rgba(107, 155, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.9rem;
+        color: var(--accent-blue);
+        font-size: 1rem;
+    }
+    .feature-card h3 {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+    .feature-card p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+    .waitlist-login {
+        margin-top: 2rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    .waitlist-login a {
+        color: var(--accent-teal);
+        text-decoration: none;
+    }
+    .waitlist-login a:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+        .waitlist-shell { padding: 2.5rem 1rem 2rem; }
+        .waitlist-form { flex-direction: column; }
+        .waitlist-form button { width: 100%; }
+        .feature-grid { grid-template-columns: 1fr; }
+    }
 {% endblock %}
 
-{% block auth_links %}
-    Already have an account? <a href="/login">Log in</a>
+{% block content %}
+    <main class="waitlist-shell">
+        <div class="waitlist-badge">Launching Soon</div>
+        <h1>Your second in command</h1>
+        <p class="lead">Autonomous, gated automation that learns and evolves with your platform.</p>
+
+        <div id="waitlist-msg" class="waitlist-message"></div>
+
+        <form class="waitlist-form" id="waitlist-form" onsubmit="return submitWaitlist(event)">
+            <input type="email" name="email" placeholder="you@email.com" required id="waitlist-email">
+            <button type="submit" id="waitlist-btn">Get Early Access</button>
+        </form>
+
+        <div class="feature-grid">
+            <article class="feature-card">
+                <div class="feature-icon">&#x2699;</div>
+                <h3>Autonomous Workhorses</h3>
+                <p>AI agents that implement, test, and deploy changes across your codebase.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-icon">&#x2696;</div>
+                <h3>Second in Command</h3>
+                <p>Claudriel proposes architecture, sequences work, and manages priorities.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-icon">&#x21BB;</div>
+                <h3>Gated Self-Improvement</h3>
+                <p>Self-learning automation that requests approvals for high-impact changes.</p>
+            </article>
+        </div>
+
+        <div class="waitlist-login">
+            Already have an account? <a href="/login">Log in</a>
+        </div>
+    </main>
+
+    <script>
+    async function submitWaitlist(e) {
+        e.preventDefault();
+        var btn = document.getElementById('waitlist-btn');
+        var msg = document.getElementById('waitlist-msg');
+        var email = document.getElementById('waitlist-email').value;
+
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        msg.className = 'waitlist-message';
+        msg.style.display = 'none';
+
+        try {
+            var res = await fetch('/api/waitlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            var data = await res.json();
+
+            if (data.success) {
+                msg.textContent = data.message;
+                msg.className = 'waitlist-message success';
+                msg.style.display = 'block';
+                document.getElementById('waitlist-form').style.display = 'none';
+            } else {
+                msg.textContent = data.error || 'Something went wrong.';
+                msg.className = 'waitlist-message error';
+                msg.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Get Early Access';
+            }
+        } catch {
+            msg.textContent = 'Connection error. Please try again.';
+            msg.className = 'waitlist-message error';
+            msg.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Get Early Access';
+        }
+
+        return false;
+    }
+    </script>
 {% endblock %}
