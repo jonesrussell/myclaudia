@@ -160,7 +160,7 @@ jobs:
 
       - name: Deploy to staging
         working-directory: claudriel
-        run: dep deploy staging --no-interaction -vv
+        run: vendor/bin/dep deploy staging --no-interaction -vv
 
   deploy-production:
     name: Deploy Production
@@ -203,4 +203,4 @@ jobs:
 
       - name: Deploy to production
         working-directory: claudriel
-        run: dep deploy production --no-interaction -vv
+        run: vendor/bin/dep deploy production --no-interaction -vv
