@@ -8,6 +8,7 @@ use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
 use Claudriel\Controller\ContextController;
 use Claudriel\Controller\InternalGoogleController;
+use Claudriel\Controller\InternalSessionController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
@@ -36,6 +37,10 @@ final class ChatServiceProvider extends ServiceProvider
                 'tenant_id' => ['type' => 'string'],
                 'account_uuid' => ['type' => 'string'],
                 'workspace_id' => ['type' => 'string'],
+                'turns_consumed' => ['type' => 'integer'],
+                'task_type' => ['type' => 'string'],
+                'continued_count' => ['type' => 'integer'],
+                'turn_limit_applied' => ['type' => 'integer'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
@@ -85,6 +90,14 @@ final class ChatServiceProvider extends ServiceProvider
             }
 
             return new InternalApiTokenGenerator($secret);
+        });
+
+        $this->singleton(InternalSessionController::class, function () {
+            return new InternalSessionController(
+                $this->resolve(EntityTypeManager::class)->getRepository('chat_session'),
+                $this->resolve(InternalApiTokenGenerator::class),
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
+            );
         });
 
         $this->singleton(InternalGoogleController::class, function () {
@@ -147,6 +160,22 @@ final class ChatServiceProvider extends ServiceProvider
             ->build();
         $internalCalendarCreateRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.internal.calendar.create', $internalCalendarCreateRoute);
+
+        $internalSessionLimitsRoute = RouteBuilder::create('/api/internal/session/limits')
+            ->controller(InternalSessionController::class.'::getLimits')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalSessionLimitsRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.session.limits', $internalSessionLimitsRoute);
+
+        $internalSessionContinueRoute = RouteBuilder::create('/api/internal/session/{id}/continue')
+            ->controller(InternalSessionController::class.'::continueSession')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $internalSessionContinueRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.session.continue', $internalSessionContinueRoute);
 
         $router->addRoute(
             'claudriel.api.context',

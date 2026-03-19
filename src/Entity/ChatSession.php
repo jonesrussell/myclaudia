@@ -21,6 +21,12 @@ final class ChatSession extends ContentEntityBase
         if (! array_key_exists('title', $values)) {
             $values['title'] = 'New Chat';
         }
+        if (! array_key_exists('turns_consumed', $values)) {
+            $values['turns_consumed'] = 0;
+        }
+        if (! array_key_exists('continued_count', $values)) {
+            $values['continued_count'] = 0;
+        }
         parent::__construct($values, $this->entityTypeId, $this->entityKeys);
 
         if ($this->get('tenant_id') === null) {
