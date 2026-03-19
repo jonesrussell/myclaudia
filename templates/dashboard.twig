@@ -200,10 +200,10 @@
             100% { transform: scale(1); }
         }
         .panel-item.drifting {
-            border-left-color: var(--accent-red) !important;
+            border-left-color: var(--accent-amber, #f0b040) !important;
         }
         .drifting-label {
-            color: var(--accent-red);
+            color: var(--accent-amber, #f0b040);
             font-size: 0.7rem;
             font-weight: 500;
         }
@@ -232,7 +232,7 @@
         .panel-item.job_hunt { border-left-color: var(--accent-teal); }
         .panel-item.people { border-left-color: var(--accent-amber); }
         .panel-item.triage { border-left-color: var(--accent-purple, #a78bfa); }
-        .panel-item.commitment { border-left-color: var(--accent-red); }
+        .panel-item.commitment { border-left-color: var(--accent-teal, #2dd4bf); }
         .panel-item.notification { border-left-color: var(--text-muted); }
 
         .panel-empty {
@@ -878,6 +878,53 @@
             cursor: not-allowed;
         }
 
+        /* ── Editorial Greeting ── */
+        .editorial-greeting {
+            margin-bottom: 0;
+            padding: var(--space-md, 1rem) var(--space-lg, 1.5rem);
+            flex-shrink: 0;
+        }
+        .greeting-headline {
+            font-family: var(--font-display, 'Bricolage Grotesque', system-ui, sans-serif);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            color: var(--text-primary, #e8e9ed);
+        }
+        .greeting-sub {
+            font-size: 1.1rem;
+            color: var(--text-secondary, #9b9cb5);
+            margin-top: var(--space-xs, 0.25rem);
+        }
+
+        /* ── Editorial Card & Panel Treatment ── */
+        .panel-section-title {
+            font-family: var(--font-display, 'Bricolage Grotesque', system-ui, sans-serif);
+            letter-spacing: 0.1em;
+        }
+
+        .workspace-card {
+            background: var(--bg-surface, #131620);
+            border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+            border-radius: var(--radius-md, 10px);
+        }
+
+        .counter-card {
+            background: var(--bg-surface, #131620);
+            border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+            border-radius: var(--radius-md, 10px);
+        }
+
+        /* Card-label utility */
+        .card-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted, #6b6d82);
+        }
+
         @media (max-width: 1024px) {
             .dashboard { grid-template-columns: 0px 1fr; }
             .dashboard .context-panel { opacity: 0; padding: 0; pointer-events: none; width: 0; overflow: hidden; }
@@ -885,6 +932,12 @@
             .dashboard.panel-open { grid-template-columns: 280px 1fr; }
             .dashboard.panel-open .context-panel { opacity: 1; padding: 1.25rem 1.25rem; pointer-events: auto; width: auto; overflow-y: auto; }
             .dashboard.panel-open .panel-toggle { left: 280px; }
+            .editorial-greeting {
+                padding: var(--space-sm, 0.5rem) var(--space-md, 1rem);
+            }
+            .greeting-headline {
+                font-size: clamp(1.25rem, 3vw, 1.75rem);
+            }
         }
 {% endblock %}
 
@@ -1091,6 +1144,24 @@
                     {% endif %}
                     <button class="new-chat-btn" id="newChatBtn">New Chat</button>
                 </div>
+            </div>
+
+            {# ── Editorial Greeting ── #}
+            {% set hour = "now"|date("G") %}
+            {% set greeting = hour < 12 ? 'Good morning.' : (hour < 17 ? 'Good afternoon.' : 'Good evening.') %}
+            {% set attention_count = (pending_commitments|default([]))|length + (drifting_commitments|default([]))|length %}
+
+            <div class="editorial-greeting">
+                <h1 class="greeting-headline">{{ greeting }}</h1>
+                <p class="greeting-sub">
+                    {% if attention_count == 0 %}
+                        You're clear. No commitments need attention.
+                    {% elseif attention_count == 1 %}
+                        One thing before your next call.
+                    {% else %}
+                        {{ attention_count }} things before your next call.
+                    {% endif %}
+                </p>
             </div>
 
             {% if sessions|length > 0 %}
