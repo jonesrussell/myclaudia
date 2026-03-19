@@ -10,13 +10,15 @@ const LABEL_FIELDS: Record<string, string> = {
   commitment: 'title',
   schedule_entry: 'title',
   triage_entry: 'sender_name',
+  project: 'name',
 }
 
 /** Fields to request per GraphQL entity type. */
 const GRAPHQL_FIELDS: Record<string, string> = {
   commitment: 'uuid title status confidence due_date person_uuid source tenant_id created_at updated_at',
   person: 'uuid name email tier source tenant_id latest_summary last_interaction_at last_inbox_category created_at updated_at',
-  workspace: 'uuid name description account_id tenant_id metadata repo_path repo_url branch codex_model last_commit_hash ci_status created_at updated_at',
+  project: 'uuid name description status metadata settings context account_id tenant_id created_at updated_at',
+  workspace: 'uuid name description account_id tenant_id metadata repo_path repo_url branch codex_model last_commit_hash ci_status project_id created_at updated_at',
   schedule_entry: 'uuid title starts_at ends_at notes source status external_id calendar_id recurring_series_id tenant_id created_at updated_at',
   triage_entry: 'uuid sender_name sender_email summary status source tenant_id occurred_at external_id content_hash raw_payload created_at updated_at',
 }

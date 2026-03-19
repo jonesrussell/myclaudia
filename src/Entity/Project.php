@@ -6,12 +6,12 @@ namespace Claudriel\Entity;
 
 use Waaseyaa\Entity\ContentEntityBase;
 
-final class Workspace extends ContentEntityBase
+final class Project extends ContentEntityBase
 {
-    protected string $entityTypeId = 'workspace';
+    protected string $entityTypeId = 'project';
 
     protected array $entityKeys = [
-        'id' => 'wid',
+        'id' => 'prid',
         'uuid' => 'uuid',
         'label' => 'name',
     ];
@@ -26,32 +26,23 @@ final class Workspace extends ContentEntityBase
         if ($this->get('tenant_id') === null) {
             $this->set('tenant_id', $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default');
         }
+        if ($this->get('name') === null) {
+            $this->set('name', '');
+        }
         if ($this->get('description') === null) {
             $this->set('description', '');
+        }
+        if ($this->get('status') === null) {
+            $this->set('status', 'active');
         }
         if ($this->get('metadata') === null) {
             $this->set('metadata', '{}');
         }
-        if ($this->get('repo_path') === null) {
-            $this->set('repo_path', null);
+        if ($this->get('settings') === null) {
+            $this->set('settings', '{}');
         }
-        if ($this->get('repo_url') === null) {
-            $this->set('repo_url', null);
-        }
-        if ($this->get('branch') === null) {
-            $this->set('branch', 'main');
-        }
-        if ($this->get('codex_model') === null) {
-            $this->set('codex_model', 'gpt-4o-codex');
-        }
-        if ($this->get('last_commit_hash') === null) {
-            $this->set('last_commit_hash', null);
-        }
-        if ($this->get('ci_status') === null) {
-            $this->set('ci_status', null);
-        }
-        if ($this->get('project_id') === null) {
-            $this->set('project_id', null);
+        if ($this->get('context') === null) {
+            $this->set('context', '{}');
         }
     }
 }

@@ -51,6 +51,7 @@ use Claudriel\Entity\Commitment;
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Operation;
 use Claudriel\Entity\Person;
+use Claudriel\Entity\Project;
 use Claudriel\Entity\ScheduleEntry;
 use Claudriel\Entity\Skill;
 use Claudriel\Entity\TriageEntry;
@@ -142,6 +143,31 @@ final class ClaudrielServiceProvider extends ServiceProvider
                     $args['id'],
                     $args['scope'] ?? 'occurrence',
                 ),
+            ],
+            'deleteProject' => [
+                'resolve' => function (mixed $root, array $args) use ($entityTypeManager): array {
+                    $projectId = $args['id'];
+
+                    // Nullify project_id on all associated workspaces
+                    $workspaceStorage = $entityTypeManager->getStorage('workspace');
+                    $allWorkspaces = $workspaceStorage->loadMultiple();
+                    foreach ($allWorkspaces as $workspace) {
+                        assert($workspace instanceof Workspace);
+                        if ($workspace->get('project_id') === $projectId) {
+                            $workspace->set('project_id', null);
+                            $workspaceStorage->save($workspace);
+                        }
+                    }
+
+                    // Delete the project
+                    $projectStorage = $entityTypeManager->getStorage('project');
+                    $project = $projectStorage->load($projectId);
+                    if ($project !== null) {
+                        $projectStorage->delete([$project]);
+                    }
+
+                    return ['deleted' => true];
+                },
             ],
         ];
     }
@@ -515,7 +541,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation', 'issue_run'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation', 'issue_run', 'project'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {

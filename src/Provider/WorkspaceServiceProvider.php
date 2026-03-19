@@ -33,6 +33,7 @@ final class WorkspaceServiceProvider extends ServiceProvider
                 'codex_model' => ['type' => 'string'],
                 'last_commit_hash' => ['type' => 'string'],
                 'ci_status' => ['type' => 'string'],
+                'project_id' => ['type' => 'string'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
