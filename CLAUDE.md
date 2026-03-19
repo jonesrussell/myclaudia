@@ -142,3 +142,7 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - `file_get_contents` needs `'ignore_errors' => true` in stream context to get response body on HTTP 4xx/5xx (otherwise returns `false`)
 - Entity types without `fieldDefinitions` in their `EntityType` registration produce no GraphQL schema; add fieldDefinitions matching the entity class constructor fields
 - `raw_payload` fields return raw JSON strings via GraphQL (REST controllers did `json_decode`); frontend consumers need `JSON.parse()`
+- Production deploys to `claudriel.ai` via `/home/deployer/claudriel-prod/`; `claudriel.northcloud.one` is a separate legacy deployment at `/home/deployer/claudriel/` that is NOT updated by CI
+- `NotFoundController` Twig is null in production (DI doesn't inject it); the inline HTML fallback is what users see for 404s, not the Twig template
+- GraphQL endpoint (`/graphql`) is publicly accessible via `->allowAll()`; entity access guards filter items post-fetch, so unauthenticated requests get `total > 0` but empty `items`
+- Admin SPA Nuxt proxy routes `/api/**` to `localhost:8081`; in production the admin runs as a static build, not a Nuxt server, so API calls must be handled by the PHP backend directly via Caddy reverse-proxy rules
