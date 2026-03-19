@@ -1,4 +1,4 @@
-name: Deploy to claudriel.northcloud.one
+name: Deploy Claudriel
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-production
+  group: deploy
   cancel-in-progress: false
 
 jobs:
@@ -56,10 +56,9 @@ jobs:
         working-directory: claudriel/agent
         run: python -c "import ast, pathlib; [ast.parse(f.read_text()) for f in pathlib.Path('.').rglob('*.py')]"
 
-  deploy:
-    name: Build & Deploy
+  build:
+    name: Build Artifact
     runs-on: ubuntu-latest
-    environment: production
     needs: verify
 
     steps:
@@ -113,8 +112,41 @@ jobs:
             --exclude='skills/' \
             claudriel/ claudriel/.build/
 
-      - name: Install PHP Deployer
-        run: composer global require deployer/deployer --no-interaction
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-artifact
+          path: claudriel/.build/
+          retention-days: 3
+
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: build
+
+    steps:
+      - name: Checkout claudriel
+        uses: actions/checkout@v4
+        with:
+          path: claudriel
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-artifact
+          path: claudriel/.build/
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, mbstring, xml
+          coverage: none
+
+      - name: Install Deployer dependencies
+        working-directory: claudriel
+        run: composer install --no-interaction --optimize-autoloader --prefer-dist
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
@@ -125,8 +157,50 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan claudriel.northcloud.one >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging
+        working-directory: claudriel
+        run: dep deploy staging --no-interaction -vv
+
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-staging
+
+    steps:
+      - name: Checkout claudriel
+        uses: actions/checkout@v4
+        with:
+          path: claudriel
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-artifact
+          path: claudriel/.build/
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, mbstring, xml
+          coverage: none
+
+      - name: Install Deployer dependencies
+        working-directory: claudriel
+        run: composer install --no-interaction --optimize-autoloader --prefer-dist
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add known host
+        run: |
+          mkdir -p ~/.ssh
           ssh-keyscan 147.182.150.145 >> ~/.ssh/known_hosts
 
-      - name: Deploy
+      - name: Deploy to production
         working-directory: claudriel
         run: dep deploy production --no-interaction -vv

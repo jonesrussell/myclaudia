@@ -1,16 +1,21 @@
 <?php
 
 /**
- * PHP Deployer configuration for claudriel.northcloud.one
+ * PHP Deployer configuration for Claudriel.
  *
  * Deployment strategy: artifact upload
  * Composer uses path repositories (../waaseyaa/packages/*), so vendor is
  * pre-built in CI and uploaded — the server never runs composer directly.
  *
+ * Environments:
+ *   staging    → claudriel.northcloud.one  (/home/deployer/claudriel)
+ *   production → claudriel.ai              (/home/deployer/claudriel-prod)
+ *
  * Usage:
- *   dep deploy production           # Full deploy
- *   dep rollback production          # Roll back to previous release
- *   dep deploy:unlock production     # Unlock if deploy was interrupted
+ *   dep deploy staging               # Deploy to staging
+ *   dep deploy production             # Deploy to production
+ *   dep rollback production           # Roll back to previous release
+ *   dep deploy:unlock production      # Unlock if deploy was interrupted
  */
 
 namespace Deployer;
