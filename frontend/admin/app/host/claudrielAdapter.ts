@@ -180,8 +180,9 @@ export const claudrielHostAdapter: HostAdapter = {
     },
 
     async schema(type: string): Promise<EntitySchema> {
-      const response = await $fetch<{ meta: { schema: EntitySchema } }>(`/api/schema/${type}`)
-      return response.meta.schema
+      const response = await fetch(`/api/schema/${type}`)
+      const json = await response.json() as { meta: { schema: EntitySchema } }
+      return json.meta.schema
     },
   },
 }
