@@ -112,6 +112,7 @@ final class ChatStreamController
 
         return new StreamedResponse(
             function () use ($sessionUuid, $apiKey, $msgStorage, $tenantId, $workspaceId, $snapshot, $account): void {
+                set_time_limit(0);
                 if (session_status() === PHP_SESSION_ACTIVE) {
                     session_write_close();
                 }

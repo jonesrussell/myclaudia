@@ -68,6 +68,7 @@ final class BriefStreamController
 
         return new StreamedResponse(
             function () use ($signalFile, $context, $scope, $snapshot): void {
+                set_time_limit(0);
                 if (session_status() === PHP_SESSION_ACTIVE) {
                     session_write_close();
                 }
