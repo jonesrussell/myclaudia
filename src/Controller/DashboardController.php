@@ -139,11 +139,19 @@ final class DashboardController
             'updated_at' => $c->get('updated_at'),
         ], $driftingCommitments);
 
+        /** @var ContentEntityInterface[] $waitingOnCommitments */
+        $waitingOnCommitments = $brief['commitments']['waiting_on'];
+        $twigWaitingOn = array_map(static fn (ContentEntityInterface $c) => [
+            'title' => $c->get('title'),
+            'person_id' => $c->get('person_id'),
+        ], $waitingOnCommitments);
+
         // Twig rendering
         if ($this->twig !== null) {
             $html = $this->twig->render('dashboard.twig', array_merge($brief, [
                 'pending_commitments' => $twigCommitments,
                 'drifting_commitments' => $twigDrifting,
+                'waiting_on_commitments' => $twigWaitingOn,
                 'sessions' => $twigSessions,
                 'api_configured' => $apiConfigured,
                 'csrf_token' => CsrfMiddleware::token(),
@@ -183,6 +191,7 @@ final class DashboardController
         $payload = $brief;
         $payload['commitments']['pending'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['pending']);
         $payload['commitments']['drifting'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['drifting']);
+        $payload['commitments']['waiting_on'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['waiting_on']);
         $payload['matched_skills'] = array_map(fn ($s) => $s->toArray(), $brief['matched_skills']);
 
         return $payload;

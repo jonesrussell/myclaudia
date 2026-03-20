@@ -1096,6 +1096,23 @@
                 </div>
             </div>
 
+            {# Waiting On (inbound commitments) #}
+            <div class="panel-section" id="panelWaitingOn">
+                <div class="panel-section-title">Waiting On <span class="badge" id="waitingOnCount">{{ waiting_on_commitments|length }}</span></div>
+                <div id="waitingOnItems">
+                    {% if waiting_on_commitments|length > 0 %}
+                        {% for c in waiting_on_commitments %}
+                            <div class="panel-item commitment waiting-on" data-chat="Follow up on {{ c.title }}">
+                                {{ c.title|default('(untitled)') }}
+                                {% if c.person_id %}<span class="item-meta">From: {{ c.person_id }}</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="panel-empty">Nothing pending from others.</div>
+                    {% endif %}
+                </div>
+            </div>
+
             {# People #}
             <div class="panel-section" id="panelPeople">
                 <div class="panel-section-title">People <span class="badge" id="peopleCount">{{ people|length }}</span></div>
@@ -1969,6 +1986,25 @@
                     html = '<div class="panel-empty">No pending commitments.</div>';
                 }
                 commitmentItems.innerHTML = html;
+            }
+
+            // Waiting On
+            var waitingOnCount = document.getElementById('waitingOnCount');
+            var waitingOnItems = document.getElementById('waitingOnItems');
+            if (waitingOnCount && waitingOnItems && data.commitments) {
+                var waitingOn = data.commitments.waiting_on || [];
+                waitingOnCount.textContent = waitingOn.length;
+                var waitingHtml = '';
+                waitingOn.forEach(function(c) {
+                    waitingHtml += '<div class="panel-item commitment waiting-on" data-chat="Follow up on ' + esc(c.title || '(untitled)') + '">'
+                        + esc(c.title || '(untitled)')
+                        + (c.person_id ? '<span class="item-meta">From: ' + esc(c.person_id) + '</span>' : '')
+                        + '</div>';
+                });
+                if (waitingHtml === '') {
+                    waitingHtml = '<div class="panel-empty">Nothing pending from others.</div>';
+                }
+                waitingOnItems.innerHTML = waitingHtml;
             }
 
             rebuildWorkspaceSidebar(data.workspaces);
