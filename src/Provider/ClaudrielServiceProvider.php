@@ -38,7 +38,9 @@ use Claudriel\Controller\GoogleSettingsController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\NotFoundController;
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
+use Claudriel\Controller\PrivacyPolicyController;
 use Claudriel\Controller\PublicHomepageController;
+use Claudriel\Controller\TermsOfServiceController;
 use Claudriel\Controller\WorkspaceDriftController;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
@@ -188,6 +190,26 @@ final class ClaudrielServiceProvider extends ServiceProvider
             'claudriel.homepage',
             RouteBuilder::create('/')
                 ->controller(PublicHomepageController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.privacy',
+            RouteBuilder::create('/privacy')
+                ->controller(PrivacyPolicyController::class.'::show')
+                ->allowAll()
+                ->methods('GET')
+                ->render()
+                ->build(),
+        );
+
+        $router->addRoute(
+            'claudriel.terms',
+            RouteBuilder::create('/terms')
+                ->controller(TermsOfServiceController::class.'::show')
                 ->allowAll()
                 ->methods('GET')
                 ->render()

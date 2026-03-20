@@ -1,0 +1,165 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Terms of Service | Claudriel{% endblock %}
+
+{% block styles %}
+    body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at top left, rgba(107, 155, 255, 0.12), transparent 30%),
+            linear-gradient(180deg, #0a0c10 0%, #131620 52%, #0a0c10 100%);
+    }
+    .terms-shell {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.4rem 5rem;
+    }
+    .terms-shell h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 5vw, 3rem);
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+    }
+    .terms-shell .last-updated {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 2.5rem;
+    }
+    .terms-shell h2 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+        margin-top: 2.2rem;
+        margin-bottom: 0.7rem;
+        color: var(--text-primary);
+    }
+    .terms-shell p,
+    .terms-shell li {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        font-size: 0.95rem;
+    }
+    .terms-shell ul {
+        padding-left: 1.4rem;
+        margin: 0.5rem 0 1rem;
+    }
+    .terms-shell li {
+        margin-bottom: 0.35rem;
+    }
+    .terms-shell a {
+        color: var(--accent-teal);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .terms-shell a:hover {
+        color: var(--text-primary);
+    }
+{% endblock %}
+
+{% block content %}
+    <main class="terms-shell">
+        <h1>Terms of Service</h1>
+        <p class="last-updated">Last updated: {{ last_updated }}</p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>
+            By creating an account or using Claudriel ("the Service"), you agree to these
+            Terms of Service. If you do not agree, do not use the Service.
+        </p>
+
+        <h2>2. Description of Service</h2>
+        <p>
+            Claudriel is a personal operations platform that connects to your Google Workspace
+            (Gmail, Calendar, Drive) to extract commitments, generate daily briefings, and
+            provide contextual intelligence about your work. The Service is provided on an
+            "as is" basis.
+        </p>
+
+        <h2>3. Account Registration</h2>
+        <ul>
+            <li>You must provide accurate information when creating an account</li>
+            <li>You are responsible for maintaining the security of your account credentials</li>
+            <li>You must be at least 18 years old to use the Service</li>
+            <li>One person per account; accounts are not transferable</li>
+        </ul>
+
+        <h2>4. Google API Integration</h2>
+        <p>
+            The Service accesses your Google account data through OAuth 2.0 with read-only
+            permissions. You can revoke access at any time through your Claudriel settings
+            or your
+            <a href="https://myaccount.google.com/permissions" rel="noopener noreferrer">Google Account permissions</a>.
+            Our use of Google data complies with the
+            <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener noreferrer">Google API Services User Data Policy</a>,
+            including the Limited Use requirements.
+        </p>
+
+        <h2>5. Your Data</h2>
+        <ul>
+            <li>You retain ownership of all data you provide or that is accessed through your connected accounts</li>
+            <li>We process your data solely to provide the Service's features</li>
+            <li>We do not sell, rent, or share your data with third parties for their own purposes</li>
+            <li>See our <a href="/privacy">Privacy Policy</a> for full details on data handling</li>
+        </ul>
+
+        <h2>6. Acceptable Use</h2>
+        <p>You agree not to:</p>
+        <ul>
+            <li>Use the Service for any unlawful purpose</li>
+            <li>Attempt to reverse-engineer, decompile, or extract source code from the Service</li>
+            <li>Interfere with or disrupt the Service's infrastructure</li>
+            <li>Create multiple accounts to circumvent restrictions</li>
+            <li>Use automated tools to access the Service beyond its intended interfaces</li>
+        </ul>
+
+        <h2>7. AI-Generated Content</h2>
+        <p>
+            Claudriel uses artificial intelligence to extract commitments, generate briefings,
+            and provide suggestions. AI-generated content may contain inaccuracies. You are
+            responsible for reviewing and verifying any information before acting on it.
+            The Service does not provide legal, financial, or professional advice.
+        </p>
+
+        <h2>8. Service Availability</h2>
+        <p>
+            We strive to keep Claudriel available, but we do not guarantee uninterrupted access.
+            The Service may be temporarily unavailable for maintenance, updates, or circumstances
+            beyond our control. We will make reasonable efforts to notify you of planned downtime.
+        </p>
+
+        <h2>9. Termination</h2>
+        <ul>
+            <li>You may delete your account at any time, which will remove all your data from our systems</li>
+            <li>We may suspend or terminate accounts that violate these terms</li>
+            <li>Upon termination, your right to use the Service ceases immediately</li>
+        </ul>
+
+        <h2>10. Limitation of Liability</h2>
+        <p>
+            To the maximum extent permitted by law, Claudriel and its operators shall not be
+            liable for any indirect, incidental, special, consequential, or punitive damages,
+            or any loss of profits or data, arising from your use of the Service. Our total
+            liability shall not exceed the amount you paid for the Service in the twelve months
+            preceding the claim.
+        </p>
+
+        <h2>11. Changes to Terms</h2>
+        <p>
+            We may update these terms from time to time. Significant changes will be communicated
+            through the application or via email. Continued use of the Service after changes
+            constitutes acceptance of the updated terms.
+        </p>
+
+        <h2>12. Governing Law</h2>
+        <p>
+            These terms are governed by the laws of the Province of Ontario, Canada, without
+            regard to conflict of law principles.
+        </p>
+
+        <h2>13. Contact</h2>
+        <p>
+            Questions about these terms? Contact us at
+            <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+        </p>
+    </main>
+{% endblock %}

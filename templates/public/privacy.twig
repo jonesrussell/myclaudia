@@ -1,0 +1,138 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Privacy Policy | Claudriel{% endblock %}
+
+{% block styles %}
+    body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at top left, rgba(107, 155, 255, 0.12), transparent 30%),
+            linear-gradient(180deg, #0a0c10 0%, #131620 52%, #0a0c10 100%);
+    }
+    .privacy-shell {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 3rem 1.4rem 5rem;
+    }
+    .privacy-shell h1 {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 5vw, 3rem);
+        letter-spacing: -0.03em;
+        margin-bottom: 0.5rem;
+    }
+    .privacy-shell .last-updated {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 2.5rem;
+    }
+    .privacy-shell h2 {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        letter-spacing: -0.02em;
+        margin-top: 2.2rem;
+        margin-bottom: 0.7rem;
+        color: var(--text-primary);
+    }
+    .privacy-shell p,
+    .privacy-shell li {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        font-size: 0.95rem;
+    }
+    .privacy-shell ul {
+        padding-left: 1.4rem;
+        margin: 0.5rem 0 1rem;
+    }
+    .privacy-shell li {
+        margin-bottom: 0.35rem;
+    }
+    .privacy-shell a {
+        color: var(--accent-teal);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .privacy-shell a:hover {
+        color: var(--text-primary);
+    }
+{% endblock %}
+
+{% block content %}
+    <main class="privacy-shell">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last updated: {{ last_updated }}</p>
+
+        <h2>Overview</h2>
+        <p>
+            Claudriel ("we", "us", "our") is a personal operations platform that helps
+            professionals manage commitments, schedules, and client context. This policy
+            explains what data we collect, how we use it, and your rights.
+        </p>
+
+        <h2>Information We Collect</h2>
+        <p>When you use Claudriel, we may access the following data through Google APIs:</p>
+        <ul>
+            <li><strong>Gmail (read-only):</strong> Email metadata and message content to extract
+                commitments, follow-ups, and context. We do not send, modify, or delete your emails.</li>
+            <li><strong>Google Calendar (read-only):</strong> Calendar events to provide scheduling
+                context in your daily brief. We do not create, modify, or delete your events through
+                this scope.</li>
+            <li><strong>Google Drive (read-only):</strong> Document metadata for context linking.
+                We do not modify or delete your files.</li>
+        </ul>
+
+        <h2>How We Use Your Data</h2>
+        <ul>
+            <li>Extract commitments and action items from your email conversations</li>
+            <li>Generate daily briefings with your upcoming schedule and pending items</li>
+            <li>Detect drifting commitments that may need your attention</li>
+            <li>Provide contextual information about people and projects you work with</li>
+        </ul>
+        <p>
+            Your data is processed solely to provide Claudriel's features to you. We do not
+            sell, share, or use your data for advertising purposes.
+        </p>
+
+        <h2>Data Storage and Security</h2>
+        <ul>
+            <li>Your data is stored on secured servers hosted in Canada</li>
+            <li>Google OAuth tokens are encrypted at rest</li>
+            <li>All connections use TLS encryption in transit</li>
+            <li>We retain your data only as long as your account is active</li>
+        </ul>
+
+        <h2>Third-Party Services</h2>
+        <p>
+            Claudriel uses the Anthropic API (Claude) to process text for commitment extraction
+            and context analysis. Text sent to the API is not stored by Anthropic beyond the
+            duration of the request. No other third parties receive your data.
+        </p>
+
+        <h2>Your Rights</h2>
+        <ul>
+            <li><strong>Access:</strong> You can request a copy of all data we hold about you</li>
+            <li><strong>Deletion:</strong> You can request deletion of your account and all associated data</li>
+            <li><strong>Revocation:</strong> You can disconnect Google services at any time from your
+                Claudriel settings, which immediately revokes our access</li>
+            <li><strong>Portability:</strong> You can export your data in standard formats</li>
+        </ul>
+
+        <h2>Google API Services User Data Policy</h2>
+        <p>
+            Claudriel's use and transfer of information received from Google APIs adheres to the
+            <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener noreferrer">Google API Services User Data Policy</a>,
+            including the Limited Use requirements.
+        </p>
+
+        <h2>Changes to This Policy</h2>
+        <p>
+            We may update this policy from time to time. Significant changes will be communicated
+            through the application. The "last updated" date at the top reflects the most recent revision.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+            For privacy questions or data requests, contact us at
+            <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+        </p>
+    </main>
+{% endblock %}
