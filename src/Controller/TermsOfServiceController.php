@@ -15,7 +15,6 @@ final class TermsOfServiceController
         private readonly ?Environment $twig = null,
     ) {}
 
-    /** @phpstan-ignore constructor.unusedParameter */
     public function show(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
     {
         $context = [
