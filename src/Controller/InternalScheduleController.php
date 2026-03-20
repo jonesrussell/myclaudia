@@ -7,13 +7,13 @@ namespace Claudriel\Controller;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;
-use Waaseyaa\EntityStorage\EntityRepository;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 use Waaseyaa\SSR\SsrResponse;
 
 final class InternalScheduleController
 {
     public function __construct(
-        private readonly EntityRepository $scheduleRepo,
+        private readonly EntityRepositoryInterface $scheduleRepo,
         private readonly InternalApiTokenGenerator $apiTokenGenerator,
         private readonly string $tenantId,
     ) {}

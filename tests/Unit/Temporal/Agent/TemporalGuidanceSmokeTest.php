@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Temporal\Agent;
 
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
-use Claudriel\Controller\StorageRepositoryAdapter;
 use Claudriel\Controller\TemporalNotificationApiController;
 use Claudriel\Entity\Commitment;
 use Claudriel\Entity\CommitmentExtractionLog;
@@ -13,6 +12,7 @@ use Claudriel\Entity\McEvent;
 use Claudriel\Entity\ScheduleEntry;
 use Claudriel\Entity\TemporalNotification;
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\Agent\OverrunAlertAgent;
 use Claudriel\Temporal\Agent\ShiftRiskAgent;
 use Claudriel\Temporal\Agent\TemporalAgentContext;

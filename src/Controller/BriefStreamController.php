@@ -9,6 +9,7 @@ use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Support\BriefSignal;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\Agent\TemporalGuidanceAssembler;
 use Claudriel\Temporal\TemporalContextFactory;
 use Claudriel\Temporal\TimeSnapshot;

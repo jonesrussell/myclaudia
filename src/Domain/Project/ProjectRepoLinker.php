@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Claudriel\Domain\Project;
 
 use Claudriel\Entity\Workspace;
-use Waaseyaa\EntityStorage\EntityRepository;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class ProjectRepoLinker
 {
     public function __construct(
-        private readonly EntityRepository $workspaceRepo,
-        private readonly EntityRepository $projectRepo,
+        private readonly EntityRepositoryInterface $workspaceRepo,
+        private readonly EntityRepositoryInterface $projectRepo,
     ) {}
 
     /**

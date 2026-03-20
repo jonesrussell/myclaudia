@@ -62,15 +62,15 @@ use Claudriel\Ingestion\EventCategorizer;
 use Claudriel\Routing\AccountSessionMiddleware;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\StorageRepositoryAdapter;
 use GraphQL\Type\Definition\Type;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\AdminSurface\AdminSurfaceServiceProvider;
 use Waaseyaa\Database\DatabaseInterface;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
-use Waaseyaa\EntityStorage\Connection\SingleConnectionResolver;
-use Waaseyaa\EntityStorage\Driver\SqlStorageDriver;
-use Waaseyaa\EntityStorage\EntityRepository;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
+use Waaseyaa\EntityStorage\SqlEntityStorage;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 use Waaseyaa\GitHub\GitHubClient;
 use Waaseyaa\Routing\RouteBuilder;
@@ -575,19 +575,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
             }
         }
 
-        $resolver = new SingleConnectionResolver($database);
-
         $eventType = new EntityType(
             id: 'mc_event',
             label: 'Event',
             class: McEvent::class,
             keys: ['id' => 'eid', 'uuid' => 'uuid'],
         );
-        $eventRepo = new EntityRepository(
-            $eventType,
-            new SqlStorageDriver($resolver, 'eid'),
-            $dispatcher,
-        );
+        $eventRepo = new StorageRepositoryAdapter(new SqlEntityStorage($eventType, $database, $dispatcher));
 
         $commitmentType = new EntityType(
             id: 'commitment',
@@ -595,11 +589,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Commitment::class,
             keys: ['id' => 'cid', 'uuid' => 'uuid', 'label' => 'title'],
         );
-        $commitmentRepo = new EntityRepository(
-            $commitmentType,
-            new SqlStorageDriver($resolver, 'cid'),
-            $dispatcher,
-        );
+        $commitmentRepo = new StorageRepositoryAdapter(new SqlEntityStorage($commitmentType, $database, $dispatcher));
 
         $skillType = new EntityType(
             id: 'skill',
@@ -607,11 +597,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Skill::class,
             keys: ['id' => 'sid', 'uuid' => 'uuid', 'label' => 'name'],
         );
-        $skillRepo = new EntityRepository(
-            $skillType,
-            new SqlStorageDriver($resolver, 'sid'),
-            $dispatcher,
-        );
+        $skillRepo = new StorageRepositoryAdapter(new SqlEntityStorage($skillType, $database, $dispatcher));
 
         $personType = new EntityType(
             id: 'person',
@@ -619,11 +605,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Person::class,
             keys: ['id' => 'pid', 'uuid' => 'uuid', 'label' => 'name'],
         );
-        $personRepo = new EntityRepository(
-            $personType,
-            new SqlStorageDriver($resolver, 'pid'),
-            $dispatcher,
-        );
+        $personRepo = new StorageRepositoryAdapter(new SqlEntityStorage($personType, $database, $dispatcher));
 
         $workspaceType = new EntityType(
             id: 'workspace',
@@ -631,11 +613,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Workspace::class,
             keys: ['id' => 'wid', 'uuid' => 'uuid', 'label' => 'name'],
         );
-        $workspaceRepo = new EntityRepository(
-            $workspaceType,
-            new SqlStorageDriver($resolver, 'wid'),
-            $dispatcher,
-        );
+        $workspaceRepo = new StorageRepositoryAdapter(new SqlEntityStorage($workspaceType, $database, $dispatcher));
 
         $scheduleType = new EntityType(
             id: 'schedule_entry',
@@ -643,11 +621,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: ScheduleEntry::class,
             keys: ['id' => 'seid', 'uuid' => 'uuid', 'label' => 'title'],
         );
-        $scheduleRepo = new EntityRepository(
-            $scheduleType,
-            new SqlStorageDriver($resolver, 'seid'),
-            $dispatcher,
-        );
+        $scheduleRepo = new StorageRepositoryAdapter(new SqlEntityStorage($scheduleType, $database, $dispatcher));
 
         $triageType = new EntityType(
             id: 'triage_entry',
@@ -655,11 +629,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: TriageEntry::class,
             keys: ['id' => 'teid', 'uuid' => 'uuid', 'label' => 'sender_name'],
         );
-        $triageRepo = new EntityRepository(
-            $triageType,
-            new SqlStorageDriver($resolver, 'teid'),
-            $dispatcher,
-        );
+        $triageRepo = new StorageRepositoryAdapter(new SqlEntityStorage($triageType, $database, $dispatcher));
 
         $artifactType = new EntityType(
             id: 'artifact',
@@ -667,11 +637,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Artifact::class,
             keys: ['id' => 'artid', 'uuid' => 'uuid', 'label' => 'name'],
         );
-        $artifactRepo = new EntityRepository(
-            $artifactType,
-            new SqlStorageDriver($resolver, 'artid'),
-            $dispatcher,
-        );
+        $artifactRepo = new StorageRepositoryAdapter(new SqlEntityStorage($artifactType, $database, $dispatcher));
 
         $operationType = new EntityType(
             id: 'operation',
@@ -679,11 +645,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             class: Operation::class,
             keys: ['id' => 'opid', 'uuid' => 'uuid'],
         );
-        $operationRepo = new EntityRepository(
-            $operationType,
-            new SqlStorageDriver($resolver, 'opid'),
-            $dispatcher,
-        );
+        $operationRepo = new StorageRepositoryAdapter(new SqlEntityStorage($operationType, $database, $dispatcher));
 
         $gitRepositoryManager = new GitRepositoryManager;
         $promptBuilder = new PromptBuilder;
@@ -724,8 +686,8 @@ final class ClaudrielServiceProvider extends ServiceProvider
     }
 
     private function ensureClaudrielSystemWorkspace(
-        EntityRepository $workspaceRepo,
-        EntityRepository $artifactRepo,
+        EntityRepositoryInterface $workspaceRepo,
+        EntityRepositoryInterface $artifactRepo,
         GitRepositoryManager $gitRepositoryManager,
     ): void {
         $workspace = $this->findWorkspaceByName($workspaceRepo, 'Claudriel System');
@@ -779,7 +741,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         );
     }
 
-    private function findWorkspaceByName(EntityRepository $workspaceRepo, string $name): ?Workspace
+    private function findWorkspaceByName(EntityRepositoryInterface $workspaceRepo, string $name): ?Workspace
     {
         $results = $workspaceRepo->findBy(['name' => $name]);
         $workspace = $results[0] ?? null;
@@ -787,7 +749,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         return $workspace instanceof Workspace ? $workspace : null;
     }
 
-    private function findRepoArtifact(EntityRepository $artifactRepo, string $workspaceUuid): ?Artifact
+    private function findRepoArtifact(EntityRepositoryInterface $artifactRepo, string $workspaceUuid): ?Artifact
     {
         $results = $artifactRepo->findBy(['workspace_uuid' => $workspaceUuid, 'type' => 'repo']);
         $artifact = $results[0] ?? null;

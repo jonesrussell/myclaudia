@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Claudriel\Controller;
+namespace Claudriel\Support;
 
 use Waaseyaa\Entity\EntityInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;

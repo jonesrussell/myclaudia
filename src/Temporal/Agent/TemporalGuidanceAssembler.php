@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Temporal\Agent;
 
-use Claudriel\Controller\StorageRepositoryAdapter;
 use Claudriel\Entity\TemporalNotification;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\AtomicTimeService;
 use Claudriel\Temporal\Clock\SystemMonotonicClock;
 use Claudriel\Temporal\Clock\SystemWallClock;

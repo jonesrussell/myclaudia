@@ -9,6 +9,7 @@ use Claudriel\Domain\DayBrief\Service\BriefSessionStore;
 use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\TemporalContextFactory;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;

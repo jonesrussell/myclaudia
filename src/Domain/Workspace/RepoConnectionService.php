@@ -6,12 +6,12 @@ namespace Claudriel\Domain\Workspace;
 
 use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Workspace;
-use Waaseyaa\EntityStorage\EntityRepository;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class RepoConnectionService
 {
     public function __construct(
-        private readonly EntityRepository $workspaceRepo,
+        private readonly EntityRepositoryInterface $workspaceRepo,
         private readonly GitRepositoryManager $gitRepositoryManager,
     ) {}
 

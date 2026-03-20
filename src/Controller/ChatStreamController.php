@@ -18,6 +18,7 @@ use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Claudriel\Support\BriefSignal;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\TemporalContextFactory;
 use Claudriel\Temporal\TimeSnapshot;
 use Symfony\Component\HttpFoundation\Request;

@@ -7,6 +7,7 @@ namespace Claudriel\Controller;
 use Claudriel\Entity\TemporalNotification;
 use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\Agent\TemporalNotificationDeliveryService;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;

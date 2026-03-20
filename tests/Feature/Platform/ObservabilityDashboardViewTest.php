@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Feature\Platform;
 
 use Claudriel\Controller\Platform\ObservabilityDashboardController;
-use Claudriel\Controller\StorageRepositoryAdapter;
 use Claudriel\Entity\Commitment;
 use Claudriel\Entity\CommitmentExtractionLog;
 use Claudriel\Entity\McEvent;
 use Claudriel\Entity\ScheduleEntry;
 use Claudriel\Entity\TemporalNotification;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\Agent\TemporalAgentContextBuilder;
 use Claudriel\Temporal\Agent\TemporalAgentOrchestrator;
 use Claudriel\Temporal\Agent\TemporalAgentRegistry;

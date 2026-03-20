@@ -12,6 +12,7 @@ use Claudriel\Ingestion\Handler\PersonIngestHandler;
 use Claudriel\Ingestion\IngestHandlerRegistry;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\BriefSignal;
+use Claudriel\Support\StorageRepositoryAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;
