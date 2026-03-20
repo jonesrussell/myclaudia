@@ -44,7 +44,7 @@ A portable `scripts/release.sh`, identical across all 12 projects. No per-projec
 
 ### Dependencies
 
-`git`, `gh` (GitHub CLI), `sed`. No runtime or language-specific tooling.
+`git`, `gh` (GitHub CLI), `sed`. No runtime or language-specific tooling. The script targets GNU sed; a portability shim handles BSD/macOS `sed -i` differences.
 
 ### What it does
 
@@ -92,7 +92,7 @@ Three tiers based on existing state and development activity.
 
 | Project | Type | Notes |
 |---------|------|-------|
-| Waaseyaa | PHP monorepo | Has CHANGELOG.md, RELEASE_NOTES.md, release.sh. Standardize script. |
+| Waaseyaa | PHP monorepo | Has CHANGELOG.md, RELEASE_NOTES.md, release.sh. Standardize script. Remove RELEASE_NOTES.md (content merged into CHANGELOG.md). |
 | Claudriel | PHP/Waaseyaa | Has CHANGELOG.md. Add release script, verify format. |
 
 ### Tier 2: Active development (backfill, add release script)
@@ -103,6 +103,7 @@ Three tiers based on existing state and development activity.
 | goforms | Go API | |
 | goformx-laravel | Laravel SPA | |
 | streetcode-laravel | Laravel SPA | |
+| northcloud-laravel | PHP+Vue package | Shared package used by 5 consumer apps |
 
 ### Tier 3: Lower activity (backfill, add release script)
 
