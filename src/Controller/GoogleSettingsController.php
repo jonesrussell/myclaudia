@@ -78,7 +78,9 @@ final class GoogleSettingsController
     {
         $authenticatedAccount = $this->resolveAccount($account);
         $accountUuid = $authenticatedAccount?->getUuid() ?? '';
+        error_log('[GoogleSettings] show: account_class='.get_class($account).' resolved_uuid='.$accountUuid);
         $integration = $accountUuid !== '' ? $this->findGoogleIntegration($accountUuid) : null;
+        error_log('[GoogleSettings] show: integration_found='.($integration !== null ? 'yes' : 'no'));
 
         $connected = $integration !== null;
         $email = $connected ? ($integration->get('provider_email') ?? $integration->get('name') ?? '') : '';
