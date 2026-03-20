@@ -36,7 +36,7 @@ final class SearchToolServiceProvider extends ServiceProvider
             return new InternalBriefController(
                 $assembler,
                 $this->resolve(InternalApiTokenGenerator::class),
-                $this->resolve('tenant_id') ?? 'default',
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         });
 
@@ -44,7 +44,7 @@ final class SearchToolServiceProvider extends ServiceProvider
             return new InternalEventController(
                 new StorageRepositoryAdapter($this->resolve(EntityTypeManager::class)->getStorage('mc_event')),
                 $this->resolve(InternalApiTokenGenerator::class),
-                $this->resolve('tenant_id') ?? 'default',
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         });
 
@@ -56,7 +56,7 @@ final class SearchToolServiceProvider extends ServiceProvider
                 new StorageRepositoryAdapter($entityTypeManager->getStorage('commitment')),
                 new StorageRepositoryAdapter($entityTypeManager->getStorage('mc_event')),
                 $this->resolve(InternalApiTokenGenerator::class),
-                $this->resolve('tenant_id') ?? 'default',
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         });
     }

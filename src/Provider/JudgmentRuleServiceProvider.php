@@ -43,7 +43,7 @@ final class JudgmentRuleServiceProvider extends ServiceProvider
             return new InternalJudgmentRuleController(
                 new StorageRepositoryAdapter($this->resolve(EntityTypeManager::class)->getStorage('judgment_rule')),
                 $this->resolve(InternalApiTokenGenerator::class),
-                $this->resolve('tenant_id') ?? 'default',
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         });
     }

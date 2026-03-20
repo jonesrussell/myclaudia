@@ -20,7 +20,7 @@ final class CommitmentToolServiceProvider extends ServiceProvider
             return new InternalCommitmentController(
                 new StorageRepositoryAdapter($this->resolve(EntityTypeManager::class)->getStorage('commitment')),
                 $this->resolve(InternalApiTokenGenerator::class),
-                $this->resolve('tenant_id') ?? 'default',
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         });
     }
