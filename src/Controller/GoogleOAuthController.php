@@ -88,15 +88,10 @@ final class GoogleOAuthController
         $authenticatedAccount = $this->resolveAccount($account);
 
         if ($authenticatedAccount === null) {
-            error_log('[GoogleOAuth] callback: account resolution failed, redirecting to /login');
-
             return new RedirectResponse('/login', 302);
         }
 
-        error_log('[GoogleOAuth] callback: account resolved, uuid='.$authenticatedAccount->getUuid());
-
         if (isset($query['error'])) {
-            error_log('[GoogleOAuth] callback: Google denied, error='.$query['error']);
             $_SESSION['flash_error'] = 'Google authorization denied: '.$query['error'];
 
             return new RedirectResponse('/app', 302);
@@ -106,8 +101,6 @@ final class GoogleOAuthController
         unset($_SESSION['google_oauth_state']);
 
         if ($expectedState === null || ! hash_equals($expectedState, $query['state'] ?? '')) {
-            error_log('[GoogleOAuth] callback: state mismatch, expected='.($expectedState ? 'set' : 'null'));
-
             $_SESSION['flash_error'] = 'Invalid OAuth state. Please try again.';
 
             return new RedirectResponse('/app', 302);
@@ -116,27 +109,15 @@ final class GoogleOAuthController
         $tokenData = $this->exchangeCodeForTokens($query['code'] ?? '');
 
         if ($tokenData === null) {
-            error_log('[GoogleOAuth] callback: token exchange failed');
             $_SESSION['flash_error'] = 'Failed to exchange authorization code.';
 
             return new RedirectResponse('/app', 302);
         }
 
-        error_log('[GoogleOAuth] callback: token exchange succeeded, has_refresh='.isset($tokenData['refresh_token']));
-
         $userInfo = $this->fetchUserInfo($tokenData['access_token']);
         $providerEmail = $userInfo['email'] ?? null;
-        error_log('[GoogleOAuth] callback: userinfo email='.($providerEmail ?? 'null'));
 
-        try {
-            $this->upsertIntegration($authenticatedAccount, $tokenData, $providerEmail);
-            error_log('[GoogleOAuth] callback: upsert succeeded');
-        } catch (\Throwable $e) {
-            error_log('[GoogleOAuth] callback: upsert FAILED: '.$e->getMessage());
-            $_SESSION['flash_error'] = 'Failed to save Google connection.';
-
-            return new RedirectResponse('/app', 302);
-        }
+        $this->upsertIntegration($authenticatedAccount, $tokenData, $providerEmail);
 
         $_SESSION['flash_success'] = 'Google account connected'
             .($providerEmail ? ' as '.$providerEmail : '').'.';
@@ -164,19 +145,13 @@ final class GoogleOAuthController
             ],
         ]);
 
-        error_log('[GoogleOAuth] exchangeCode: client_id='.substr($this->clientId, 0, 20).'... redirect_uri='.$this->redirectUri);
-
         $response = @file_get_contents(self::TOKEN_ENDPOINT, false, $context);
 
         if ($response === false) {
-            error_log('[GoogleOAuth] exchangeCode: file_get_contents returned false');
-
             return null;
         }
 
         $httpCode = $this->parseHttpStatusCode($http_response_header ?? []); // @phpstan-ignore nullCoalesce.variable
-        error_log('[GoogleOAuth] exchangeCode: httpCode='.$httpCode);
-        file_put_contents('/tmp/google_oauth_debug.log', date('c').' httpCode='.$httpCode.' response='.$response."\n", FILE_APPEND);
 
         if ($httpCode >= 400) {
             return null;
@@ -215,8 +190,6 @@ final class GoogleOAuthController
     {
         $storage = $this->entityTypeManager->getStorage('integration');
         $accountId = $account->getUuid();
-        $dbPath = $_ENV['WAASEYAA_DB'] ?? getenv('WAASEYAA_DB') ?: 'unknown';
-        error_log('[GoogleOAuth] upsert: account_id='.$accountId.' db='.$dbPath);
 
         $existingIds = $storage->getQuery()
             ->condition('account_id', $accountId)
