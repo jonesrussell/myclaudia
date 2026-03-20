@@ -45,7 +45,7 @@ return [
     'cors_origins' => array_merge(
         ['http://localhost:3000', 'http://127.0.0.1:3000'],
         array_filter(
-            explode(',', getenv('WAASEYAA_CORS_ORIGINS') ?: ''),
+            array_map('trim', explode(',', getenv('WAASEYAA_CORS_ORIGINS') ?: '')),
             static fn (string $v): bool => $v !== '',
         ),
     ),

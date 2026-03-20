@@ -31,6 +31,22 @@ export interface ValidationReport {
   validatedAt: string
 }
 
+async function fetchJsonData<T>(url: string): Promise<T | null> {
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`)
+  }
+
+  const json = await response.json() as { data?: T }
+
+  return json.data ?? null
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback
+}
+
 export function useCodifiedContext() {
   const sessions = ref<CodifiedContextSession[]>([])
   const currentSession = ref<CodifiedContextSession | null>(null)
@@ -43,11 +59,11 @@ export function useCodifiedContext() {
     loading.value = true
     error.value = null
     try {
-      const response = await fetch(`/api/telescope/codified-context/sessions?limit=${limit}`)
-      const json = await response.json() as { data: CodifiedContextSession[] }
-      sessions.value = json.data ?? []
-    } catch (e: any) {
-      error.value = e?.data?.errors?.[0]?.detail ?? e?.message ?? 'Failed to load sessions.'
+      sessions.value = await fetchJsonData<CodifiedContextSession[]>(
+        `/api/telescope/codified-context/sessions?limit=${limit}`,
+      ) ?? []
+    } catch (caughtError: unknown) {
+      error.value = getErrorMessage(caughtError, 'Failed to load sessions.')
     } finally {
       loading.value = false
     }
@@ -57,11 +73,11 @@ export function useCodifiedContext() {
     loading.value = true
     error.value = null
     try {
-      const response = await fetch(`/api/telescope/codified-context/sessions/${id}`)
-      const json = await response.json() as { data: CodifiedContextSession }
-      currentSession.value = json.data ?? null
-    } catch (e: any) {
-      error.value = e?.data?.errors?.[0]?.detail ?? e?.message ?? 'Failed to load session.'
+      currentSession.value = await fetchJsonData<CodifiedContextSession>(
+        `/api/telescope/codified-context/sessions/${id}`,
+      )
+    } catch (caughtError: unknown) {
+      error.value = getErrorMessage(caughtError, 'Failed to load session.')
     } finally {
       loading.value = false
     }
@@ -71,11 +87,11 @@ export function useCodifiedContext() {
     loading.value = true
     error.value = null
     try {
-      const response = await fetch(`/api/telescope/codified-context/sessions/${id}/events`)
-      const json = await response.json() as { data: CodifiedContextEvent[] }
-      events.value = json.data ?? []
-    } catch (e: any) {
-      error.value = e?.data?.errors?.[0]?.detail ?? e?.message ?? 'Failed to load events.'
+      events.value = await fetchJsonData<CodifiedContextEvent[]>(
+        `/api/telescope/codified-context/sessions/${id}/events`,
+      ) ?? []
+    } catch (caughtError: unknown) {
+      error.value = getErrorMessage(caughtError, 'Failed to load events.')
     } finally {
       loading.value = false
     }
@@ -85,11 +101,11 @@ export function useCodifiedContext() {
     loading.value = true
     error.value = null
     try {
-      const response = await fetch(`/api/telescope/codified-context/sessions/${id}/validation`)
-      const json = await response.json() as { data: ValidationReport }
-      validationReport.value = json.data ?? null
-    } catch (e: any) {
-      error.value = e?.data?.errors?.[0]?.detail ?? e?.message ?? 'Failed to load validation.'
+      validationReport.value = await fetchJsonData<ValidationReport>(
+        `/api/telescope/codified-context/sessions/${id}/validation`,
+      )
+    } catch (caughtError: unknown) {
+      error.value = getErrorMessage(caughtError, 'Failed to load validation.')
     } finally {
       loading.value = false
     }
