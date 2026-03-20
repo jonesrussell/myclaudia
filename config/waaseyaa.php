@@ -46,7 +46,7 @@ return [
         ['http://localhost:3000', 'http://127.0.0.1:3000'],
         array_filter(
             explode(',', getenv('WAASEYAA_CORS_ORIGINS') ?: ''),
-            static fn(string $v): bool => $v !== '',
+            static fn (string $v): bool => $v !== '',
         ),
     ),
 
