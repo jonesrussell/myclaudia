@@ -110,6 +110,13 @@ final class ChatServiceProvider extends ServiceProvider
 
     public function routes(WaaseyaaRouter $router, ?EntityTypeManager $entityTypeManager = null): void
     {
+        // Make EntityTypeManager available to lazy singleton factories that
+        // call $this->resolve(EntityTypeManager::class). The kernel provides
+        // it here but not during register(), so bridge it into the bindings.
+        if ($entityTypeManager !== null) {
+            $this->singleton(EntityTypeManager::class, static fn () => $entityTypeManager);
+        }
+
         $router->addRoute(
             'claudriel.stream.chat',
             RouteBuilder::create('/stream/chat/{messageId}')
