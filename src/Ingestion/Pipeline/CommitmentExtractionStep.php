@@ -26,8 +26,8 @@ final class CommitmentExtractionStep implements PipelineStepInterface
         Confidence > 0.7 means you are confident this is a real commitment.
 
         Direction rules:
-        - "inbound": the sender is asking the user to do something (a request or task directed at the user)
-        - "outbound": the user has promised or offered to do something for the sender
+        - "outbound": the USER committed to doing something (e.g., "I'll review this", "Let me get back to you")
+        - "inbound": the SENDER committed to doing something for the user (e.g., "I'll send the proposal", "We'll have the report ready")
 
         Return [] if no commitments found. Return only valid JSON, no commentary.
         PROMPT;

@@ -53,13 +53,13 @@ final class CommitmentExtractionStepTest extends TestCase
         {
             public function complete(string $prompt): string
             {
-                return json_encode([['title' => 'Send the report by Friday', 'confidence' => 0.85, 'direction' => 'inbound']]);
+                return json_encode([['title' => 'Send the signed contract', 'confidence' => 0.85, 'direction' => 'inbound']]);
             }
         };
         $step = new CommitmentExtractionStep($aiClient);
         $context = new PipelineContext(pipelineId: 'test', startedAt: time());
         $result = $step->process(
-            ['body' => 'Can you send the report by Friday?', 'from_email' => 'jane@example.com'],
+            ['body' => 'I will send you the signed contract by Friday.', 'from_email' => 'client@example.com'],
             $context
         );
         self::assertTrue($result->success);
