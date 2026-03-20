@@ -1,7 +1,7 @@
-# claudriel.northcloud.one - included via import in main /etc/caddy/Caddyfile
-# Deploy path: ~/claudriel, current release: ~/claudriel/current
+# claudriel.ai - included via import in main /etc/caddy/Caddyfile
+# Deploy path: ~/claudriel-prod, current release: ~/claudriel-prod/current
 
-claudriel.northcloud.one {
+claudriel.ai {
   tls {
     issuer acme {
     }
@@ -10,7 +10,7 @@ claudriel.northcloud.one {
   # Keep browsers on HTTP/2 or HTTP/1.1 for SSE; QUIC has been flaky for EventSource.
   header Alt-Svc "clear"
 
-  root * /home/deployer/claudriel/current/public
+  root * /home/deployer/claudriel-prod/current/public
 
   @not_stream {
     not path /stream/*
@@ -69,7 +69,7 @@ claudriel.northcloud.one {
   }
 
   log {
-    output file /home/deployer/claudriel/log/access.log {
+    output file /home/deployer/claudriel-prod/log/access.log {
       mode 0644
     }
   }

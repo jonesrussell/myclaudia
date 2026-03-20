@@ -65,9 +65,10 @@ final class InternalSessionController
 
         $session = $sessions[0];
 
-        // Check daily ceiling: sum turns_consumed for tenant today
-        // Note: TOCTOU race exists on concurrent requests; acceptable given single-user tenants.
-        // The created_at filter limits query scope to avoid loading all historical sessions.
+        // Check daily ceiling: sum turns_consumed for tenant today.
+        // Loads all tenant sessions and filters by date in PHP because findBy()
+        // only supports exact-match criteria, not date ranges.
+        // TOCTOU race exists on concurrent requests; acceptable given single-user tenants.
         $todayStart = (new \DateTimeImmutable('today'))->format('Y-m-d');
         $allSessions = $this->sessionRepo->findBy([
             'tenant_id' => $this->tenantId,

@@ -27,10 +27,17 @@ final class InternalBriefController
 
         $since = new \DateTimeImmutable('-24 hours');
 
-        $body = $this->getRequestBody($httpRequest);
-        if ($body !== null && isset($body['since']) && is_string($body['since'])) {
+        $sinceParam = $query['since'] ?? null;
+        if ($sinceParam === null || $sinceParam === '') {
+            $body = $this->getRequestBody($httpRequest);
+            $sinceParam = (is_array($body) && isset($body['since']) && is_string($body['since']))
+                ? $body['since']
+                : null;
+        }
+
+        if ($sinceParam !== null && $sinceParam !== '') {
             try {
-                $since = new \DateTimeImmutable($body['since']);
+                $since = new \DateTimeImmutable($sinceParam);
             } catch (\Throwable) {
                 return $this->jsonError('Invalid since date format', 400);
             }
