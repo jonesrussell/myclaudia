@@ -148,4 +148,4 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - Admin SPA Nuxt proxy routes `/api/**` to `localhost:8081`; in production the admin runs as a static build, not a Nuxt server, so API calls must be handled by the PHP backend directly via Caddy reverse-proxy rules
 - Admin adapter must use native `fetch()` not Nuxt `$fetch()` for backend API calls; `$fetch` resolves paths against `app.baseURL` (`/admin/`), turning `/api/schema/commitment` into `/admin/api/schema/commitment`
 - Do not commit `public/admin/` to git; it is built by CI and listed in `.gitignore`
-- Chat agent runs via Docker per-request (`docker run --rm -i`); requires `AGENT_DOCKER_IMAGE=claudriel-agent` in shared .env on both staging and production; the deploy builds the image but does not start a daemon
+- Chat agent runs via Docker per-request (`docker run --rm -i`); requires `AGENT_DOCKER_IMAGE=claudriel-agent` and `CLAUDRIEL_API_URL=https://<domain>` in shared .env; the agent calls internal API routes through Caddy (PHP-FPM uses Unix socket, no TCP port)
