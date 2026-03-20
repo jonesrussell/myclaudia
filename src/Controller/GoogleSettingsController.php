@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Controller;
 
+use Claudriel\Access\AuthenticatedAccount;
+use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
 use Waaseyaa\Access\AccountInterface;
@@ -19,11 +21,13 @@ final class GoogleSettingsController
 
     public function status(array $params, array $query, AccountInterface $account, Request $httpRequest): SsrResponse
     {
-        $accountUuid = method_exists($account, 'getUuid') ? $account->getUuid() : '';
+        $authenticatedAccount = $this->resolveAccount($account);
 
-        if ($accountUuid === '') {
+        if ($authenticatedAccount === null) {
             return $this->json(['connected' => false, 'email' => null, 'connected_at' => null]);
         }
+
+        $accountUuid = $authenticatedAccount->getUuid();
 
         $integration = $this->findGoogleIntegration($accountUuid);
 
@@ -33,18 +37,20 @@ final class GoogleSettingsController
 
         return $this->json([
             'connected' => true,
-            'email' => $integration->get('google_email') ?? $integration->get('name') ?? null,
+            'email' => $integration->get('provider_email') ?? $integration->get('name') ?? null,
             'connected_at' => $integration->get('created_at'),
         ]);
     }
 
     public function disconnect(array $params, array $query, AccountInterface $account, Request $httpRequest): SsrResponse
     {
-        $accountUuid = method_exists($account, 'getUuid') ? $account->getUuid() : '';
+        $authenticatedAccount = $this->resolveAccount($account);
 
-        if ($accountUuid === '') {
+        if ($authenticatedAccount === null) {
             return $this->json(['error' => 'Not authenticated'], 401);
         }
+
+        $accountUuid = $authenticatedAccount->getUuid();
 
         $integration = $this->findGoogleIntegration($accountUuid);
 
@@ -70,11 +76,12 @@ final class GoogleSettingsController
 
     public function show(array $params, array $query, AccountInterface $account, Request $httpRequest): SsrResponse
     {
-        $accountUuid = method_exists($account, 'getUuid') ? $account->getUuid() : '';
+        $authenticatedAccount = $this->resolveAccount($account);
+        $accountUuid = $authenticatedAccount?->getUuid() ?? '';
         $integration = $accountUuid !== '' ? $this->findGoogleIntegration($accountUuid) : null;
 
         $connected = $integration !== null;
-        $email = $connected ? ($integration->get('google_email') ?? $integration->get('name') ?? '') : '';
+        $email = $connected ? ($integration->get('provider_email') ?? $integration->get('name') ?? '') : '';
         $connectedAt = $connected ? ($integration->get('created_at') ?? '') : '';
 
         if ($this->twig !== null) {
@@ -129,6 +136,15 @@ final class GoogleSettingsController
         ]);
 
         file_get_contents('https://oauth2.googleapis.com/revoke', false, $context);
+    }
+
+    private function resolveAccount(AccountInterface $account): ?AuthenticatedAccount
+    {
+        if ($account instanceof AuthenticatedAccount) {
+            return $account;
+        }
+
+        return (new AuthenticatedAccountSessionResolver($this->entityTypeManager))->resolve();
     }
 
     private function json(mixed $data, int $statusCode = 200): SsrResponse

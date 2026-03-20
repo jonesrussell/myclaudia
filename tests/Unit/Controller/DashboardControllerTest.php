@@ -210,7 +210,7 @@ final class DashboardControllerTest extends TestCase
 
     private function seedUpcomingScheduleEntry(EntityTypeManager $etm, string $title, ?\DateTimeImmutable $referenceNow = null): void
     {
-        $start = ($referenceNow ?? new \DateTimeImmutable())->modify('+20 minutes');
+        $start = ($referenceNow ?? new \DateTimeImmutable)->modify('+20 minutes');
         $end = $start->modify('+45 minutes');
 
         $etm->getStorage('schedule_entry')->save(new ScheduleEntry([
@@ -241,7 +241,8 @@ final class DashboardControllerTest extends TestCase
 
     private function buildFixedTimeContextFactory(EntityTypeManager $etm): TemporalContextFactory
     {
-        $fixedClock = new class implements WallClockInterface {
+        $fixedClock = new class implements WallClockInterface
+        {
             public function now(): \DateTimeImmutable
             {
                 return new \DateTimeImmutable('10:00:00', new \DateTimeZone('UTC'));

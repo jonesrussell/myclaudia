@@ -113,7 +113,8 @@ final class BriefStreamControllerTest extends TestCase
         $this->seedWorkspace($etm, 'workspace-fallback-2', 'Guidance Workspace', 'user-77');
         $this->seedUpcomingScheduleEntry($etm, 'Planning', $fixedNow);
 
-        $fixedClock = new class implements WallClockInterface {
+        $fixedClock = new class implements WallClockInterface
+        {
             public function now(): \DateTimeImmutable
             {
                 return new \DateTimeImmutable('10:00:00', new \DateTimeZone('UTC'));
@@ -170,7 +171,7 @@ final class BriefStreamControllerTest extends TestCase
 
     private function seedUpcomingScheduleEntry(EntityTypeManager $etm, string $title, ?\DateTimeImmutable $referenceNow = null): void
     {
-        $start = ($referenceNow ?? new \DateTimeImmutable())->modify('+20 minutes');
+        $start = ($referenceNow ?? new \DateTimeImmutable)->modify('+20 minutes');
         $end = $start->modify('+45 minutes');
 
         $etm->getStorage('schedule_entry')->save(new ScheduleEntry([
