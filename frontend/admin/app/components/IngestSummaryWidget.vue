@@ -13,7 +13,6 @@ const counts = ref<Record<string, number>>({
 })
 const total = computed(() => Object.values(counts.value).reduce((a, b) => a + b, 0))
 const loading = ref(true)
-const error = ref(false)
 
 const hidden = ref(false)
 
@@ -33,14 +32,10 @@ async function fetchCounts() {
       }
     }
     counts.value = fresh
-  } catch (e: any) {
-    // Hide widget silently when entity type is not registered (404).
-    const statusCode = e?.response?.status ?? e?.statusCode ?? 0
-    if (statusCode === 404) {
-      hidden.value = true
-    } else {
-      error.value = true
-    }
+  } catch {
+    // Hide widget silently when entity type is unavailable (e.g. not registered).
+    // This is a non-critical dashboard widget; surfacing errors would be noisy.
+    hidden.value = true
   } finally {
     loading.value = false
   }
@@ -54,7 +49,6 @@ onMounted(fetchCounts)
     <h2 class="ingest-widget-title">{{ t('ingest_widget_title') }}</h2>
 
     <div v-if="loading" class="ingest-widget-loading">{{ t('loading') }}</div>
-    <div v-else-if="error" class="ingest-widget-error">{{ t('error_generic') }}</div>
 
     <template v-else>
       <div v-if="total === 0" class="ingest-widget-empty">
@@ -123,8 +117,7 @@ onMounted(fetchCounts)
 .ingest-counter--failed .ingest-counter-value { color: var(--color-danger, #c00); }
 .ingest-counter--pending_review .ingest-counter-value { color: var(--color-warning, #b86e00); }
 .ingest-counter--approved .ingest-counter-value { color: var(--color-success, #080); }
-.ingest-widget-loading,
-.ingest-widget-error {
+.ingest-widget-loading {
   font-size: 13px;
   color: var(--color-muted);
 }

@@ -44,3 +44,27 @@
 {% block auth_links %}
     Don't have an account? <a href="/signup">Join the waitlist</a>
 {% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var h = new Date().getHours();
+    var headline, subtext;
+    if (h >= 5 && h < 12) {
+        headline = "Your day is waiting.";
+        subtext = "Commitments, schedule, and context, right where you left them.";
+    } else if (h >= 12 && h < 17) {
+        headline = "Pick up where you left off.";
+        subtext = "Your schedule and commitments are still in play.";
+    } else if (h >= 17 && h < 22) {
+        headline = "Still in the arena.";
+        subtext = "Everything\u2019s here when you need it.";
+    } else {
+        headline = "Burning the midnight oil?";
+        subtext = "Your schedule and commitments don\u2019t sleep either.";
+    }
+    document.getElementById("auth-headline").textContent = headline;
+    document.getElementById("auth-subtext").textContent = subtext;
+})();
+</script>
+{% endblock %}
