@@ -209,6 +209,8 @@ final class GoogleOAuthController
     {
         $storage = $this->entityTypeManager->getStorage('integration');
         $accountId = $account->getUuid();
+        $dbPath = $_ENV['WAASEYAA_DB'] ?? getenv('WAASEYAA_DB') ?: 'unknown';
+        error_log('[GoogleOAuth] upsert: account_id='.$accountId.' db='.$dbPath);
 
         $existingIds = $storage->getQuery()
             ->condition('account_id', $accountId)
