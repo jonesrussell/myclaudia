@@ -252,6 +252,60 @@ final class InternalGithubControllerTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // SSRF / Path Traversal Protection
+    // -----------------------------------------------------------------------
+
+    public function test_read_issue_rejects_path_traversal_in_owner(): void
+    {
+        $controller = $this->controller();
+        $request = $this->authenticatedRequest('/api/internal/github/issue/../admin/repo/1', 'acct-123');
+
+        $response = $controller->readIssue(params: ['owner' => '../admin', 'repo' => 'repo', 'number' => '1'], httpRequest: $request);
+
+        self::assertSame(400, $response->statusCode);
+    }
+
+    public function test_read_issue_rejects_slash_in_repo(): void
+    {
+        $controller = $this->controller();
+        $request = $this->authenticatedRequest('/api/internal/github/issue/owner/repo%2F..%2Fadmin/1', 'acct-123');
+
+        $response = $controller->readIssue(params: ['owner' => 'owner', 'repo' => 'repo/../admin', 'number' => '1'], httpRequest: $request);
+
+        self::assertSame(400, $response->statusCode);
+    }
+
+    public function test_list_issues_rejects_path_traversal_in_repo_param(): void
+    {
+        $controller = $this->controller();
+        $request = $this->authenticatedRequest('/api/internal/github/issues', 'acct-123');
+
+        $response = $controller->listIssues(query: ['repo' => '../admin/secret'], httpRequest: $request);
+
+        self::assertSame(400, $response->statusCode);
+    }
+
+    public function test_create_issue_rejects_path_traversal(): void
+    {
+        $controller = $this->controller();
+        $request = $this->authenticatedPostRequest('/api/internal/github/issue/../admin/repo', 'acct-123', ['title' => 'test']);
+
+        $response = $controller->createIssue(params: ['owner' => '..', 'repo' => 'admin'], httpRequest: $request);
+
+        self::assertSame(400, $response->statusCode);
+    }
+
+    public function test_add_comment_rejects_path_traversal(): void
+    {
+        $controller = $this->controller();
+        $request = $this->authenticatedPostRequest('/api/internal/github/comment/../admin/repo/1', 'acct-123', ['body' => 'test']);
+
+        $response = $controller->addComment(params: ['owner' => '..', 'repo' => 'admin', 'number' => '1'], httpRequest: $request);
+
+        self::assertSame(400, $response->statusCode);
+    }
+
+    // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
 

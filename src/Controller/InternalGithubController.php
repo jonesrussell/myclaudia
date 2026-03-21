@@ -327,7 +327,7 @@ final class InternalGithubController
      */
     private function isValidPathSegment(string $value): bool
     {
-        return $value !== '' && preg_match('/^[a-zA-Z0-9._-]+$/', $value) === 1;
+        return $value !== '' && $value !== '.' && $value !== '..' && preg_match('/^[a-zA-Z0-9._-]+$/', $value) === 1;
     }
 
     /**
