@@ -13,7 +13,6 @@ use Claudriel\Entity\Account;
 use Claudriel\Entity\AccountPasswordResetToken;
 use Claudriel\Entity\AccountVerificationToken;
 use Claudriel\Entity\Tenant;
-use Claudriel\Entity\WaitlistEntry;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
@@ -93,20 +92,6 @@ final class AccountServiceProvider extends ServiceProvider
                 'metadata' => ['type' => 'text_long'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
-            ],
-        ));
-
-        $this->entityType(new EntityType(
-            id: 'waitlist_entry',
-            label: 'Waitlist Entry',
-            class: WaitlistEntry::class,
-            keys: ['id' => 'weid', 'uuid' => 'uuid', 'label' => 'email'],
-            fieldDefinitions: [
-                'weid' => ['type' => 'integer', 'readOnly' => true],
-                'uuid' => ['type' => 'string', 'readOnly' => true],
-                'email' => ['type' => 'email', 'required' => true],
-                'status' => ['type' => 'string'],
-                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
         ));
     }

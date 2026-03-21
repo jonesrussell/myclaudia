@@ -15,10 +15,10 @@ use Claudriel\CLI\WorkspaceVerifyCommand;
 use Claudriel\Command\BriefCommand;
 use Claudriel\Command\CommitmentsCommand;
 use Claudriel\Command\CommitmentUpdateCommand;
+use Claudriel\Command\GitHubSyncCommand;
 use Claudriel\Command\IssueListCommand;
 use Claudriel\Command\IssueRunCommand;
 use Claudriel\Command\IssueStatusCommand;
-use Claudriel\Command\GitHubSyncCommand;
 use Claudriel\Command\RecategorizeEventsCommand;
 use Claudriel\Command\SkillsCommand;
 use Claudriel\Command\WorkspaceCloneCommand;
@@ -704,7 +704,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             $commands[] = new GitHubSyncCommand(
                 $githubTokenManager,
                 new EventHandler($eventRepo, $personRepo, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
-                new GitHubNotificationNormalizer(),
+                new GitHubNotificationNormalizer,
                 $integrationRepo,
                 $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );

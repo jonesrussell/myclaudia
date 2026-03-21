@@ -16,7 +16,7 @@ final class GitHubNotificationNormalizer
         $subjectType = $raw['subject']['type'] ?? 'Unknown';
         $subjectUrl = $raw['subject']['url'] ?? '';
         $actor = $raw['actor']['login'] ?? null;
-        $updatedAt = $raw['updated_at'] ?? (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
+        $updatedAt = $raw['updated_at'] ?? (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM);
 
         return new Envelope(
             source: 'github',

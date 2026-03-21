@@ -263,7 +263,7 @@ final class InternalGithubController
             return ['error' => 'GitHub API request failed'];
         }
 
-        /** @phpstan-ignore isset.variable */
+        /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
             $this->tokenManager->markRevoked($accountId);
@@ -294,7 +294,7 @@ final class InternalGithubController
             return ['error' => 'GitHub API request failed'];
         }
 
-        /** @phpstan-ignore isset.variable */
+        /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
             $this->tokenManager->markRevoked($accountId);
@@ -306,7 +306,7 @@ final class InternalGithubController
     }
 
     /**
-     * @param list<string> $headers
+     * @param  list<string>  $headers
      */
     private function parseHttpStatusCode(array $headers): int
     {

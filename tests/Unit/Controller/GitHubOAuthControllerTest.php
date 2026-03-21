@@ -29,10 +29,10 @@ final class GitHubOAuthControllerTest extends TestCase
         $_SESSION = [];
     }
 
-    public function testConnectRedirectsUnauthenticatedToLogin(): void
+    public function test_connect_redirects_unauthenticated_to_login(): void
     {
         // AnonymousUser is what ->allowAll() routes receive
-        $anonymousUser = new AnonymousUser();
+        $anonymousUser = new AnonymousUser;
 
         $response = $this->controller->connect([], [], $anonymousUser);
 
@@ -40,9 +40,9 @@ final class GitHubOAuthControllerTest extends TestCase
         $this->assertSame('/login', $response->getTargetUrl());
     }
 
-    public function testCallbackRedirectsUnauthenticatedToLogin(): void
+    public function test_callback_redirects_unauthenticated_to_login(): void
     {
-        $anonymousUser = new AnonymousUser();
+        $anonymousUser = new AnonymousUser;
 
         $response = $this->controller->callback([], [], $anonymousUser);
 
@@ -50,14 +50,14 @@ final class GitHubOAuthControllerTest extends TestCase
         $this->assertSame('/login', $response->getTargetUrl());
     }
 
-    public function testCallbackRejectsInvalidState(): void
+    public function test_callback_rejects_invalid_state(): void
     {
         // We need an authenticated account for this test path.
         // Since we can't easily mock the session resolver, we test the anonymous path
         // and the state validation via the error query param path.
         // The state validation is tested indirectly: without a valid session state,
         // an authenticated user would get the "Invalid OAuth state" error.
-        $anonymousUser = new AnonymousUser();
+        $anonymousUser = new AnonymousUser;
 
         // Even with state params, unauthenticated users go to /login first
         $response = $this->controller->callback([], ['state' => 'bad-state', 'code' => 'test'], $anonymousUser);
@@ -66,10 +66,10 @@ final class GitHubOAuthControllerTest extends TestCase
         $this->assertSame('/login', $response->getTargetUrl());
     }
 
-    public function testCallbackHandlesOAuthError(): void
+    public function test_callback_handles_o_auth_error(): void
     {
         // OAuth errors redirect unauthenticated users to login
-        $anonymousUser = new AnonymousUser();
+        $anonymousUser = new AnonymousUser;
 
         $response = $this->controller->callback([], ['error' => 'access_denied'], $anonymousUser);
 

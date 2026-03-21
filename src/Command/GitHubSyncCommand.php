@@ -103,7 +103,7 @@ final class GitHubSyncCommand extends Command
             return null;
         }
 
-        /** @phpstan-ignore isset.variable */
+        /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
             $this->tokenManager->markRevoked($accountId);
@@ -118,7 +118,7 @@ final class GitHubSyncCommand extends Command
     }
 
     /**
-     * @param list<string> $headers
+     * @param  list<string>  $headers
      */
     private function parseHttpStatusCode(array $headers): int
     {

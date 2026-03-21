@@ -21,7 +21,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->tokenManager = new GitHubTokenManager($this->integrationRepo);
     }
 
-    public function testGetValidTokenReturnsStoredToken(): void
+    public function test_get_valid_token_returns_stored_token(): void
     {
         $integration = new Integration([
             'iid' => 1,
@@ -51,7 +51,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->assertSame('ghp_test_token_abc123', $token);
     }
 
-    public function testGetValidTokenThrowsWhenNoIntegration(): void
+    public function test_get_valid_token_throws_when_no_integration(): void
     {
         $this->integrationRepo
             ->method('findBy')
@@ -63,7 +63,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->tokenManager->getValidAccessToken('acc-123');
     }
 
-    public function testGetValidTokenThrowsWhenRevoked(): void
+    public function test_get_valid_token_throws_when_revoked(): void
     {
         $revokedIntegration = new Integration([
             'iid' => 1,
@@ -91,7 +91,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->tokenManager->getValidAccessToken('acc-123');
     }
 
-    public function testHasActiveIntegrationReturnsTrue(): void
+    public function test_has_active_integration_returns_true(): void
     {
         $integration = new Integration([
             'iid' => 1,
@@ -111,7 +111,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->assertTrue($this->tokenManager->hasActiveIntegration('acc-123'));
     }
 
-    public function testHasActiveIntegrationReturnsFalse(): void
+    public function test_has_active_integration_returns_false(): void
     {
         $this->integrationRepo
             ->method('findBy')
@@ -120,7 +120,7 @@ final class GitHubTokenManagerTest extends TestCase
         $this->assertFalse($this->tokenManager->hasActiveIntegration('acc-456'));
     }
 
-    public function testMarkRevokedUpdatesStatus(): void
+    public function test_mark_revoked_updates_status(): void
     {
         $integration1 = new Integration([
             'iid' => 1,
