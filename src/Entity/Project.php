@@ -35,14 +35,5 @@ final class Project extends ContentEntityBase
         if ($this->get('status') === null) {
             $this->set('status', 'active');
         }
-        if ($this->get('metadata') === null) {
-            $this->set('metadata', '{}');
-        }
-        if ($this->get('settings') === null) {
-            $this->set('settings', '{}');
-        }
-        if ($this->get('context') === null) {
-            $this->set('context', '{}');
-        }
     }
 }

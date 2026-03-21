@@ -154,22 +154,8 @@ final class ClaudrielServiceProvider extends ServiceProvider
             ],
             'deleteProject' => [
                 'resolve' => function (mixed $root, array $args) use ($entityTypeManager): array {
-                    $projectId = $args['id'];
-
-                    // Nullify project_id on all associated workspaces
-                    $workspaceStorage = $entityTypeManager->getStorage('workspace');
-                    $allWorkspaces = $workspaceStorage->loadMultiple();
-                    foreach ($allWorkspaces as $workspace) {
-                        assert($workspace instanceof Workspace);
-                        if ($workspace->get('project_id') === $projectId) {
-                            $workspace->set('project_id', null);
-                            $workspaceStorage->save($workspace);
-                        }
-                    }
-
-                    // Delete the project
                     $projectStorage = $entityTypeManager->getStorage('project');
-                    $project = $projectStorage->load($projectId);
+                    $project = $projectStorage->load($args['id']);
                     if ($project !== null) {
                         $projectStorage->delete([$project]);
                     }

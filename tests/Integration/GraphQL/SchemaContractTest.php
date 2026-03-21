@@ -94,15 +94,11 @@ final class SchemaContractTest extends TestCase
                 'uuid' => ['type' => 'string', 'readOnly' => true],
                 'name' => ['type' => 'string', 'required' => true],
                 'description' => ['type' => 'string'],
+                'saved_context' => ['type' => 'text_long'],
                 'account_id' => ['type' => 'string'],
                 'tenant_id' => ['type' => 'string'],
-                'metadata' => ['type' => 'string'],
-                'repo_path' => ['type' => 'string'],
-                'repo_url' => ['type' => 'string'],
-                'branch' => ['type' => 'string'],
-                'codex_model' => ['type' => 'string'],
-                'last_commit_hash' => ['type' => 'string'],
-                'ci_status' => ['type' => 'string'],
+                'mode' => ['type' => 'string'],
+                'status' => ['type' => 'string'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
@@ -391,7 +387,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(ObjectType::class, $type);
 
-        $expectedFields = ['id', 'uuid', 'name', 'description', 'account_id', 'tenant_id', 'metadata', 'repo_path', 'repo_url', 'branch', 'codex_model', 'last_commit_hash', 'ci_status', 'created_at', 'updated_at'];
+        $expectedFields = ['id', 'uuid', 'name', 'description', 'saved_context', 'account_id', 'tenant_id', 'mode', 'status', 'created_at', 'updated_at'];
         foreach ($expectedFields as $fieldName) {
             self::assertTrue($type->hasField($fieldName), "Workspace missing field: {$fieldName}");
         }

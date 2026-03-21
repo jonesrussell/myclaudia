@@ -74,8 +74,8 @@ final class InternalWorkspaceControllerTest extends TestCase
         $data = json_decode($response->content, true);
         self::assertSame('ws-1', $data['uuid']);
         self::assertSame('Project A', $data['name']);
-        self::assertArrayHasKey('repo_path', $data);
-        self::assertArrayHasKey('metadata', $data);
+        self::assertArrayHasKey('mode', $data);
+        self::assertArrayHasKey('status', $data);
     }
 
     public function test_context_returns_404_for_missing(): void

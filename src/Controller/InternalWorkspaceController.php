@@ -38,9 +38,8 @@ final class InternalWorkspaceController
                 'uuid' => $workspace->get('uuid'),
                 'name' => $workspace->get('name'),
                 'description' => $workspace->get('description'),
-                'repo_path' => $workspace->get('repo_path'),
                 'status' => $workspace->get('status'),
-                'project_id' => $workspace->get('project_id'),
+                'mode' => $workspace->get('mode'),
             ];
             $count++;
         }
@@ -70,16 +69,9 @@ final class InternalWorkspaceController
             'uuid' => $workspace->get('uuid'),
             'name' => $workspace->get('name'),
             'description' => $workspace->get('description'),
-            'repo_path' => $workspace->get('repo_path'),
-            'repo_url' => $workspace->get('repo_url'),
-            'branch' => $workspace->get('branch'),
-            'codex_model' => $workspace->get('codex_model'),
-            'last_commit_hash' => $workspace->get('last_commit_hash'),
-            'ci_status' => $workspace->get('ci_status'),
-            'project_id' => $workspace->get('project_id'),
             'mode' => $workspace->get('mode'),
             'status' => $workspace->get('status'),
-            'metadata' => $workspace->get('metadata'),
+            'saved_context' => $workspace->get('saved_context'),
         ]);
     }
 
