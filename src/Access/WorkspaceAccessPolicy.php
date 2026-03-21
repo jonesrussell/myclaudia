@@ -11,7 +11,7 @@ use Waaseyaa\Access\Gate\PolicyAttribute;
 use Waaseyaa\Entity\EntityInterface;
 
 /**
- * Tenant-scoped: owner or admin can CRUD.
+ * Personal: only owner can CRUD. Workspaces are not shared within a tenant.
  */
 #[PolicyAttribute(entityType: 'workspace')]
 final class WorkspaceAccessPolicy implements AccessPolicyInterface
@@ -31,22 +31,14 @@ final class WorkspaceAccessPolicy implements AccessPolicyInterface
             return AccessResult::allowed('Admin permission.');
         }
 
-        $entityTenantId = $entity->get('tenant_id');
-        $accountTenantId = $account->getTenantId();
+        $accountId = (string) $account->id();
 
-        if ($entityTenantId === null || $accountTenantId === null || $entityTenantId !== $accountTenantId) {
-            return AccessResult::forbidden('Tenant mismatch.');
+        if ($entity->get('account_id') !== $accountId) {
+            return AccessResult::forbidden('Workspaces are personal. Only the owner can access.');
         }
 
-        $ownerId = $entity->get('owner_id');
-        $accountId = (string) $account->id();
-        $isOwner = $ownerId !== null && (string) $ownerId === $accountId;
-
         return match ($operation) {
-            'view' => AccessResult::allowed('Tenant member can view workspaces.'),
-            'update', 'delete' => $isOwner
-                ? AccessResult::allowed('Owner can modify their workspace.')
-                : AccessResult::neutral('Only owner or admin can modify workspaces.'),
+            'view', 'update', 'delete' => AccessResult::allowed('Owner can manage their workspace.'),
             default => AccessResult::neutral('Unknown operation.'),
         };
     }
@@ -57,14 +49,6 @@ final class WorkspaceAccessPolicy implements AccessPolicyInterface
             return AccessResult::unauthenticated('Authentication required.');
         }
 
-        if ($account->hasPermission('administer content')) {
-            return AccessResult::allowed('Admin permission.');
-        }
-
-        if ($account->getTenantId() === null) {
-            return AccessResult::forbidden('No tenant assigned.');
-        }
-
-        return AccessResult::allowed('Authenticated tenant member can create workspaces.');
+        return AccessResult::allowed('Authenticated user can create workspaces.');
     }
 }
