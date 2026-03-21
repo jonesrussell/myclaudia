@@ -705,6 +705,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 $githubTokenManager,
                 new EventHandler($eventRepo, $personRepo, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
                 new GitHubNotificationNormalizer(),
+                $integrationRepo,
                 $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
             );
         }

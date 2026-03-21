@@ -52,7 +52,7 @@ final class InternalGithubController
         }
 
         $repo = $query['repo'] ?? '';
-        if ($repo === '' || ! str_contains($repo, '/')) {
+        if (! $this->isValidRepoParam($repo)) {
             return $this->jsonError('repo query parameter required (owner/repo format)', 400);
         }
 
@@ -87,7 +87,7 @@ final class InternalGithubController
         $repo = $params['repo'] ?? '';
         $number = $params['number'] ?? '';
 
-        if ($owner === '' || $repo === '' || $number === '') {
+        if (! $this->isValidPathSegment($owner) || ! $this->isValidPathSegment($repo) || ! $this->isValidPathSegment($number)) {
             return $this->jsonError('owner, repo, and number are required', 400);
         }
 
@@ -111,7 +111,7 @@ final class InternalGithubController
         }
 
         $repo = $query['repo'] ?? '';
-        if ($repo === '' || ! str_contains($repo, '/')) {
+        if (! $this->isValidRepoParam($repo)) {
             return $this->jsonError('repo query parameter required (owner/repo format)', 400);
         }
 
@@ -140,7 +140,7 @@ final class InternalGithubController
         $repo = $params['repo'] ?? '';
         $number = $params['number'] ?? '';
 
-        if ($owner === '' || $repo === '' || $number === '') {
+        if (! $this->isValidPathSegment($owner) || ! $this->isValidPathSegment($repo) || ! $this->isValidPathSegment($number)) {
             return $this->jsonError('owner, repo, and number are required', 400);
         }
 
@@ -166,7 +166,7 @@ final class InternalGithubController
         $owner = $params['owner'] ?? '';
         $repo = $params['repo'] ?? '';
 
-        if ($owner === '' || $repo === '') {
+        if (! $this->isValidPathSegment($owner) || ! $this->isValidPathSegment($repo)) {
             return $this->jsonError('owner and repo are required', 400);
         }
 
@@ -211,7 +211,7 @@ final class InternalGithubController
         $repo = $params['repo'] ?? '';
         $number = $params['number'] ?? '';
 
-        if ($owner === '' || $repo === '' || $number === '') {
+        if (! $this->isValidPathSegment($owner) || ! $this->isValidPathSegment($repo) || ! $this->isValidPathSegment($number)) {
             return $this->jsonError('owner, repo, and number are required', 400);
         }
 
@@ -310,16 +310,38 @@ final class InternalGithubController
      */
     private function parseHttpStatusCode(array $headers): int
     {
-        if ($headers === []) {
-            return 0;
+        $httpCode = 0;
+
+        foreach ($headers as $header) {
+            if (preg_match('#^HTTP/\d+\.\d+\s+(\d+)#', $header, $m)) {
+                $httpCode = (int) $m[1];
+            }
         }
 
-        // First header line is like "HTTP/1.1 200 OK"
-        if (preg_match('/HTTP\/\S+\s+(\d{3})/', $headers[0], $matches)) {
-            return (int) $matches[1];
+        return $httpCode;
+    }
+
+    /**
+     * Validate that a GitHub path segment (owner, repo, number) contains only safe characters.
+     * Prevents SSRF via path traversal (e.g., "owner/../admin").
+     */
+    private function isValidPathSegment(string $value): bool
+    {
+        return $value !== '' && preg_match('/^[a-zA-Z0-9._-]+$/', $value) === 1;
+    }
+
+    /**
+     * Validate owner/repo format from a combined "owner/repo" query parameter.
+     */
+    private function isValidRepoParam(string $repo): bool
+    {
+        if (! str_contains($repo, '/')) {
+            return false;
         }
 
-        return 0;
+        $parts = explode('/', $repo, 2);
+
+        return $this->isValidPathSegment($parts[0]) && $this->isValidPathSegment($parts[1]);
     }
 
     private function getRequestBody(mixed $httpRequest): ?array
