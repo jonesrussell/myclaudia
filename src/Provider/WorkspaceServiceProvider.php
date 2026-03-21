@@ -12,8 +12,8 @@ use Claudriel\Entity\WorkspaceRepo;
 use Claudriel\Subscriber\JunctionCascadeSubscriber;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface as SymfonyDispatcher;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use Waaseyaa\Database\DatabaseInterface;
 use Waaseyaa\Entity\EntityType;
+use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 
 final class WorkspaceServiceProvider extends ServiceProvider
@@ -114,7 +114,7 @@ final class WorkspaceServiceProvider extends ServiceProvider
         $dispatcher = $this->resolve(EventDispatcherInterface::class);
         if ($dispatcher instanceof SymfonyDispatcher) {
             $dispatcher->addSubscriber(new JunctionCascadeSubscriber(
-                $this->resolve(DatabaseInterface::class),
+                $this->resolve(EntityTypeManager::class),
             ));
         }
     }
