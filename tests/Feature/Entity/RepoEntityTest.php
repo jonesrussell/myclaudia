@@ -19,17 +19,19 @@ use Waaseyaa\EntityStorage\SqlSchemaHandler;
 final class RepoEntityTest extends TestCase
 {
     private EntityTypeManager $manager;
+
     private SqlEntityStorage $repoStorage;
 
     protected function setUp(): void
     {
         $db = DBALDatabase::createSqlite(':memory:');
-        $dispatcher = new EventDispatcher();
+        $dispatcher = new EventDispatcher;
 
         $this->manager = new EntityTypeManager(
             $dispatcher,
             function ($definition) use ($db, $dispatcher): SqlEntityStorage {
                 (new SqlSchemaHandler($definition, $db))->ensureTable();
+
                 return new SqlEntityStorage($definition, $db, $dispatcher);
             },
         );

@@ -19,8 +19,8 @@ final class Repo extends ContentEntityBase
     public function __construct(array $values = [])
     {
         // Compute full_name from owner + name before parent constructor
-        if (isset($values['owner'], $values['name']) && !isset($values['full_name'])) {
-            $values['full_name'] = $values['owner'] . '/' . $values['name'];
+        if (isset($values['owner'], $values['name']) && ! isset($values['full_name'])) {
+            $values['full_name'] = $values['owner'].'/'.$values['name'];
         }
 
         parent::__construct($values, $this->entityTypeId, $this->entityKeys);

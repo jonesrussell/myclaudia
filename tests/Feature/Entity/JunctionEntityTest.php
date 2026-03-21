@@ -21,17 +21,19 @@ use Waaseyaa\EntityStorage\SqlSchemaHandler;
 final class JunctionEntityTest extends TestCase
 {
     private DBALDatabase $db;
+
     private EntityTypeManager $manager;
 
     protected function setUp(): void
     {
         $this->db = DBALDatabase::createSqlite(':memory:');
-        $dispatcher = new EventDispatcher();
+        $dispatcher = new EventDispatcher;
 
         $this->manager = new EntityTypeManager(
             $dispatcher,
             function ($definition) use ($dispatcher): SqlEntityStorage {
                 (new SqlSchemaHandler($definition, $this->db))->ensureTable();
+
                 return new SqlEntityStorage($definition, $this->db, $dispatcher);
             },
         );
