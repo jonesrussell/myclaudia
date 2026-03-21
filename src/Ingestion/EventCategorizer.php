@@ -32,6 +32,10 @@ final class EventCategorizer
             return $this->categorizeGmail($type, $payload);
         }
 
+        if ($source === 'github') {
+            return $this->categorizeGitHub($type);
+        }
+
         return 'notification';
     }
 
@@ -86,5 +90,16 @@ final class EventCategorizer
         }
 
         return 'triage';
+    }
+
+    private function categorizeGitHub(string $type): string
+    {
+        return match ($type) {
+            'mention' => 'github_mention',
+            'review_requested' => 'github_review_request',
+            'assign' => 'github_assignment',
+            'ci_activity' => 'github_ci',
+            default => 'github_activity',
+        };
     }
 }

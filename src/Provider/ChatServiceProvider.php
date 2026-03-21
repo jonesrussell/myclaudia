@@ -7,11 +7,14 @@ namespace Claudriel\Provider;
 use Claudriel\Controller\ChatController;
 use Claudriel\Controller\ChatStreamController;
 use Claudriel\Controller\ContextController;
+use Claudriel\Controller\InternalGithubController;
 use Claudriel\Controller\InternalGoogleController;
 use Claudriel\Controller\InternalSessionController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
+use Claudriel\Support\GitHubTokenManager;
+use Claudriel\Support\GitHubTokenManagerInterface;
 use Claudriel\Support\GoogleTokenManager;
 use Claudriel\Support\GoogleTokenManagerInterface;
 use Claudriel\Support\StorageRepositoryAdapter;
@@ -107,6 +110,21 @@ final class ChatServiceProvider extends ServiceProvider
                 $this->resolve(InternalApiTokenGenerator::class),
             );
         });
+
+        $this->singleton(GitHubTokenManagerInterface::class, function () {
+            $integrationStorage = $this->resolve(EntityTypeManager::class)->getStorage('integration');
+
+            return new GitHubTokenManager(
+                new StorageRepositoryAdapter($integrationStorage),
+            );
+        });
+
+        $this->singleton(InternalGithubController::class, function () {
+            return new InternalGithubController(
+                $this->resolve(GitHubTokenManagerInterface::class),
+                $this->resolve(InternalApiTokenGenerator::class),
+            );
+        });
     }
 
     public function routes(WaaseyaaRouter $router, ?EntityTypeManager $entityTypeManager = null): void
@@ -184,6 +202,63 @@ final class ChatServiceProvider extends ServiceProvider
             ->build();
         $internalSessionContinueRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.internal.session.continue', $internalSessionContinueRoute);
+
+        // Internal GitHub API (agent subprocess)
+        $internalGithubNotificationsRoute = RouteBuilder::create('/api/internal/github/notifications')
+            ->controller(InternalGithubController::class.'::notifications')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGithubNotificationsRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.notifications', $internalGithubNotificationsRoute);
+
+        $internalGithubIssuesRoute = RouteBuilder::create('/api/internal/github/issues')
+            ->controller(InternalGithubController::class.'::listIssues')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGithubIssuesRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.issues', $internalGithubIssuesRoute);
+
+        $internalGithubIssueRoute = RouteBuilder::create('/api/internal/github/issue/{owner}/{repo}/{number}')
+            ->controller(InternalGithubController::class.'::readIssue')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGithubIssueRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.issue', $internalGithubIssueRoute);
+
+        $internalGithubPullsRoute = RouteBuilder::create('/api/internal/github/pulls')
+            ->controller(InternalGithubController::class.'::listPulls')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGithubPullsRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.pulls', $internalGithubPullsRoute);
+
+        $internalGithubPullRoute = RouteBuilder::create('/api/internal/github/pull/{owner}/{repo}/{number}')
+            ->controller(InternalGithubController::class.'::readPull')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $internalGithubPullRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.pull', $internalGithubPullRoute);
+
+        $internalGithubCreateIssueRoute = RouteBuilder::create('/api/internal/github/issue/{owner}/{repo}')
+            ->controller(InternalGithubController::class.'::createIssue')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $internalGithubCreateIssueRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.create_issue', $internalGithubCreateIssueRoute);
+
+        $internalGithubCommentRoute = RouteBuilder::create('/api/internal/github/comment/{owner}/{repo}/{number}')
+            ->controller(InternalGithubController::class.'::addComment')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $internalGithubCommentRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.github.comment', $internalGithubCommentRoute);
 
         $router->addRoute(
             'claudriel.api.context',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Provider;
 
+use Claudriel\Controller\GitHubOAuthController;
 use Claudriel\Controller\GoogleOAuthController;
 use Claudriel\Controller\PublicAccountController;
 use Claudriel\Controller\PublicPasswordResetController;
@@ -93,7 +94,6 @@ final class AccountServiceProvider extends ServiceProvider
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
         ));
-
     }
 
     public function routes(WaaseyaaRouter $router, ?EntityTypeManager $entityTypeManager = null): void
@@ -182,6 +182,14 @@ final class AccountServiceProvider extends ServiceProvider
             ->build();
         $router->addRoute('claudriel.public.login_submit', $loginRoute);
 
+        $waitlistRoute = RouteBuilder::create('/api/waitlist')
+            ->controller(PublicAccountController::class.'::waitlistSignup')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $waitlistRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.api.waitlist', $waitlistRoute);
+
         $logoutRoute = RouteBuilder::create('/logout')
             ->controller(PublicSessionController::class.'::logout')
             ->allowAll()
@@ -263,5 +271,23 @@ final class AccountServiceProvider extends ServiceProvider
             ->build();
         $googleCallbackRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.auth.google.callback', $googleCallbackRoute);
+
+        // GitHub OAuth
+        $router->addRoute(
+            'claudriel.auth.github.connect',
+            RouteBuilder::create('/github/connect')
+                ->controller(GitHubOAuthController::class.'::connect')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $githubCallbackRoute = RouteBuilder::create('/github/callback')
+            ->controller(GitHubOAuthController::class.'::callback')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $githubCallbackRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.auth.github.callback', $githubCallbackRoute);
     }
 }

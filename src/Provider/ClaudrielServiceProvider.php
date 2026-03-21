@@ -15,6 +15,7 @@ use Claudriel\CLI\WorkspaceVerifyCommand;
 use Claudriel\Command\BriefCommand;
 use Claudriel\Command\CommitmentsCommand;
 use Claudriel\Command\CommitmentUpdateCommand;
+use Claudriel\Command\GitHubSyncCommand;
 use Claudriel\Command\IssueListCommand;
 use Claudriel\Command\IssueRunCommand;
 use Claudriel\Command\IssueStatusCommand;
@@ -61,9 +62,12 @@ use Claudriel\Entity\Skill;
 use Claudriel\Entity\TriageEntry;
 use Claudriel\Entity\Workspace;
 use Claudriel\Ingestion\EventCategorizer;
+use Claudriel\Ingestion\EventHandler;
+use Claudriel\Ingestion\GitHubNotificationNormalizer;
 use Claudriel\Routing\AccountSessionMiddleware;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
+use Claudriel\Support\GitHubTokenManager;
 use Claudriel\Support\StorageRepositoryAdapter;
 use GraphQL\Type\Definition\Type;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -589,7 +593,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
         EventDispatcherInterface $dispatcher,
     ): array {
         // Trigger getStorage() for each entity type so SqlSchemaHandler::ensureTable() runs.
-        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation', 'issue_run', 'project'] as $typeId) {
+        foreach (['mc_event', 'commitment', 'commitment_extraction_log', 'person', 'account', 'account_verification_token', 'account_password_reset_token', 'tenant', 'integration', 'skill', 'chat_session', 'chat_message', 'workspace', 'schedule_entry', 'artifact', 'operation', 'issue_run', 'project', 'waitlist_entry'] as $typeId) {
             try {
                 $entityTypeManager->getStorage($typeId);
             } catch (\Throwable) {
@@ -691,6 +695,20 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new WorkspaceVerifyCommand($workspaceRepo),
             new RecategorizeEventsCommand($entityTypeManager, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
         ];
+
+        // GitHub sync (optional — requires GitHub OAuth integration)
+        $githubClientId = $_ENV['GITHUB_CLIENT_ID'] ?? getenv('GITHUB_CLIENT_ID') ?: '';
+        if ($githubClientId !== '') {
+            $integrationRepo = new StorageRepositoryAdapter($entityTypeManager->getStorage('integration'));
+            $githubTokenManager = new GitHubTokenManager($integrationRepo);
+            $commands[] = new GitHubSyncCommand(
+                $githubTokenManager,
+                new EventHandler($eventRepo, $personRepo, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
+                new GitHubNotificationNormalizer,
+                $integrationRepo,
+                $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
+            );
+        }
 
         if ($orchestrator !== null) {
             $commands[] = new IssueRunCommand($orchestrator);

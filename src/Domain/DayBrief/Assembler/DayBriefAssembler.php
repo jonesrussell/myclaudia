@@ -32,7 +32,7 @@ final class DayBriefAssembler
         private readonly ?FollowUpMonitor $followUpMonitor = null,
     ) {}
 
-    /** @return array{schedule: array, schedule_timeline: array, schedule_summary: string, temporal_awareness: array<string, mixed>, temporal_suggestions: list<array{type: string, title: string, summary: string}>, job_hunt: array, people: array, triage: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array, waiting_on: array}, follow_ups: list<array{thread_id: string, subject: string, sent_at: string, recipient: string}>, counts: array{job_alerts: int, messages: int, triage: int, due_today: int, drifting: int, waiting_on: int, follow_ups: int}, generated_at: string, time_snapshot: array<string, int|string>, matched_skills: array, workspaces: array, workspace_status: ?array{last_commit: ?string, has_changes: bool, is_drifted: bool}} */
+    /** @return array{schedule: array, schedule_timeline: array, schedule_summary: string, temporal_awareness: array<string, mixed>, temporal_suggestions: list<array{type: string, title: string, summary: string}>, job_hunt: array, people: array, triage: array, creators: array, notifications: array, commitments: array{pending: array, drifting: array, waiting_on: array}, follow_ups: list<array{thread_id: string, subject: string, sent_at: string, recipient: string}>, counts: array{job_alerts: int, messages: int, triage: int, due_today: int, drifting: int, waiting_on: int, follow_ups: int, github?: int}, github?: array{mentions: list<array{repo: string, title: string, from: string, subject_type: string, occurred: mixed}>, review_requests: list<array{repo: string, title: string, from: string, occurred: mixed}>, ci_failures: list<array{repo: string, title: string, occurred: mixed}>, activity: list<array{repo: string, title: string, type: mixed, occurred: mixed}>}, generated_at: string, time_snapshot: array<string, int|string>, matched_skills: array, workspaces: array, workspace_status: ?array{last_commit: ?string, has_changes: bool, is_drifted: bool}} */
     public function assemble(string $tenantId, \DateTimeImmutable $since, ?string $workspaceUuid = null, ?TimeSnapshot $snapshot = null): array
     {
         $snapshot ??= ($this->timeService ?? new AtomicTimeService)->now();
@@ -51,6 +51,7 @@ final class DayBriefAssembler
         $triage = [];
         $creators = [];
         $notifications = [];
+        $github = ['mentions' => [], 'review_requests' => [], 'ci_failures' => [], 'activity' => []];
 
         foreach ($recentEvents as $event) {
             $category = $event->get('category') ?? 'notification';
@@ -84,6 +85,30 @@ final class DayBriefAssembler
                     'person_name' => $payload['from_name'] ?? $payload['from_email'] ?? '',
                     'person_email' => $payload['from_email'] ?? '',
                     'summary' => $payload['subject'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'github_mention' => $github['mentions'][] = [
+                    'repo' => $payload['repo'] ?? '',
+                    'title' => $payload['title'] ?? '',
+                    'from' => $payload['from_name'] ?? $payload['github_username'] ?? '',
+                    'subject_type' => $payload['subject_type'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'github_review_request' => $github['review_requests'][] = [
+                    'repo' => $payload['repo'] ?? '',
+                    'title' => $payload['title'] ?? '',
+                    'from' => $payload['from_name'] ?? $payload['github_username'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'github_ci' => $github['ci_failures'][] = [
+                    'repo' => $payload['repo'] ?? '',
+                    'title' => $payload['title'] ?? '',
+                    'occurred' => $event->get('occurred'),
+                ],
+                'github_activity', 'github_assignment' => $github['activity'][] = [
+                    'repo' => $payload['repo'] ?? '',
+                    'title' => $payload['title'] ?? '',
+                    'type' => $event->get('type'),
                     'occurred' => $event->get('occurred'),
                 ],
                 default => $notifications[] = [
@@ -128,7 +153,7 @@ final class DayBriefAssembler
         $temporalAwareness = (new TemporalAwarenessEngine)->analyze($schedule, $snapshot);
         $temporalSuggestions = (new TemporalSuggestionEngine)->suggest($temporalAwareness, $snapshot);
 
-        return [
+        $result = [
             'schedule' => $relativeSchedule['schedule'],
             'schedule_timeline' => $schedule,
             'schedule_summary' => $relativeSchedule['schedule_summary'],
@@ -160,6 +185,15 @@ final class DayBriefAssembler
             'workspaces' => $this->buildWorkspaceData($recentEvents, $tenantId, $workspaceUuid),
             'workspace_status' => $workspaceUuid !== null ? $this->buildWorkspaceStatus($workspaceUuid) : null,
         ];
+
+        $githubTotal = count($github['mentions']) + count($github['review_requests']) + count($github['ci_failures']) + count($github['activity']);
+        if ($githubTotal > 0) {
+            $github['activity'] = array_slice($github['activity'], 0, 10);
+            $result['github'] = $github;
+            $result['counts']['github'] = $githubTotal;
+        }
+
+        return $result;
     }
 
     /**
