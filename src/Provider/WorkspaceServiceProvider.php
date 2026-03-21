@@ -7,6 +7,8 @@ namespace Claudriel\Provider;
 use Claudriel\Entity\Artifact;
 use Claudriel\Entity\Skill;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceProject;
+use Claudriel\Entity\WorkspaceRepo;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 
@@ -77,6 +79,35 @@ final class WorkspaceServiceProvider extends ServiceProvider
                 'tenant_id' => ['type' => 'string'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'workspace_project',
+            label: 'Workspace Project',
+            class: WorkspaceProject::class,
+            keys: ['id' => 'id', 'uuid' => 'uuid', 'label' => 'uuid'],
+            fieldDefinitions: [
+                'id' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'workspace_uuid' => ['type' => 'string', 'required' => true],
+                'project_uuid' => ['type' => 'string', 'required' => true],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'workspace_repo',
+            label: 'Workspace Repo',
+            class: WorkspaceRepo::class,
+            keys: ['id' => 'id', 'uuid' => 'uuid', 'label' => 'uuid'],
+            fieldDefinitions: [
+                'id' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'workspace_uuid' => ['type' => 'string', 'required' => true],
+                'repo_uuid' => ['type' => 'string', 'required' => true],
+                'is_active' => ['type' => 'boolean'],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
         ));
     }
