@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Provider;
 
 use Claudriel\Entity\Project;
+use Claudriel\Entity\ProjectRepo;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 
@@ -30,6 +31,20 @@ final class ProjectServiceProvider extends ServiceProvider
                 'tenant_id' => ['type' => 'string'],
                 'created_at' => ['type' => 'timestamp', 'readOnly' => true],
                 'updated_at' => ['type' => 'timestamp', 'readOnly' => true],
+            ],
+        ));
+
+        $this->entityType(new EntityType(
+            id: 'project_repo',
+            label: 'Project Repo',
+            class: ProjectRepo::class,
+            keys: ['id' => 'id', 'uuid' => 'uuid', 'label' => 'uuid'],
+            fieldDefinitions: [
+                'id' => ['type' => 'integer', 'readOnly' => true],
+                'uuid' => ['type' => 'string', 'readOnly' => true],
+                'project_uuid' => ['type' => 'string', 'required' => true],
+                'repo_uuid' => ['type' => 'string', 'required' => true],
+                'created_at' => ['type' => 'timestamp', 'readOnly' => true],
             ],
         ));
     }

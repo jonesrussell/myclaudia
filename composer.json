@@ -55,6 +55,7 @@
                 "Claudriel\\Provider\\ChatServiceProvider",
                 "Claudriel\\Provider\\DayBriefServiceProvider",
                 "Claudriel\\Provider\\ProjectServiceProvider",
+                "Claudriel\\Provider\\RepoServiceProvider",
                 "Claudriel\\Provider\\WorkspaceServiceProvider",
                 "Claudriel\\Provider\\OperationsServiceProvider",
                 "Claudriel\\Provider\\TemporalServiceProvider",
