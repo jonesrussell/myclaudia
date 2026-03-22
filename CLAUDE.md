@@ -174,3 +174,6 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - Ansible Caddyfile template (`waaseyaa-caddyfile.j2`) overwrites any hand-edited Caddy config on deploy; SSE-specific directives (stream path matcher, gzip exclusion, `Alt-Svc "clear"`) must be in the template itself (northcloud-ansible#2)
 - Staging and production use separate Anthropic API keys from different workspaces: `vault_claudriel_staging_anthropic_api_key` (staging) and `vault_claudriel_anthropic_api_key` (production) in Ansible vault
 - CLI commands crash on a fresh database (`no such table: artifact`) because entity types only registered locally in `commands()` (not in domain providers) don't get tables created by the `ensureTable` loop (#378)
+- Admin registration notifications require `CLAUDRIEL_ADMIN_EMAIL` in `.env`; without it, no notification is sent (best-effort, never blocks verification flow)
+- GraphQL mutations from the admin SPA require the Waaseyaa framework fix in `ControllerDispatcher` (waaseyaa/framework#602) to resolve session accounts on `allowAll()` routes; without it, mutations get `AnonymousUser` and fail with "Access denied"
+- Deploy validation uses `--insecure` TLS fallback (curl exit codes 35/60) when staging cert is broken; this masks the real issue (#474) but keeps deploys flowing
