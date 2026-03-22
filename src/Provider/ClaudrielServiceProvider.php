@@ -21,6 +21,7 @@ use Claudriel\Command\IssueRunCommand;
 use Claudriel\Command\IssueStatusCommand;
 use Claudriel\Command\RecategorizeEventsCommand;
 use Claudriel\Command\SkillsCommand;
+use Claudriel\Command\TelescopeCommand;
 use Claudriel\Command\WorkspaceCloneCommand;
 use Claudriel\Command\WorkspaceCreateCommand;
 use Claudriel\Command\WorkspacePullCommand;
@@ -80,6 +81,8 @@ use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 use Waaseyaa\GitHub\GitHubClient;
 use Waaseyaa\Routing\RouteBuilder;
 use Waaseyaa\Routing\WaaseyaaRouter;
+use Waaseyaa\Telescope\Storage\SqliteTelescopeStore;
+use Waaseyaa\Telescope\TelescopeServiceProvider as WaaseyaaTelescopeServiceProvider;
 
 final class ClaudrielServiceProvider extends ServiceProvider
 {
@@ -697,6 +700,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new WorkspaceOpsCommand($workspaceRepo, $operationRepo),
             new WorkspaceVerifyCommand($workspaceRepo),
             new RecategorizeEventsCommand($entityTypeManager, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
+            $this->buildTelescopeCommand(),
         ];
 
         // GitHub sync (optional — requires GitHub OAuth integration)
@@ -792,6 +796,34 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $artifact = $results[0] ?? null;
 
         return $artifact instanceof Artifact ? $artifact : null;
+    }
+
+    private function buildTelescopeCommand(): TelescopeCommand
+    {
+        $varDir = dirname(__DIR__, 2).'/var';
+        if (! is_dir($varDir)) {
+            mkdir($varDir, 0o755, true);
+        }
+
+        $store = SqliteTelescopeStore::createFromPath($varDir.'/telescope.sqlite');
+
+        $telescope = new WaaseyaaTelescopeServiceProvider(
+            config: [
+                'enabled' => true,
+                'record' => [
+                    'queries' => true,
+                    'events' => true,
+                    'requests' => true,
+                    'cache' => true,
+                    'slow_query_threshold' => 100.0,
+                    'slow_queries_only' => false,
+                ],
+                'ignore_paths' => ['/health', '/api/broadcast/*', '/favicon.ico'],
+            ],
+            store: $store,
+        );
+
+        return new TelescopeCommand($telescope);
     }
 
     private function detectClaudrielRepositoryUrl(): string
