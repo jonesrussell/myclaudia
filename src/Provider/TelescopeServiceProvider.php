@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Claudriel\Provider;
 
+use Claudriel\Middleware\TelescopeRequestMiddleware;
+use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 use Waaseyaa\Telescope\Storage\SqliteTelescopeStore;
 use Waaseyaa\Telescope\TelescopeServiceProvider as WaaseyaaTelescopeServiceProvider;
@@ -26,6 +28,21 @@ final class TelescopeServiceProvider extends ServiceProvider
         // Event recording: entity events use Symfony EventDispatcher but providers
         // lack a registration point for generic listeners. Wire QueryRecorder and
         // EventRecorder here when those framework hooks land.
+        //
+        // CacheRecorder: waaseyaa/telescope provides CacheRecorder with
+        // recordHit/recordMiss/recordSet/recordForget methods. However,
+        // waaseyaa/cache does not emit events on cache operations (it only has
+        // invalidation listeners). CacheRecorder wiring is BLOCKED until
+        // waaseyaa/cache emits operation events or app-level cache decorators
+        // (e.g. CachedDayBriefAssembler) are instrumented to call CacheRecorder
+        // directly.
+    }
+
+    public function middleware(EntityTypeManager $entityTypeManager): array
+    {
+        return [
+            new TelescopeRequestMiddleware($this->getTelescope()),
+        ];
     }
 
     public function getTelescope(): WaaseyaaTelescopeServiceProvider
