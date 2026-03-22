@@ -149,6 +149,11 @@ final class SubprocessChatClient
                     'summary' => 'Received result from '.($event['tool'] ?? 'tool'),
                     'level' => 'info',
                 ]) : null,
+                'progress' => $onProgress !== null ? $onProgress([
+                    'phase' => $event['phase'] ?? 'agent',
+                    'summary' => $event['summary'] ?? 'Processing...',
+                    'level' => $event['level'] ?? 'info',
+                ]) : null,
                 'needs_continuation' => $onNeedsContinuation !== null ? $onNeedsContinuation([
                     'turns_consumed' => $event['turns_consumed'] ?? 0,
                     'message' => $event['message'] ?? 'The agent needs more turns to complete this task.',

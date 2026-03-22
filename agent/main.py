@@ -13,6 +13,7 @@ import importlib
 import os
 from pathlib import Path
 import sys
+import time
 from typing import Callable
 
 import anthropic
@@ -32,6 +33,10 @@ DEFAULT_TURN_LIMITS = {
     "general": 25,
     "onboarding": 30,
 }
+
+RATE_LIMIT_MAX_RETRIES = 3
+RATE_LIMIT_INITIAL_BACKOFF = 5  # seconds
+RATE_LIMIT_MAX_BACKOFF = 60  # seconds
 
 
 def parse_enabled_tool_names(raw_value: str | None) -> set[str] | None:
@@ -191,13 +196,31 @@ def main() -> None:
         for _ in range(turn_limit):
             turns_consumed += 1
 
-            response = client.messages.create(
-                model=model,
-                max_tokens=4096,
-                system=cached_system,
-                messages=messages,
-                tools=cached_tools,
-            )
+            response = None
+            for attempt in range(RATE_LIMIT_MAX_RETRIES + 1):
+                try:
+                    response = client.messages.create(
+                        model=model,
+                        max_tokens=4096,
+                        system=cached_system,
+                        messages=messages,
+                        tools=cached_tools,
+                    )
+                    break
+                except anthropic.RateLimitError as e:
+                    if attempt >= RATE_LIMIT_MAX_RETRIES:
+                        raise
+                    retry_after = getattr(e.response, "headers", {}).get("retry-after")
+                    if retry_after is not None:
+                        wait = min(float(retry_after), RATE_LIMIT_MAX_BACKOFF)
+                    else:
+                        wait = min(RATE_LIMIT_INITIAL_BACKOFF * (2 ** attempt), RATE_LIMIT_MAX_BACKOFF)
+                    emit("progress", phase="rate_limit", summary=f"Rate limited, retrying in {int(wait)}s...", level="warning")
+                    time.sleep(wait)
+
+            if response is None:
+                emit("error", message="Failed to get API response after retries")
+                break
 
             # Collect text and tool_use blocks from the response
             text_parts = []
