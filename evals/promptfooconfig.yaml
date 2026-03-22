@@ -1,0 +1,19 @@
+defaultTest:
+  options:
+    provider:
+      id: file://providers/claudriel-skill-provider.js
+    scoring:
+      model: claude-haiku-4-5-20251001
+
+env:
+  ANTHROPIC_API_KEY: "{{ANTHROPIC_API_KEY}}"
+
+defaults:
+  subject_model: claude-sonnet-4-6
+  judge_model: claude-haiku-4-5-20251001
+  max_turns: 10
+  runs: 3
+
+testMatch:
+  - ../.claude/skills/*/evals/trajectory*.yaml
+  - ../.claude/skills/*/evals/multi-turn*.yaml
