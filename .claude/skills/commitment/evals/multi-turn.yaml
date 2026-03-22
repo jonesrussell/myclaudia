@@ -1,0 +1,71 @@
+schema_version: "1.0"
+skill: commitment
+entity_type: commitment
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a commitment, then update using pronouns"
+    turns:
+      - input: "I owe Sarah a proposal by Friday"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createCommitment
+          - type: field_extraction
+            field: title
+            should_match: "Send proposal to Sarah"
+          - type: direction_detected
+            direction: outbound
+        mock_response:
+          createCommitment:
+            uuid: "test-mt-001"
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-27"
+      - input: "change its due date to next Monday"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updateCommitment
+        mock_response:
+          updateCommitment:
+            uuid: "test-mt-001"
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-30"
+    rubric: commitment
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a commitment, then delete referring without full name"
+    turns:
+      - input: "I owe Sarah a proposal by Friday"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createCommitment
+        mock_response:
+          createCommitment:
+            uuid: "test-mt-002"
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-27"
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: title
+        mock_response:
+          deleteCommitment:
+            success: true
+    rubric: commitment
+    tags: [multi-turn, context-preservation]

@@ -1,0 +1,63 @@
+schema_version: "1.0"
+skill: judgment-rule
+entity_type: judgment_rule
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a judgment rule, then update using pronouns"
+    turns:
+      - input: "from now on, always CC the team lead on emails"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createJudgmentRule
+          - type: field_extraction
+            field: rule_text
+            should_match: "CC the team lead on emails"
+        mock_response:
+          createJudgmentRule:
+            uuid: "test-mt-001"
+            rule_text: "Always CC the team lead on emails"
+            status: active
+      - input: "update that rule to include managers too"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updateJudgmentRule
+        mock_response:
+          updateJudgmentRule:
+            uuid: "test-mt-001"
+            rule_text: "Always CC the team lead and managers on emails"
+            status: active
+    rubric: judgment-rule
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a judgment rule, then delete referring without full name"
+    turns:
+      - input: "from now on, always CC the team lead on emails"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createJudgmentRule
+        mock_response:
+          createJudgmentRule:
+            uuid: "test-mt-002"
+            rule_text: "Always CC the team lead on emails"
+            status: active
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: rule_text
+        mock_response:
+          deleteJudgmentRule:
+            success: true
+    rubric: judgment-rule
+    tags: [multi-turn, context-preservation]

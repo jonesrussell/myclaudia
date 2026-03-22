@@ -1,0 +1,63 @@
+schema_version: "1.0"
+skill: schedule-entry
+entity_type: schedule_entry
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a schedule entry, then update using pronouns"
+    turns:
+      - input: "schedule a standup tomorrow at 9am"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createScheduleEntry
+          - type: field_extraction
+            field: title
+            should_match: "Standup"
+        mock_response:
+          createScheduleEntry:
+            uuid: "test-mt-001"
+            title: "Standup"
+            start_time: "2026-03-22T09:00:00"
+      - input: "move it to 10am"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updateScheduleEntry
+        mock_response:
+          updateScheduleEntry:
+            uuid: "test-mt-001"
+            title: "Standup"
+            start_time: "2026-03-22T10:00:00"
+    rubric: schedule-entry
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a schedule entry, then delete referring without full name"
+    turns:
+      - input: "schedule a standup tomorrow at 9am"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createScheduleEntry
+        mock_response:
+          createScheduleEntry:
+            uuid: "test-mt-002"
+            title: "Standup"
+            start_time: "2026-03-22T09:00:00"
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: title
+        mock_response:
+          deleteScheduleEntry:
+            success: true
+    rubric: schedule-entry
+    tags: [multi-turn, context-preservation]

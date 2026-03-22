@@ -1,0 +1,66 @@
+schema_version: "1.0"
+skill: triage-entry
+entity_type: triage_entry
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a triage entry, then update using pronouns"
+    turns:
+      - input: "triage this email from Sarah about the proposal"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createTriageEntry
+          - type: field_extraction
+            field: sender_name
+            should_match: "Sarah"
+        mock_response:
+          createTriageEntry:
+            uuid: "test-mt-001"
+            sender_name: "Sarah"
+            subject: "Re: Proposal"
+            status: pending
+      - input: "dismiss it"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updateTriageEntry
+        mock_response:
+          updateTriageEntry:
+            uuid: "test-mt-001"
+            sender_name: "Sarah"
+            subject: "Re: Proposal"
+            status: dismissed
+    rubric: triage-entry
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a triage entry, then delete referring without full name"
+    turns:
+      - input: "triage this email from Sarah about the proposal"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createTriageEntry
+        mock_response:
+          createTriageEntry:
+            uuid: "test-mt-002"
+            sender_name: "Sarah"
+            subject: "Re: Proposal"
+            status: pending
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: sender_name
+        mock_response:
+          deleteTriageEntry:
+            success: true
+    rubric: triage-entry
+    tags: [multi-turn, context-preservation]
