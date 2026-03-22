@@ -36,9 +36,21 @@ uuid name email tier source tenant_id latest_summary last_interaction_at last_in
 
 ---
 
-## Intent Parsing (All Operations)
+## Intent Parsing
 
-Before any API call, parse the user's original request:
+Intent parsing differs by operation type. **Update/delete resolve against existing entities first; create parses from the user's sentence.**
+
+### For Update and Delete (resolve-first)
+
+1. **Fetch existing people** via `personList` query before parsing the name
+2. **Match the user's reference** against the returned person names using substring or fuzzy matching. Person names may contain hyphens, apostrophes, non-Latin characters, or multi-word formats.
+   - "delete Dr. Patel" → match against list, find "Dr. Patel"
+   - "remove the Chen Wei person" → match against list, find "陈伟 (Chen Wei)"
+   - "update Sarah" → match against list, find "Sarah Chen" (partial match)
+3. **If exactly one match**, use it. If multiple, present options. If none, say so.
+4. **Do NOT split the user's input on conjunctions or prepositions** when resolving existing entities. The person name is whatever was stored at creation time.
+
+### For Create (parse from sentence)
 
 1. **Extract the person's name**: Usually the first proper noun or quoted string after the operation verb.
    - "add Sarah Chen from Acme" → name: "Sarah Chen"
@@ -144,11 +156,12 @@ If filters were requested (e.g., "show inner circle"), apply via query filter or
 
 ### 1. Resolve Person
 
-Match the user's reference against existing people:
-- Search by name via `personList` with filter
-- If exactly one match, use it
-- If multiple matches, present them and ask
-- If no matches, say so and offer to create
+Follow the resolve-first pattern from Intent Parsing above:
+1. Fetch existing people via `personList`
+2. Match user's reference against returned names
+3. If exactly one match, use it
+4. If multiple matches, present them and ask
+5. If no matches, say so and offer to create
 
 ### 2. Determine Changes
 
@@ -187,7 +200,7 @@ mutation {
 
 ### 1. Resolve Person
 
-Same resolution as Update.
+Follow the resolve-first pattern from Intent Parsing above (same as Update).
 
 ### 2. Show What Will Be Deleted
 
@@ -220,6 +233,13 @@ mutation {
 
 ---
 
+## Error Handling
+
+- **GraphQL errors**: Surface the error message to the user. Do not swallow errors or retry silently.
+- **Not found**: If the resolved UUID returns a not-found error, the entity may have been deleted since resolution. Say so.
+- **Access denied**: If the API rejects an operation, surface "Access denied" with the operation attempted. Do not retry or work around.
+- **Validation errors**: If the API returns field validation errors (e.g., invalid tier value), show the error and ask the user to correct the input.
+
 ## Judgment Points
 
 - Confirm field values before create
@@ -231,7 +251,9 @@ mutation {
 ## Quality Checklist
 
 - [ ] Intent parsed correctly (name extracted, not full sentence)
+- [ ] For update/delete: resolved against existing entities first (not parsed from sentence)
 - [ ] Correct GraphQL mutation/query used
 - [ ] Confirmation shown before mutating operations
 - [ ] Delete requires name echo-back, not just "yes"
 - [ ] API errors surfaced to user, not swallowed
+- [ ] No files or directories created

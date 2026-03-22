@@ -1,0 +1,173 @@
+name: commitment-skill-basic
+description: "Evals for commitment CRUD skill: intent parsing, resolve-first, confirmations, error handling"
+
+tests:
+  # --- Create ---
+
+  - name: create-extracts-title-not-full-sentence
+    input: "I owe Sarah a proposal by Friday"
+    expected:
+      - title must NOT be "I owe Sarah a proposal by Friday"
+      - title should be something like "Send proposal to Sarah" or "Proposal for Sarah"
+      - direction must be "outbound"
+      - due_date must resolve to the next Friday from today
+      - confirmation prompt shown before API call
+
+  - name: create-inbound-direction
+    input: "they owe me feedback on the design"
+    expected:
+      - direction must be "inbound"
+      - title should be "Feedback on design" or similar (not full sentence)
+      - confirmation prompt shown before API call
+
+  - name: create-ambiguous-direction-asks
+    input: "new commitment with Sarah about the contract"
+    expected:
+      - skill asks whether this is outbound or inbound before proceeding
+      - does NOT default silently
+
+  - name: create-relative-date-converted
+    input: "I owe Jim a report by next Tuesday"
+    expected:
+      - due_date is an absolute date (ISO format), not "next Tuesday"
+      - title extracted (not full sentence)
+      - direction is outbound
+
+  - name: create-no-person-reference
+    input: "add commitment to finish the quarterly review"
+    expected:
+      - person_uuid is null or not set
+      - title extracted as "Finish quarterly review" or similar
+      - direction defaults to outbound
+      - confirmation shown
+
+  # --- List ---
+
+  - name: list-all-commitments
+    input: "show my commitments"
+    expected:
+      - calls commitmentList GraphQL query
+      - presents results as table with Title, Direction, Status, Due Date columns
+
+  - name: list-filtered-by-status
+    input: "what commitments are pending?"
+    expected:
+      - filters by status "pending" (in query or post-filter)
+      - presents only matching items
+
+  - name: list-filtered-by-direction
+    input: "what do I owe?"
+    expected:
+      - filters by direction "outbound"
+      - presents only outbound commitments
+
+  - name: list-combined-filter
+    input: "show pending inbound commitments"
+    expected:
+      - filters by status "pending" AND direction "inbound"
+
+  # --- Update ---
+
+  - name: update-resolve-first
+    input: "mark the proposal as complete"
+    expected:
+      - fetches existing commitments via commitmentList BEFORE parsing
+      - matches "proposal" against returned titles
+      - does NOT parse "the proposal" as a new title
+      - shows before/after confirmation
+
+  - name: update-ambiguous-match-presents-options
+    input: "complete the review"
+    expected:
+      - if multiple commitments match "review", presents options and asks
+      - does NOT pick one silently
+
+  - name: update-no-match-offers-create
+    input: "mark the nonexistent thing as done"
+    expected:
+      - says no matching commitment found
+      - offers to create one instead
+
+  - name: update-shows-before-after
+    input: "reschedule proposal to next Monday"
+    expected:
+      - resolves commitment first
+      - shows before/after with old and new due_date
+      - waits for confirmation before calling mutation
+
+  # --- Delete ---
+
+  - name: delete-resolve-first
+    input: "delete the proposal commitment"
+    expected:
+      - fetches existing commitments via commitmentList BEFORE parsing
+      - matches "proposal" against returned titles
+      - does NOT parse "the proposal commitment" as a title
+
+  - name: delete-shows-details
+    input: "remove the feedback commitment"
+    expected:
+      - shows commitment details (title, UUID, direction, status, due date)
+      - before asking for confirmation
+
+  - name: delete-requires-title-echo-back
+    input: "delete the proposal commitment"
+    expected:
+      - after showing details, requires user to type the commitment title
+      - does NOT accept just "yes" as confirmation
+
+  - name: delete-conjunction-in-title-not-split
+    input: "delete follow up and review deliverables"
+    expected:
+      - matches against existing titles as a whole phrase
+      - does NOT split into two separate delete operations
+      - finds "Follow up and review deliverables" as one entity
+
+  # --- Edge Cases ---
+
+  - name: edge-conjunction-in-title-create
+    input: "I owe them a review and summary by Friday"
+    expected:
+      - title is "Review and summary" or similar (conjunction preserved in title)
+      - does NOT create two separate commitments
+      - direction is outbound
+
+  - name: edge-relative-date-today
+    input: "I owe Sarah a call today"
+    expected:
+      - due_date resolves to today's date in ISO format
+      - title is "Call Sarah" or similar
+
+  - name: edge-no-direction-keyword
+    input: "new commitment to review the contract"
+    expected:
+      - direction defaults to outbound (or asks if ambiguous)
+      - title extracted, not full sentence
+
+  # --- Error Handling ---
+
+  - name: error-not-found-after-resolve
+    input: "update the proposal commitment"
+    expected:
+      - if the resolved UUID returns a not-found error from the API
+      - surfaces that the commitment may have been deleted since resolution
+      - does NOT retry silently
+
+  - name: error-invalid-status
+    input: "mark proposal as snoozed"
+    expected:
+      - API returns validation error (invalid status value)
+      - surfaces the error and valid status options
+      - asks user to correct input
+
+  - name: error-graphql-failure
+    input: "create commitment to do the thing"
+    expected:
+      - if GraphQL returns an error, surfaces error message to user
+      - does NOT swallow errors or retry silently
+
+  - name: error-access-denied
+    input: "delete the proposal"
+    expected:
+      - if API rejects with access denied, surfaces "Access denied" with operation
+      - does NOT retry or work around

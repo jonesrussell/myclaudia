@@ -1,0 +1,146 @@
+# Triage Entry CRUD Eval
+# Tests GraphQL-based triage entry lifecycle operations
+
+prompts:
+  # === CREATE ===
+
+  - prompt: "triage this email from Sarah about the proposal"
+    expectations:
+      - "extracts sender_name as 'Sarah', not the full sentence"
+      - "extracts summary as something like 'the proposal' or 'proposal'"
+      - "defaults status to 'pending' and source to 'manual'"
+      - "shows confirmation with fields before creating"
+      - "calls createTriageEntry GraphQL mutation"
+      - "does NOT create files or directories"
+
+  - prompt: "new triage entry: meeting request from James Wright, email james@corp.com"
+    expectations:
+      - "extracts sender_name as 'James Wright'"
+      - "extracts sender_email as 'james@corp.com'"
+      - "extracts summary as 'meeting request'"
+      - "asks for confirmation before calling API"
+
+  - prompt: "add to triage queue: urgent invoice from Acme Corp"
+    expectations:
+      - "extracts sender_name as 'Acme Corp'"
+      - "extracts summary as 'urgent invoice'"
+      - "defaults status to 'pending'"
+      - "calls createTriageEntry GraphQL mutation"
+
+  # === LIST ===
+
+  - prompt: "show triage queue"
+    expectations:
+      - "calls triageEntryList GraphQL query"
+      - "defaults filter to status: pending"
+      - "presents results in a table with sender_name, summary, status, occurred_at"
+      - "does NOT attempt to read files or directories"
+
+  - prompt: "what needs triaging?"
+    expectations:
+      - "calls triageEntryList GraphQL query"
+      - "filters to pending entries"
+      - "presents results sorted by occurred_at"
+
+  - prompt: "list all triage entries"
+    expectations:
+      - "calls triageEntryList GraphQL query"
+      - "does not apply pending filter since user said 'all'"
+      - "shows entries across all statuses"
+
+  # === UPDATE ===
+
+  - prompt: "dismiss the triage from Sarah"
+    context: "TriageEntry exists: uuid=abc-123, sender_name='Sarah Chen', summary='Proposal review request', status='pending'"
+    expectations:
+      - "fetches existing entries via triageEntryList BEFORE parsing the name"
+      - "matches 'Sarah' against existing sender_name fields"
+      - "resolves to 'Sarah Chen' entry"
+      - "maps 'dismiss' to status: 'dismissed'"
+      - "shows before/after: status change from 'pending' to 'dismissed'"
+      - "calls updateTriageEntry GraphQL mutation with correct uuid"
+
+  - prompt: "process the proposal triage"
+    context: "TriageEntry exists: uuid=def-456, sender_name='James Wright', summary='Proposal deadline reminder', status='pending'"
+    expectations:
+      - "fetches existing entries via triageEntryList"
+      - "matches 'proposal' against summary fields"
+      - "maps 'process' to status: 'processed'"
+      - "calls updateTriageEntry GraphQL mutation"
+
+  - prompt: "defer the meeting request"
+    context: "TriageEntry exists: uuid=ghi-789, sender_name='Acme Corp', summary='Meeting request for Q2 planning', status='pending'"
+    expectations:
+      - "fetches existing entries via triageEntryList"
+      - "matches 'meeting request' against summary fields"
+      - "maps 'defer' to status: 'deferred'"
+      - "shows before/after diff"
+      - "calls updateTriageEntry GraphQL mutation"
+
+  # === DELETE ===
+
+  - prompt: "delete the triage entry from Sarah"
+    context: "TriageEntry exists: uuid=abc-123, sender_name='Sarah Chen', summary='Proposal review request', status='dismissed'"
+    expectations:
+      - "fetches existing entries via triageEntryList BEFORE parsing"
+      - "matches 'Sarah' against existing sender_name fields"
+      - "shows what will be deleted: sender_name, summary, status, uuid"
+      - "requires sender_name AND summary echoed back, not just 'yes'"
+      - "calls deleteTriageEntry GraphQL mutation only after echo-back confirmation"
+
+  - prompt: "remove the Acme Corp triage"
+    context: "TriageEntry exists: uuid=ghi-789, sender_name='Acme Corp', summary='Meeting request for Q2 planning'"
+    expectations:
+      - "fetches existing entries via triageEntryList"
+      - "resolves 'Acme Corp' against sender_name"
+      - "requires echo-back of sender_name and summary before deletion"
+      - "calls deleteTriageEntry GraphQL mutation after confirmation"
+
+  # === EDGE CASES ===
+
+  - prompt: "dismiss the invoice triage"
+    context: "TriageEntry exists: uuid=abc-123, sender_name='Acme Corp', summary='Urgent invoice', status='pending'"
+    expectations:
+      - "maps 'dismiss' to a STATUS UPDATE (dismissed), not a deletion"
+      - "calls updateTriageEntry, NOT deleteTriageEntry"
+      - "shows before/after status change"
+
+  - prompt: "process Sarah's triage entry"
+    context: "Two entries exist: uuid=abc-123 sender_name='Sarah Chen' summary='Proposal review', uuid=def-456 sender_name='Sarah Park' summary='Budget approval'"
+    expectations:
+      - "fetches existing entries via triageEntryList"
+      - "finds two matches for 'Sarah'"
+      - "presents both options with sender_name and summary"
+      - "asks user to pick which one"
+      - "does NOT process both or pick arbitrarily"
+
+  - prompt: "update the entry about budget approval and also send a follow-up"
+    context: "TriageEntry exists: uuid=def-456, sender_name='Sarah Park', summary='Budget approval and also send a follow-up'"
+    expectations:
+      - "does NOT split on 'and' when resolving against existing entries"
+      - "matches against stored summary including the conjunction"
+      - "resolves to the correct entry"
+
+  # === ERROR HANDLING ===
+
+  - prompt: "dismiss the triage from NonExistent Person"
+    context: "No triage entry matches this sender"
+    expectations:
+      - "fetches existing entries via triageEntryList"
+      - "reports no match found"
+      - "offers to create a new entry instead"
+      - "does NOT call updateTriageEntry or deleteTriageEntry"
+
+  - prompt: "delete triage entry abc-gone"
+    context: "Entry was deleted between resolution and mutation call, API returns not-found"
+    expectations:
+      - "surfaces the not-found error to the user"
+      - "explains the entity may have been deleted since resolution"
+      - "does NOT retry silently"
+
+  - prompt: "create triage entry"
+    context: "User provides no sender_name or summary"
+    expectations:
+      - "asks for required fields: sender_name and summary"
+      - "does NOT call createTriageEntry with empty fields"
+      - "does NOT invent values for missing fields"

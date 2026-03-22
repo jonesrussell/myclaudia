@@ -28,22 +28,36 @@ Full CRUD lifecycle for Claudriel Workspace entities via GraphQL API.
 
 If ambiguous, ask. Default assumption for bare workspace mentions is **not** delete.
 
+## GraphQL Fields
+
+```
+uuid name description account_id tenant_id metadata repo_path repo_url branch codex_model last_commit_hash ci_status project_id mode status created_at updated_at
+```
+
 ---
 
-## Intent Parsing (All Operations)
+## Intent Parsing
 
-Before any API call, parse the user's original request:
+Intent parsing differs by operation type. **Update/delete resolve against existing entities first; create parses from the user's sentence.**
+
+### For Update and Delete (resolve-first)
+
+1. **Fetch existing workspaces** via `workspaceList` query before parsing the name
+2. **Match the user's reference** against the returned workspace names using substring or fuzzy matching. Workspace names may contain conjunctions, prepositions, or full sentences.
+   - "delete the 'and clone jonesrussell/me' workspace" → match against list, find "and clone jonesrussell/me so we can do some milestone planning"
+   - "remove old test" → match against list, find "old test workspace"
+3. **If exactly one match**, use it. If multiple, present options. If none, say so.
+4. **Do NOT split the user's input on conjunctions or prepositions** when resolving existing entities. The entity name may contain any words.
+
+### For Create (parse from sentence)
 
 1. **Extract the workspace name**: The name is usually the first noun phrase or project identifier. Stop at conjunctions ("and", "so", "then") or prepositions that introduce secondary intents.
    - "create a workspace for Acme Corp and link the repo" → name: "Acme Corp"
    - "new workspace jonesrussell/me so we can plan" → name: "me" (from the repo name)
-   - "delete the old test workspace" → name: "old test" or resolve via list
-
 2. **Extract secondary intents** and queue them for after the primary operation:
    - `milestone planning` / `roadmap` / `planning` → open milestone planning after setup
    - `for <person/entity>` → set as contact/sponsor
    - `clone <owner/repo>` → note: repo cloning is a separate concern from workspace entity creation
-
 3. **Never use the full user sentence as a field value.** If unsure what the name should be, ask.
 
 ---
@@ -221,6 +235,13 @@ mutation {
 
 ---
 
+## Error Handling
+
+- **GraphQL errors**: Surface the error message to the user. Do not swallow errors or retry silently.
+- **Not found**: If the resolved UUID returns a not-found error, the entity may have been deleted since resolution. Say so.
+- **Access denied**: If the API rejects an operation, surface "Access denied" with the operation attempted. Do not retry or work around.
+- **Validation errors**: If the API returns field validation errors, show the error and ask the user to correct the input.
+
 ## Judgment Points
 
 - Confirm field values before create (show what will be sent)
@@ -231,8 +252,10 @@ mutation {
 ## Quality Checklist
 
 - [ ] Intent parsed correctly (name extracted, not full sentence)
+- [ ] For update/delete: resolved against existing entities first (not parsed from sentence)
 - [ ] Correct GraphQL mutation/query used
 - [ ] Confirmation shown before mutating operations
 - [ ] Delete requires name echo-back, not just "yes"
 - [ ] Secondary intents executed after primary operation
 - [ ] API errors surfaced to user, not swallowed
+- [ ] No files or directories created

@@ -105,14 +105,19 @@ If ambiguous, ask. Default assumption for bare entity mentions is **not** delete
    ```
 5. **Report result**
 
-## Entity Reference Resolution
+## Entity Reference Resolution (Resolve-First for Update/Delete)
 
-When the user refers to an entity by name (not UUID), resolve it:
+For **update** and **delete** operations, always resolve against existing entities **before** parsing the user's sentence for a name. Entity names may contain conjunctions, prepositions, or full sentences.
 
-1. Search via the list query with a name/label filter
-2. If exactly one match, use it
-3. If multiple matches, present them and ask
-4. If no matches, say so and offer to create
+1. Fetch existing entities via the list query
+2. Match the user's reference against returned entity names (substring or fuzzy match)
+3. If exactly one match, use it
+4. If multiple matches, present them and ask
+5. If no matches, say so and offer to create
+
+**Do NOT split the user's input on conjunctions or heuristic word boundaries** when resolving existing entities. The entity name is whatever was stored at creation time.
+
+For **create** operations, parse the name from the user's sentence using skill-specific heuristics (e.g., stop at conjunctions that introduce secondary intents). Never use the full user sentence as a field value.
 
 ## Multi-Step Workflows
 

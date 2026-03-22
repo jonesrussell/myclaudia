@@ -1,0 +1,180 @@
+# Schedule Entry CRUD Eval
+# Tests GraphQL-based schedule entry lifecycle operations
+
+prompts:
+  # === CREATE ===
+
+  - prompt: "schedule a call with Sarah at 3pm"
+    expectations:
+      - "extracts title as 'Call with Sarah', not the full sentence"
+      - "extracts starts_at as today 3pm in ISO 8601"
+      - "defaults ends_at to starts_at + 1 hour"
+      - "shows confirmation with fields before creating"
+      - "calls createScheduleEntry GraphQL mutation"
+      - "does NOT create files or directories"
+
+  - prompt: "add standup and retro to my schedule tomorrow at 10am"
+    expectations:
+      - "extracts title as 'Standup and Retro' (preserves conjunction in title)"
+      - "does NOT split into two separate entries"
+      - "converts 'tomorrow' to absolute ISO 8601 date"
+      - "shows confirmation before calling API"
+
+  - prompt: "book a dentist appointment on Friday from 2pm to 3:30pm"
+    expectations:
+      - "extracts title as 'Dentist Appointment'"
+      - "extracts starts_at as next Friday 2pm ISO 8601"
+      - "extracts ends_at as next Friday 3:30pm ISO 8601"
+      - "calls createScheduleEntry GraphQL mutation"
+
+  - prompt: "schedule something for next Monday"
+    context: "User provides a date but no title or time"
+    expectations:
+      - "asks for the event title since it cannot be extracted"
+      - "asks for a time or uses a reasonable default"
+      - "does NOT use 'something' as the title"
+
+  # === LIST ===
+
+  - prompt: "show my schedule"
+    expectations:
+      - "calls scheduleEntryList GraphQL query"
+      - "presents results sorted chronologically by starts_at"
+      - "shows title, starts_at, ends_at, status in table format"
+      - "does NOT attempt to read files or directories"
+
+  - prompt: "what's on my calendar this week?"
+    expectations:
+      - "calls scheduleEntryList GraphQL query"
+      - "filters or post-filters entries to current week"
+      - "presents chronologically sorted table"
+
+  # === UPDATE ===
+
+  - prompt: "reschedule the dentist to Thursday at 4pm"
+    context: "Schedule entry 'Dentist Appointment' exists with uuid abc-123, currently Friday 2pm"
+    expectations:
+      - "fetches existing entries via scheduleEntryList BEFORE parsing"
+      - "matches 'dentist' against existing entry titles using substring match"
+      - "shows before/after: starts_at and ends_at changes"
+      - "calls updateScheduleEntry GraphQL mutation with correct uuid"
+
+  - prompt: "move the standup and retro to Wednesday"
+    context: "Schedule entry 'Standup and Retro' exists with uuid def-456"
+    expectations:
+      - "fetches existing entries via scheduleEntryList BEFORE parsing"
+      - "does NOT split on 'and' when resolving against existing entries"
+      - "matches 'standup and retro' against 'Standup and Retro'"
+      - "shows before/after with new date"
+      - "calls updateScheduleEntry GraphQL mutation"
+
+  - prompt: "cancel the call with Sarah"
+    context: "Schedule entry 'Call with Sarah' exists with uuid ghi-789"
+    expectations:
+      - "resolves 'call with Sarah' against existing entries"
+      - "treats 'cancel' as a status update, NOT a deletion"
+      - "shows before/after: status change from 'confirmed' to 'cancelled'"
+      - "calls updateScheduleEntry with status 'cancelled'"
+      - "does NOT call deleteScheduleEntry"
+
+  - prompt: "add notes to the dentist: bring insurance card"
+    context: "Schedule entry 'Dentist Appointment' exists with uuid abc-123"
+    expectations:
+      - "resolves 'dentist' against existing entries"
+      - "updates notes field to 'bring insurance card'"
+      - "calls updateScheduleEntry GraphQL mutation"
+
+  # === DELETE ===
+
+  - prompt: "delete the standup and retro"
+    context: "Schedule entry 'Standup and Retro' exists with uuid def-456"
+    expectations:
+      - "fetches existing entries via scheduleEntryList BEFORE parsing"
+      - "does NOT split on 'and' when resolving"
+      - "matches against 'Standup and Retro'"
+      - "shows what will be deleted with uuid and key details"
+      - "requires the entry title echoed back, not just 'yes'"
+      - "calls deleteScheduleEntry GraphQL mutation only after title confirmation"
+
+  - prompt: "remove the old meeting"
+    context: "Two entries match 'meeting': 'Team Meeting' (uuid aaa) and 'Client Meeting' (uuid bbb)"
+    expectations:
+      - "fetches existing entries via scheduleEntryList"
+      - "finds multiple matches for 'meeting'"
+      - "presents both options and asks which one to delete"
+      - "does NOT delete both or pick one silently"
+
+  # === CANCEL VS DELETE DISTINCTION ===
+
+  - prompt: "cancel my Friday appointment"
+    context: "Schedule entry 'Dentist Appointment' exists on Friday with uuid abc-123"
+    expectations:
+      - "resolves against existing entries"
+      - "updates status to 'cancelled' (preserves history)"
+      - "does NOT call deleteScheduleEntry"
+      - "explains that the entry is cancelled but preserved"
+
+  - prompt: "delete my Friday appointment"
+    context: "Schedule entry 'Dentist Appointment' exists on Friday with uuid abc-123"
+    expectations:
+      - "resolves against existing entries"
+      - "proceeds with actual deletion (user explicitly said 'delete')"
+      - "requires title echo-back before deletion"
+      - "calls deleteScheduleEntry mutation"
+
+  # === RELATIVE DATE HANDLING ===
+
+  - prompt: "schedule lunch in 2 hours"
+    expectations:
+      - "extracts title as 'Lunch'"
+      - "converts 'in 2 hours' to absolute ISO 8601 timestamp"
+      - "defaults ends_at to starts_at + 1 hour"
+      - "shows confirmation with absolute times"
+
+  - prompt: "add team standup every day at 9am starting next Monday"
+    expectations:
+      - "extracts title as 'Team Standup'"
+      - "converts 'next Monday' to absolute ISO 8601 date"
+      - "sets starts_at to next Monday 9am"
+      - "notes recurring intent but creates single entry (no recurring_series_id logic yet)"
+
+  # === INTENT PARSING EDGE CASES ===
+
+  - prompt: "schedule a meeting and also set a commitment"
+    expectations:
+      - "extracts create operation for schedule entry"
+      - "does NOT use 'a meeting and also set a commitment' as the title"
+      - "extracts title as 'Meeting' or asks for clarification"
+      - "queues 'set a commitment' as a secondary intent"
+
+  - prompt: "update the entry I just added"
+    context: "Only one entry was created recently: 'Lunch with Dave'"
+    expectations:
+      - "fetches existing entries via scheduleEntryList"
+      - "if only one recent match, resolves to 'Lunch with Dave'"
+      - "asks what field to update"
+
+  # === ERROR HANDLING ===
+
+  - prompt: "delete the yoga class"
+    context: "No schedule entry with 'yoga' in the title exists"
+    expectations:
+      - "fetches existing entries via scheduleEntryList"
+      - "reports no match found"
+      - "offers to create a new entry instead"
+      - "does NOT call deleteScheduleEntry mutation"
+
+  - prompt: "reschedule the meeting to blurgsday"
+    context: "Schedule entry 'Team Meeting' exists with uuid aaa"
+    expectations:
+      - "resolves 'meeting' against existing entries"
+      - "cannot parse 'blurgsday' as a valid date"
+      - "asks user to provide a valid date/time"
+      - "does NOT call updateScheduleEntry with invalid data"
+
+  - prompt: "schedule a call at sometime maybe"
+    expectations:
+      - "extracts title as 'Call' or similar"
+      - "cannot parse 'sometime maybe' as a valid time"
+      - "asks user for a specific date and time"
+      - "does NOT send null or invalid starts_at to the API"

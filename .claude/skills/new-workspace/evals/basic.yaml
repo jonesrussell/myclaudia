@@ -1,0 +1,116 @@
+# Workspace CRUD Eval
+# Tests GraphQL-based workspace lifecycle operations
+# Includes regression test for the original conjunction-splitting bug
+
+prompts:
+  # === CREATE ===
+
+  - prompt: "create a workspace for Acme Corp"
+    expectations:
+      - "extracts name as 'Acme Corp', not the full sentence"
+      - "shows confirmation with fields before creating"
+      - "calls createWorkspace GraphQL mutation"
+      - "does NOT create files or directories"
+
+  - prompt: "new workspace jonesrussell/me so we can do some milestone planning"
+    expectations:
+      - "extracts name from repo identifier (e.g., 'me'), not the full sentence"
+      - "queues 'milestone planning' as secondary intent"
+      - "calls createWorkspace mutation first, then handles secondary intent"
+
+  - prompt: "set up a project workspace and link the GitHub repo"
+    expectations:
+      - "does NOT use full sentence as workspace name"
+      - "asks for the workspace name since it cannot be cleanly extracted"
+      - "queues 'link the GitHub repo' as secondary intent"
+
+  # === LIST ===
+
+  - prompt: "show my workspaces"
+    expectations:
+      - "calls workspaceList GraphQL query"
+      - "presents results in a table with name, status, mode, created"
+      - "does NOT attempt to read files or directories"
+
+  - prompt: "list active workspaces"
+    expectations:
+      - "calls workspaceList GraphQL query"
+      - "filters results by status 'active' (query filter or post-filter)"
+
+  # === UPDATE ===
+
+  - prompt: "rename Acme Corp to Acme Corporation"
+    context: "Workspace 'Acme Corp' exists with uuid abc-123"
+    expectations:
+      - "fetches existing workspaces via workspaceList BEFORE parsing"
+      - "matches 'Acme Corp' against existing workspace names"
+      - "shows before/after: name change"
+      - "calls updateWorkspace GraphQL mutation with correct uuid"
+
+  - prompt: "mark the old test workspace as archived"
+    context: "Workspace 'old test' exists with uuid xyz-456"
+    expectations:
+      - "resolves 'old test' against existing workspaces via list query"
+      - "shows before/after: status change to archived"
+      - "calls updateWorkspace GraphQL mutation"
+
+  # === DELETE ===
+
+  - prompt: "delete the old test workspace"
+    context: "Workspace 'old test' exists with uuid xyz-789"
+    expectations:
+      - "fetches existing workspaces via workspaceList BEFORE parsing"
+      - "matches 'old test' against existing workspace names"
+      - "shows what will be deleted with uuid and status"
+      - "requires the workspace name echoed back, not just 'yes'"
+      - "calls deleteWorkspace GraphQL mutation only after name confirmation"
+
+  # === CONJUNCTION BUG REGRESSION ===
+
+  - prompt: "delete the 'and clone jonesrussell/me so we can do some milestone planning' workspace"
+    context: "Workspace named 'and clone jonesrussell/me so we can do some milestone planning' exists with uuid edge-001"
+    expectations:
+      - "does NOT split on 'and' or treat parts as separate workspace names"
+      - "does NOT try to find workspaces named 'the' and 'clone'"
+      - "fetches existing workspaces and matches against actual names"
+      - "finds 'and clone jonesrussell/me so we can do some milestone planning'"
+      - "requires name echo-back before deletion"
+
+  - prompt: "remove the workspace called 'plan and execute the migration'"
+    context: "Workspace named 'plan and execute the migration' exists with uuid edge-002"
+    expectations:
+      - "does NOT split on 'and'"
+      - "resolves against existing workspaces"
+      - "matches 'plan and execute the migration'"
+
+  # === INTENT PARSING EDGE CASES ===
+
+  - prompt: "create a workspace and also add a person"
+    expectations:
+      - "extracts create operation for workspace"
+      - "does NOT use full sentence as workspace name"
+      - "asks for workspace name"
+      - "queues 'add a person' as secondary intent"
+
+  - prompt: "update the workspace I made yesterday"
+    context: "Only one workspace was created recently: 'Sprint Planning'"
+    expectations:
+      - "fetches existing workspaces via workspaceList"
+      - "if only one recent match, resolves to 'Sprint Planning'"
+      - "asks what field to update"
+
+  # === ERROR HANDLING ===
+
+  - prompt: "delete NonExistent Workspace"
+    context: "No workspace with this name exists"
+    expectations:
+      - "fetches existing workspaces via workspaceList"
+      - "reports no match found"
+      - "offers to create instead"
+      - "does NOT call deleteWorkspace mutation"
+
+  - prompt: "update workspace status to legendary"
+    context: "Workspace 'Acme Corp' exists, but 'legendary' is not a valid status"
+    expectations:
+      - "resolves workspace against existing entries"
+      - "either catches invalid status before API call or surfaces API validation error"
