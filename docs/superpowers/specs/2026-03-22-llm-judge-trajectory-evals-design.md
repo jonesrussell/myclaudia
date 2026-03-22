@@ -38,8 +38,8 @@ Issue #445 adds the LLM-judge and trajectory eval layers to complete the eval st
 ```
 promptfoo test runner
   → claudriel-skill-provider.js (custom provider)
-    → reads SKILL.md for the target skill
-    → reads tool schema from evals/schemas/<skill>.json
+    → reads .claude/skills/<skill>/SKILL.md (path resolved from test file's `skill` field)
+    → reads evals/schemas/<skill>.json (relative to project root)
     → calls Anthropic Messages API with:
         - system: [skill instructions + entity-crud template]
         - tools: [GraphQL mutation/query schemas as tool definitions]
@@ -70,6 +70,16 @@ Per-skill override in eval files:
 subject_model: sonnet
 judge_model: haiku
 ```
+
+**Alias lookup table** (resolved by the provider):
+
+| Alias | Full Model ID |
+|-------|--------------|
+| `sonnet` | `claude-sonnet-4-6` |
+| `haiku` | `claude-haiku-4-5-20251001` |
+| `opus` | `claude-opus-4-6` |
+
+Full model IDs are also accepted directly.
 
 ### 4.3 Tool Schema Injection
 
@@ -112,9 +122,9 @@ For `eval_type: trajectory` and `eval_type: multi-turn`, the provider:
    c. Parses the assistant response and any tool calls
    d. If the model made a tool call, looks up the `mock_response` for that turn
    e. Appends the tool result to the conversation
-   f. If the model needs to continue (tool result received), calls the API again
+   f. If the model needs to continue (tool result received), calls the API again (max 3 API calls per turn to prevent unbounded inner loops)
 3. After all turns, returns the full conversation + metadata
-4. Aborts if turn count exceeds `max_turns` (default: 10)
+4. Aborts if user turn count exceeds `max_turns` (default: 10) or if any single turn exceeds 3 API round-trips
 
 ## 5. LLM-Judge Rubric Format
 
@@ -126,6 +136,10 @@ Rubric files live at `evals/rubrics/<skill>.yaml`.
 version: "1.0"
 skill: commitment
 inherits: _base
+
+# Inheritance: provider loads _base.yaml first, then merges this file's criteria array.
+# If a skill-specific criterion has the same `name` as a base criterion, it overrides the base version.
+# Otherwise, skill-specific criteria are appended to the base list.
 
 criteria:
   # Skill-specific criteria (in addition to inherited base criteria)
@@ -167,7 +181,7 @@ Each criterion is scored 0-5 per the rubric's scoring guide.
 ### 5.4 Scoring
 
 - Haiku judges each criterion independently, returning a 0-5 score
-- Weighted average produces a composite score per test
+- Composite score = sum(score_i * weight_i) / sum(weight_i). For base-only skills (total weight 8), a perfect score is 5.0. For skills with extras (e.g., commitment, total weight 9), the denominator adjusts automatically.
 - Each eval runs 3 times; scores are averaged across runs for consistency
 - **Pass threshold:** composite >= 3.5
 - **Regression threshold:** score drop > 15% from baseline triggers a warning
@@ -242,6 +256,7 @@ tests:
             status: completed
 
       - input: "delete the proposal commitment"
+        operation: delete
         assertions:
           - type: resolve_first
           - type: echo_back_required
@@ -273,6 +288,7 @@ tests:
     description: "Create a person, then update using pronouns"
     turns:
       - input: "add Sarah Chen, she's VP of Engineering at Acme"
+        operation: create
         assertions:
           - type: graphql_operation
             operation: createPerson
@@ -285,6 +301,7 @@ tests:
             name: "Sarah Chen"
 
       - input: "change her email to sarah@newco.com"
+        operation: update
         assertions:
           - type: resolve_first
           - type: graphql_operation
@@ -361,16 +378,22 @@ defaults:
   runs: 3
 
 testMatch:
-  - .claude/skills/*/evals/trajectory.yaml
-  - .claude/skills/*/evals/multi-turn.yaml
+  - .claude/skills/*/evals/trajectory*.yaml
+  - .claude/skills/*/evals/multi-turn*.yaml
 ```
 
 ## 9. Integration with Deterministic Validator
 
 The deterministic validator (`php bin/eval-validate`) needs a minor update to handle the new eval types:
 
-- Files with `eval_type: trajectory` or `eval_type: multi-turn` are validated for structural correctness (top-level fields, test names, tags) but skip per-test assertions validation since `turns[]` replaces `input` + `assertions[]`.
-- The validator gains a new rule: `TrajectorySchemaRule` that checks trajectory/multi-turn specific structure (turns array present, each turn has `input`, mock_response is valid).
+- Files with `eval_type: trajectory` or `eval_type: multi-turn` are validated for structural correctness (top-level fields, test names, tags).
+- The validator gains a new rule: `TrajectorySchemaRule` that checks:
+  - `turns[]` array is present and non-empty
+  - Each turn has `input` (required) and `operation` (required, same enum as basic evals)
+  - Each turn's `assertions[]` are validated against `AssertionCompatibilityRule` using the turn's `operation` field
+  - `mock_response` is present for all turns except the last
+  - `rubric` field references a valid rubric file
+  - `max_turns` is a positive integer if present
 - Coverage report includes trajectory and multi-turn test counts per skill.
 
 ## 10. Resolved Design Decisions
@@ -380,8 +403,12 @@ The deterministic validator (`php bin/eval-validate`) needs a minor update to ha
 3. **Rubric format:** YAML with version field, inheritable base criteria, weighted scoring 0-5.
 4. **Mock responses:** Per-turn in eval YAML, with skill-level defaults in `evals/mocks/`.
 5. **Provider return shape:** Includes `metadata: { model, skill, turns }` for debugging.
-6. **Safety cap:** `max_turns` field (default 10) prevents runaway evals.
-7. **Test discovery:** `testMatch` globs in promptfooconfig.yaml for zero-arg runs.
+6. **Safety cap:** `max_turns` field (default 10) prevents runaway evals. Per-turn inner loop capped at 3 API calls.
+7. **Test discovery:** `testMatch` globs in promptfooconfig.yaml for zero-arg runs (wildcard pattern for extensibility).
+8. **Per-turn operation field:** Each turn in trajectory/multi-turn evals declares its `operation` for assertion compatibility validation (consistent with #444).
+9. **Model aliases:** Short aliases (`sonnet`, `haiku`, `opus`) mapped to full model IDs by the provider.
+10. **Rubric inheritance:** Provider loads `_base.yaml` first, merges skill-specific criteria. Same-name criteria override, others append.
+11. **Path resolution:** Provider resolves skill files at `.claude/skills/<skill>/SKILL.md`, schemas at `evals/schemas/<skill>.json`, both relative to project root.
 
 ## 11. Acceptance Criteria (from #445)
 
