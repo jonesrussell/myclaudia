@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Claudriel\Provider;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\Cache\Backend\DatabaseBackend;
 use Waaseyaa\Cache\CacheConfiguration;
 use Waaseyaa\Cache\CacheFactory;
 use Waaseyaa\Cache\CacheTagsInvalidator;
 use Waaseyaa\Cache\Listener\EntityCacheInvalidator;
+use Waaseyaa\Entity\Event\EntityEvents;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 
 final class CacheServiceProvider extends ServiceProvider
@@ -51,6 +53,21 @@ final class CacheServiceProvider extends ServiceProvider
         }
 
         return $this->cacheTagsInvalidator;
+    }
+
+    public function wireInvalidator(EventDispatcherInterface $dispatcher): void
+    {
+        $invalidator = $this->getEntityCacheInvalidator();
+
+        $dispatcher->addListener(
+            EntityEvents::POST_SAVE->value,
+            [$invalidator, 'onPostSave'],
+        );
+
+        $dispatcher->addListener(
+            EntityEvents::POST_DELETE->value,
+            [$invalidator, 'onPostDelete'],
+        );
     }
 
     public function getEntityCacheInvalidator(): EntityCacheInvalidator
