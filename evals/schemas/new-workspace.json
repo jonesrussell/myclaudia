@@ -1,0 +1,53 @@
+[
+  {
+    "name": "createWorkspace",
+    "description": "Create a new workspace entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "mode": { "type": "string" }
+      },
+      "required": ["name"]
+    }
+  },
+  {
+    "name": "workspaceList",
+    "description": "List workspace entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updateWorkspace",
+    "description": "Update an existing workspace entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "mode": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deleteWorkspace",
+    "description": "Delete a workspace entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "name": "createPerson",
+    "description": "Create a new person entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "tier": { "type": "string", "enum": ["inner_circle", "active", "contact", "acquaintance"] },
+        "source": { "type": "string" }
+      },
+      "required": ["name"]
+    }
+  },
+  {
+    "name": "personList",
+    "description": "List person entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "tier": { "type": "string", "enum": ["inner_circle", "active", "contact", "acquaintance"] }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updatePerson",
+    "description": "Update an existing person entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "tier": { "type": "string", "enum": ["inner_circle", "active", "contact", "acquaintance"] }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deletePerson",
+    "description": "Delete a person entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]

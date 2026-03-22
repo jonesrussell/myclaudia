@@ -1,0 +1,53 @@
+[
+  {
+    "name": "createTriageEntry",
+    "description": "Create a new triage entry entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sender_name": { "type": "string" },
+        "sender_email": { "type": "string", "format": "email" },
+        "summary": { "type": "string" },
+        "status": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "required": ["sender_name", "summary"]
+    }
+  },
+  {
+    "name": "triageEntryList",
+    "description": "List triage entry entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updateTriageEntry",
+    "description": "Update an existing triage entry entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sender_name": { "type": "string" },
+        "summary": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deleteTriageEntry",
+    "description": "Delete a triage entry entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]

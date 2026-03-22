@@ -1,0 +1,55 @@
+[
+  {
+    "name": "createCommitment",
+    "description": "Create a new commitment entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "direction": { "type": "string", "enum": ["outbound", "inbound"] },
+        "status": { "type": "string", "enum": ["active", "pending", "completed"] },
+        "due_date": { "type": "string", "format": "date" },
+        "person_uuid": { "type": "string" }
+      },
+      "required": ["title"]
+    }
+  },
+  {
+    "name": "commitmentList",
+    "description": "List commitment entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["active", "pending", "completed"] },
+        "direction": { "type": "string", "enum": ["outbound", "inbound"] }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updateCommitment",
+    "description": "Update an existing commitment entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "pending", "completed"] },
+        "direction": { "type": "string", "enum": ["outbound", "inbound"] },
+        "due_date": { "type": "string", "format": "date" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deleteCommitment",
+    "description": "Delete a commitment entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]

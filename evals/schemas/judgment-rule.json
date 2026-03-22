@@ -1,0 +1,51 @@
+[
+  {
+    "name": "createJudgmentRule",
+    "description": "Create a new judgment rule entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "rule_text": { "type": "string" },
+        "context": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["rule_text"]
+    }
+  },
+  {
+    "name": "judgmentRuleList",
+    "description": "List judgment rule entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updateJudgmentRule",
+    "description": "Update an existing judgment rule entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "rule_text": { "type": "string" },
+        "context": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deleteJudgmentRule",
+    "description": "Delete a judgment rule entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]

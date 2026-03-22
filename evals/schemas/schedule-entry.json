@@ -1,0 +1,55 @@
+[
+  {
+    "name": "createScheduleEntry",
+    "description": "Create a new schedule entry entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "starts_at": { "type": "string", "format": "date-time" },
+        "ends_at": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["title"]
+    }
+  },
+  {
+    "name": "scheduleEntryList",
+    "description": "List schedule entry entities with optional filters",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" }
+      },
+      "required": []
+    }
+  },
+  {
+    "name": "updateScheduleEntry",
+    "description": "Update an existing schedule entry entity",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "starts_at": { "type": "string", "format": "date-time" },
+        "ends_at": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" },
+        "location": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "deleteScheduleEntry",
+    "description": "Delete a schedule entry entity by ID",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+]
