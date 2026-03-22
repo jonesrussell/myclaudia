@@ -11,11 +11,24 @@ final class GitRepositoryManager
     /** @var callable(string): array{exit_code:int,output:string} */
     private readonly mixed $runner;
 
+    private readonly string $workspaceRoot;
+
     public function __construct(
-        private readonly string $workspaceRoot = '/home/jones/dev/claudriel/workspaces',
+        ?string $workspaceRoot = null,
         ?callable $runner = null,
     ) {
+        $this->workspaceRoot = $workspaceRoot ?? self::defaultWorkspaceRoot();
         $this->runner = $runner ?? $this->defaultRunner(...);
+    }
+
+    private static function defaultWorkspaceRoot(): string
+    {
+        $env = $_ENV['CLAUDRIEL_WORKSPACE_ROOT'] ?? getenv('CLAUDRIEL_WORKSPACE_ROOT') ?: '';
+        if ($env !== '') {
+            return $env;
+        }
+
+        return dirname(__DIR__, 3).'/workspaces';
     }
 
     public function clone(string $repoUrl, string $path, string $branch = 'main'): void
