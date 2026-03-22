@@ -1,0 +1,31 @@
+{
+  "createTriageEntry": {
+    "uuid": "mock-triage-001",
+    "sender_name": "James Wilson",
+    "sender_email": "james@example.com",
+    "summary": "Partnership proposal for Q3 launch",
+    "status": "pending",
+    "source": "gmail",
+    "created_at": "2026-03-22T00:00:00Z"
+  },
+  "triageEntryList": {
+    "total": 1,
+    "items": [
+      {
+        "uuid": "mock-triage-001",
+        "sender_name": "James Wilson",
+        "sender_email": "james@example.com",
+        "summary": "Partnership proposal for Q3 launch",
+        "status": "pending",
+        "source": "gmail"
+      }
+    ]
+  },
+  "updateTriageEntry": {
+    "uuid": "mock-triage-001",
+    "status": "dismissed"
+  },
+  "deleteTriageEntry": {
+    "success": true
+  }
+}

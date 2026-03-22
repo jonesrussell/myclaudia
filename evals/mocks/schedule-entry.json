@@ -1,0 +1,32 @@
+{
+  "createScheduleEntry": {
+    "uuid": "mock-sched-001",
+    "title": "Team standup",
+    "starts_at": "2026-03-23T09:00:00Z",
+    "ends_at": "2026-03-23T09:30:00Z",
+    "status": "scheduled",
+    "location": "Zoom",
+    "created_at": "2026-03-22T00:00:00Z"
+  },
+  "scheduleEntryList": {
+    "total": 1,
+    "items": [
+      {
+        "uuid": "mock-sched-001",
+        "title": "Team standup",
+        "starts_at": "2026-03-23T09:00:00Z",
+        "ends_at": "2026-03-23T09:30:00Z",
+        "status": "scheduled",
+        "location": "Zoom"
+      }
+    ]
+  },
+  "updateScheduleEntry": {
+    "uuid": "mock-sched-001",
+    "title": "Team standup",
+    "status": "cancelled"
+  },
+  "deleteScheduleEntry": {
+    "success": true
+  }
+}

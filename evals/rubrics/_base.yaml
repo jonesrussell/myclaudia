@@ -1,0 +1,49 @@
+version: "1.0"
+skill: _base
+description: "Shared evaluation criteria for all entity CRUD skills"
+
+criteria:
+  - name: intent-extraction
+    weight: 2
+    description: "Did the skill correctly extract the operation (create/list/update/delete) and entity fields from the user's natural language input?"
+    scoring:
+      5: "Perfect extraction. All fields correct, no hallucinated values."
+      3: "Correct operation detected but one field wrong or missing."
+      1: "Wrong operation or multiple fields incorrect."
+      0: "Complete failure to parse intent."
+
+  - name: confirmation-quality
+    weight: 1
+    description: "Is the confirmation message natural, complete, and showing all relevant fields before the mutation?"
+    scoring:
+      5: "Clear, natural confirmation with all fields displayed."
+      3: "Confirmation present but missing a field or awkwardly phrased."
+      1: "Confirmation present but misleading or incomplete."
+      0: "No confirmation before mutation."
+
+  - name: resolve-first-correctness
+    weight: 2
+    description: "For update/delete, did the skill fetch existing entities before parsing, and correctly match the user's reference?"
+    scoring:
+      5: "Fetched list first, matched correctly, no false splits on conjunctions."
+      3: "Fetched list but matching was imprecise."
+      1: "Parsed the name from input without fetching existing entities."
+      0: "Used the raw input string as the entity identifier."
+
+  - name: error-handling
+    weight: 1
+    description: "When something goes wrong (not found, invalid input, API error), does the skill surface the error clearly and offer alternatives?"
+    scoring:
+      5: "Clear error message, offers specific alternative."
+      3: "Error surfaced but no alternative offered."
+      1: "Error swallowed or vague message."
+      0: "Silent failure or retry without explanation."
+
+  - name: tool-call-correctness
+    weight: 2
+    description: "Did the skill call the correct GraphQL mutation/query with the right arguments?"
+    scoring:
+      5: "Correct operation, correct arguments, correct field values."
+      3: "Correct operation but a field value is wrong or extra fields included."
+      1: "Wrong operation called."
+      0: "No tool call made when one was required."

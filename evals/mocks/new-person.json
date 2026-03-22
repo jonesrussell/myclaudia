@@ -1,0 +1,30 @@
+{
+  "createPerson": {
+    "uuid": "mock-person-001",
+    "name": "Sarah Chen",
+    "email": "sarah@example.com",
+    "tier": "inner-circle",
+    "source": "manual",
+    "created_at": "2026-03-22T00:00:00Z"
+  },
+  "personList": {
+    "total": 1,
+    "items": [
+      {
+        "uuid": "mock-person-001",
+        "name": "Sarah Chen",
+        "email": "sarah@example.com",
+        "tier": "inner-circle",
+        "source": "manual"
+      }
+    ]
+  },
+  "updatePerson": {
+    "uuid": "mock-person-001",
+    "name": "Sarah Chen",
+    "email": "sarah@newco.com"
+  },
+  "deletePerson": {
+    "success": true
+  }
+}

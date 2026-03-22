@@ -1,0 +1,13 @@
+version: "1.0"
+skill: triage-entry
+inherits: _base
+
+criteria:
+  - name: dismiss-vs-delete-distinction
+    weight: 1
+    description: "Did the skill correctly distinguish 'dismiss' (status change to dismissed) from 'delete' (permanent removal)?"
+    scoring:
+      5: "Correctly mapped dismiss to updateTriageEntry with status=dismissed."
+      3: "Mapped dismiss to update but wrong status value."
+      1: "Mapped dismiss to delete operation."
+      0: "Confused dismiss and delete entirely."
