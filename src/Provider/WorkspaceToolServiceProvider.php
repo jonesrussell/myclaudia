@@ -8,6 +8,7 @@ use Claudriel\Controller\InternalScheduleController;
 use Claudriel\Controller\InternalTriageController;
 use Claudriel\Controller\InternalWorkspaceController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
+use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Support\StorageRepositoryAdapter;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
@@ -23,6 +24,7 @@ final class WorkspaceToolServiceProvider extends ServiceProvider
                 new StorageRepositoryAdapter($this->resolve(EntityTypeManager::class)->getStorage('workspace')),
                 $this->resolve(InternalApiTokenGenerator::class),
                 $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default',
+                $this->resolve(GitRepositoryManager::class),
             );
         });
 
@@ -53,6 +55,14 @@ final class WorkspaceToolServiceProvider extends ServiceProvider
         $workspaceListRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.internal.workspaces.list', $workspaceListRoute);
 
+        $workspaceCreateRoute = RouteBuilder::create('/api/internal/workspaces/create')
+            ->controller(InternalWorkspaceController::class.'::create')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $workspaceCreateRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.workspaces.create', $workspaceCreateRoute);
+
         $workspaceContextRoute = RouteBuilder::create('/api/internal/workspaces/{uuid}')
             ->controller(InternalWorkspaceController::class.'::workspaceContext')
             ->allowAll()
@@ -60,6 +70,22 @@ final class WorkspaceToolServiceProvider extends ServiceProvider
             ->build();
         $workspaceContextRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.internal.workspaces.context', $workspaceContextRoute);
+
+        $workspaceDeleteRoute = RouteBuilder::create('/api/internal/workspaces/{uuid}/delete')
+            ->controller(InternalWorkspaceController::class.'::delete')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $workspaceDeleteRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.workspaces.delete', $workspaceDeleteRoute);
+
+        $workspaceCloneRoute = RouteBuilder::create('/api/internal/workspaces/{uuid}/clone-repo')
+            ->controller(InternalWorkspaceController::class.'::cloneRepo')
+            ->allowAll()
+            ->methods('POST')
+            ->build();
+        $workspaceCloneRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.internal.workspaces.clone', $workspaceCloneRoute);
 
         $scheduleQueryRoute = RouteBuilder::create('/api/internal/schedule/query')
             ->controller(InternalScheduleController::class.'::query')
