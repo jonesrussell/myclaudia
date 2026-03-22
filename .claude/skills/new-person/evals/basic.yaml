@@ -1,117 +1,220 @@
-# Person CRUD Eval
+# Person CRUD Eval — Unified Schema
 # Tests GraphQL-based person lifecycle operations
 
-prompts:
+schema_version: "1.0"
+skill: new-person
+entity_type: person
+
+tests:
   # === CREATE ===
 
-  - prompt: "add Sarah Chen"
-    context: "User mentions Sarah is VP of Engineering at Acme Corp, email sarah@acme.com"
-    expectations:
-      - "extracts name as 'Sarah Chen', not the full sentence"
-      - "extracts email as 'sarah@acme.com' from context"
-      - "shows confirmation with fields before creating"
-      - "calls createPerson GraphQL mutation"
-      - "does NOT create files or directories"
+  - name: create-with-email-from-context
+    operation: create
+    input: "add Sarah Chen"
+    context:
+      notes: "User mentions Sarah is VP of Engineering at Acme Corp, email sarah@acme.com"
+    assertions:
+      - type: field_extraction
+        field: name
+        should_match: "Sarah Chen"
+        must_not_equal: "add Sarah Chen"
+      - type: field_extraction
+        field: email
+        should_match: "sarah@acme.com"
+      - type: confirmation_shown
+      - type: graphql_operation
+        operation: createPerson
+      - type: no_file_operations
 
-  - prompt: "new person James Wright-O'Brien"
-    context: "User provides only the name, no other details"
-    expectations:
-      - "handles hyphenated names and apostrophes correctly"
-      - "sets name to 'James Wright-O'Brien'"
-      - "defaults tier to 'contact' and source to 'manual'"
-      - "asks for confirmation before calling API"
+  - name: create-hyphenated-apostrophe-name
+    operation: create
+    input: "new person James Wright-O'Brien"
+    context:
+      notes: "User provides only the name, no other details"
+    assertions:
+      - type: field_extraction
+        field: name
+        should_match: "James Wright-O'Brien"
+      - type: field_extraction
+        field: tier
+        should_match: contact
+      - type: confirmation_shown
+    tags: [edge-case]
 
-  - prompt: "I just met someone named 陈伟 (Chen Wei), he's an investor"
-    expectations:
-      - "handles non-Latin characters in name field"
-      - "sets name to '陈伟 (Chen Wei)' or similar preserving original"
-      - "calls createPerson GraphQL mutation, not file creation"
+  - name: create-non-latin-characters
+    operation: create
+    input: "I just met someone named 陈伟 (Chen Wei), he's an investor"
+    assertions:
+      - type: field_extraction
+        field: name
+      - type: graphql_operation
+        operation: createPerson
+      - type: no_file_operations
+    tags: [edge-case]
 
-  - prompt: "track Dr. Patel, she's inner circle, email dr.patel@clinic.org"
-    expectations:
-      - "extracts name as 'Dr. Patel'"
-      - "extracts tier as 'inner_circle'"
-      - "extracts email as 'dr.patel@clinic.org'"
-      - "shows all extracted fields in confirmation"
+  - name: create-with-tier-and-email
+    operation: create
+    input: "track Dr. Patel, she's inner circle, email dr.patel@clinic.org"
+    assertions:
+      - type: field_extraction
+        field: name
+        should_match: "Dr. Patel"
+      - type: field_extraction
+        field: tier
+        should_match: inner_circle
+      - type: field_extraction
+        field: email
+        should_match: "dr.patel@clinic.org"
+      - type: confirmation_shown
 
   # === LIST ===
 
-  - prompt: "show my contacts"
-    expectations:
-      - "calls personList GraphQL query"
-      - "presents results in a table with name, email, tier, last interaction"
-      - "does NOT attempt to read files or directories"
+  - name: list-all-contacts
+    operation: list
+    input: "show my contacts"
+    assertions:
+      - type: graphql_operation
+        operation: personList
+        mutation: false
+      - type: table_presented
+        columns: [name, email, tier, "last interaction"]
+      - type: no_file_operations
 
-  - prompt: "who do I know in the inner circle?"
-    expectations:
-      - "calls personList GraphQL query"
-      - "filters results by tier 'inner_circle' (query filter or post-filter)"
-      - "presents filtered table"
+  - name: list-filter-by-tier
+    operation: list
+    input: "who do I know in the inner circle?"
+    assertions:
+      - type: graphql_operation
+        operation: personList
+        mutation: false
+      - type: filter_applied
+        field: tier
+        value: inner_circle
+      - type: table_presented
+        columns: [name, email, tier, "last interaction"]
 
   # === UPDATE ===
 
-  - prompt: "change Sarah's email to sarah@newco.com"
-    context: "Person 'Sarah Chen' exists with uuid abc-123"
-    expectations:
-      - "fetches existing people via personList BEFORE parsing the name"
-      - "matches 'Sarah' against existing person names"
-      - "shows before/after: email change from old to sarah@newco.com"
-      - "calls updatePerson GraphQL mutation with correct uuid"
+  - name: update-email
+    operation: update
+    input: "change Sarah's email to sarah@newco.com"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            name: "Sarah Chen"
+    assertions:
+      - type: resolve_first
+      - type: field_extraction
+        field: email
+        should_match: "sarah@newco.com"
+      - type: before_after_shown
+      - type: graphql_operation
+        operation: updatePerson
 
-  - prompt: "promote Dr. Patel to inner circle"
-    context: "Person 'Dr. Patel' exists with uuid xyz-456, currently tier 'contact'"
-    expectations:
-      - "resolves 'Dr. Patel' against existing people"
-      - "shows before/after: tier change from 'contact' to 'inner_circle'"
-      - "calls updatePerson GraphQL mutation"
+  - name: update-tier-promotion
+    operation: update
+    input: "promote Dr. Patel to inner circle"
+    context:
+      existing_entities:
+        - uuid: "xyz-456"
+          fields:
+            name: "Dr. Patel"
+            tier: contact
+    assertions:
+      - type: resolve_first
+      - type: before_after_shown
+      - type: graphql_operation
+        operation: updatePerson
 
   # === DELETE ===
 
-  - prompt: "remove Old Contact"
-    context: "Person 'Old Contact' exists with uuid xyz-789, tier 'acquaintance'"
-    expectations:
-      - "fetches existing people via personList BEFORE parsing"
-      - "matches 'Old Contact' against existing person names"
-      - "shows what will be deleted with uuid and tier"
-      - "requires the person's name echoed back, not just 'yes'"
-      - "calls deletePerson GraphQL mutation only after name confirmation"
+  - name: delete-with-name-echo
+    operation: delete
+    input: "remove Old Contact"
+    context:
+      existing_entities:
+        - uuid: "xyz-789"
+          fields:
+            name: "Old Contact"
+            tier: acquaintance
+    assertions:
+      - type: resolve_first
+      - type: echo_back_required
+        field: name
+      - type: graphql_operation
+        operation: deletePerson
 
-  - prompt: "delete the person whose name is and also schedule a meeting"
-    context: "Person 'and also schedule a meeting' exists with uuid edge-001"
-    expectations:
-      - "does NOT split on 'and' or treat 'schedule a meeting' as a secondary intent"
-      - "resolves against existing people and finds 'and also schedule a meeting'"
-      - "requires name echo-back before deletion"
+  - name: delete-name-contains-conjunction
+    operation: delete
+    input: "delete the person whose name is and also schedule a meeting"
+    context:
+      existing_entities:
+        - uuid: "edge-001"
+          fields:
+            name: "and also schedule a meeting"
+    assertions:
+      - type: no_conjunction_split
+      - type: resolve_first
+      - type: echo_back_required
+        field: name
+    tags: [edge-case, regression]
 
   # === INTENT PARSING EDGE CASES ===
 
-  - prompt: "add a person for the client meeting and set up a commitment"
-    expectations:
-      - "extracts create operation"
-      - "does NOT use full sentence as the person name"
-      - "asks for the person's name since it cannot be cleanly extracted"
-      - "queues 'set up a commitment' as a secondary intent"
+  - name: create-ambiguous-name-with-secondary-intent
+    operation: create
+    input: "add a person for the client meeting and set up a commitment"
+    assertions:
+      - type: field_extraction
+        field: name
+        must_not_equal: "add a person for the client meeting and set up a commitment"
+      - type: asks_for_field
+        field: name
+      - type: secondary_intent_queued
+        intent: "set up a commitment"
+    tags: [edge-case]
 
-  - prompt: "update the person I added yesterday"
-    context: "Only one person was created recently: 'Marcus Johnson'"
-    expectations:
-      - "fetches existing people via personList"
-      - "if only one recent match, resolves to 'Marcus Johnson'"
-      - "asks what field to update"
+  - name: update-recently-added-person
+    operation: update
+    input: "update the person I added yesterday"
+    context:
+      existing_entities:
+        - uuid: "recent-001"
+          fields:
+            name: "Marcus Johnson"
+      notes: "Only one person was created recently: 'Marcus Johnson'"
+    assertions:
+      - type: resolve_first
+      - type: asks_for_field
+        field: update_target
+    tags: [edge-case]
 
   # === ERROR HANDLING ===
 
-  - prompt: "delete NonExistent Person"
-    context: "No person with this name exists"
-    expectations:
-      - "fetches existing people via personList"
-      - "reports no match found"
-      - "offers to create instead"
-      - "does NOT call deletePerson mutation"
+  - name: delete-nonexistent-person
+    operation: delete
+    input: "delete NonExistent Person"
+    context:
+      notes: "No person with this name exists"
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
+      - type: offers_alternative
+        alternative: create
+    tags: [error-handling]
 
-  - prompt: "update Sarah's tier to legendary"
-    context: "Person 'Sarah Chen' exists, but 'legendary' is not a valid tier"
-    expectations:
-      - "resolves Sarah against existing people"
-      - "either catches invalid tier before API call or surfaces API validation error"
-      - "shows valid tier options: inner_circle, active, contact, acquaintance"
+  - name: update-invalid-tier
+    operation: update
+    input: "update Sarah's tier to legendary"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            name: "Sarah Chen"
+      notes: "'legendary' is not a valid tier"
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
+        contains: "inner_circle"
+    tags: [error-handling]
