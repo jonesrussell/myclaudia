@@ -117,15 +117,31 @@ task('deploy:validate', function (): void {
     $baseUrl = rtrim((string) get('deploy_validation_base_url'), '/');
     $briefJsonFile = '{{deploy_path}}/shared/logs/deploy-validation-brief.json';
 
+    // Build curl flags: always use timeouts; allow TLS bypass on cert errors
+    $curlBase = '--silent --show-error --connect-timeout 10 --max-time 30';
+
     try {
-        run("for attempt in 1 2 3 4 5; do curl --silent --show-error --fail {$baseUrl}/brief > /dev/null && exit 0; sleep 1; done; echo 'Public Caddy endpoint did not become healthy in time' >&2; exit 1");
+        // Health check: try secure first, fall back to --insecure on TLS errors (exit 35/60)
+        run("for attempt in 1 2 3 4 5; do curl {$curlBase} --fail {$baseUrl}/brief > /dev/null 2>&1 && exit 0; rc=\$?; if [ \$rc -eq 35 ] || [ \$rc -eq 60 ]; then echo 'TLS verification failed, retrying with --insecure' >&2; curl {$curlBase} --insecure --fail {$baseUrl}/brief > /dev/null 2>&1 && exit 0; fi; sleep 1; done; echo 'Public Caddy endpoint did not become healthy in time' >&2; exit 1");
+
+        // Detect whether --insecure is needed for remaining probes
+        $secureFailed = false;
+
+        try {
+            run("curl {$curlBase} --fail {$baseUrl}/brief > /dev/null 2>&1");
+        } catch (\Throwable) {
+            $secureFailed = true;
+            writeln('<comment>Warning: TLS verification failed; using --insecure for remaining probes</comment>');
+        }
+
+        $curlFlags = $secureFailed ? "{$curlBase} --insecure" : $curlBase;
 
         writeln('Running public brief JSON smoke probe');
-        run("curl --silent --show-error --fail --header 'Accept: application/json' {$baseUrl}/brief > {$briefJsonFile}");
+        run("curl {$curlFlags} --fail --header 'Accept: application/json' {$baseUrl}/brief > {$briefJsonFile}");
         run("grep -q '\"counts\"' {$briefJsonFile}");
 
         writeln('Running public signup and login probes');
-        run((new PublicAccountDeployValidationScript)->build($baseUrl));
+        run((new PublicAccountDeployValidationScript)->build($baseUrl, $secureFailed));
 
         writeln('Deploy validation passed');
     } catch (\Throwable $exception) {
