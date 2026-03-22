@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "18285d6649542af555522d6dbd2af132",
+    "content-hash": "5f77e94198f6835f3d776a03745a14db",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -4970,7 +4970,7 @@
         },
         {
             "name": "waaseyaa/queue",
-            "version": "v0.1.0-alpha.41",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/waaseyaa/queue.git",
@@ -4989,6 +4989,7 @@
             "require-dev": {
                 "phpunit/phpunit": "^10.5"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -5008,7 +5009,7 @@
             "description": "Asynchronous task queue and job processing for Waaseyaa",
             "support": {
                 "issues": "https://github.com/waaseyaa/queue/issues",
-                "source": "https://github.com/waaseyaa/queue/tree/v0.1.0-alpha.41"
+                "source": "https://github.com/waaseyaa/queue/tree/v0.1.0-alpha.10"
             },
             "time": "2026-03-16T21:50:01+00:00"
         },
@@ -5712,6 +5713,7 @@
         "waaseyaa/github": 20,
         "waaseyaa/graphql": 20,
         "waaseyaa/path": 20,
+        "waaseyaa/queue": 20,
         "waaseyaa/routing": 20,
         "waaseyaa/ssr": 20,
         "waaseyaa/telescope": 20,
