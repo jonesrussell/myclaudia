@@ -1,0 +1,13 @@
+version: "1.0"
+skill: commitment
+inherits: _base
+
+criteria:
+  - name: direction-detection
+    weight: 1
+    description: "Did the skill correctly detect outbound vs inbound direction from context clues?"
+    scoring:
+      5: "Correct direction detected from natural language cues (I owe = outbound, they owe = inbound)."
+      3: "Correct direction but only after explicit prompt."
+      1: "Wrong direction assigned."
+      0: "Direction field omitted entirely."

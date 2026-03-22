@@ -1,0 +1,30 @@
+{
+  "createWorkspace": {
+    "uuid": "mock-ws-001",
+    "name": "Mock workspace",
+    "description": "A test workspace for eval runs",
+    "status": "active",
+    "mode": "default",
+    "created_at": "2026-03-22T00:00:00Z"
+  },
+  "workspaceList": {
+    "total": 1,
+    "items": [
+      {
+        "uuid": "mock-ws-001",
+        "name": "Mock workspace",
+        "description": "A test workspace for eval runs",
+        "status": "active",
+        "mode": "default"
+      }
+    ]
+  },
+  "updateWorkspace": {
+    "uuid": "mock-ws-001",
+    "name": "Mock workspace",
+    "status": "archived"
+  },
+  "deleteWorkspace": {
+    "success": true
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "createCommitment": {
+    "uuid": "mock-commit-001",
+    "title": "Mock commitment",
+    "direction": "outbound",
+    "status": "active",
+    "created_at": "2026-03-22T00:00:00Z"
+  },
+  "commitmentList": {
+    "total": 1,
+    "items": [
+      {
+        "uuid": "mock-commit-001",
+        "title": "Mock commitment",
+        "direction": "outbound",
+        "status": "active"
+      }
+    ]
+  },
+  "updateCommitment": {
+    "uuid": "mock-commit-001",
+    "title": "Mock commitment",
+    "status": "completed"
+  },
+  "deleteCommitment": {
+    "success": true
+  }
+}

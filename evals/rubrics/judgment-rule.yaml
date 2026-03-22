@@ -1,0 +1,13 @@
+version: "1.0"
+skill: judgment-rule
+inherits: _base
+
+criteria:
+  - name: filler-stripping
+    weight: 1
+    description: "Did the skill strip filler phrases (from now on, remember that, add a rule to) from the rule text?"
+    scoring:
+      5: "All filler stripped, rule text is clean and actionable."
+      3: "Most filler stripped but one phrase remains."
+      1: "Rule text contains multiple filler phrases."
+      0: "Full user sentence used as rule text."
