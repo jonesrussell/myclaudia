@@ -211,9 +211,11 @@ def main() -> None:
                     if attempt >= RATE_LIMIT_MAX_RETRIES:
                         raise
                     retry_after = getattr(e.response, "headers", {}).get("retry-after")
-                    if retry_after is not None:
-                        wait = min(float(retry_after), RATE_LIMIT_MAX_BACKOFF)
-                    else:
+                    try:
+                        wait = min(float(retry_after), RATE_LIMIT_MAX_BACKOFF) if retry_after is not None else None
+                    except (ValueError, TypeError):
+                        wait = None
+                    if wait is None:
                         wait = min(RATE_LIMIT_INITIAL_BACKOFF * (2 ** attempt), RATE_LIMIT_MAX_BACKOFF)
                     emit("progress", phase="rate_limit", summary=f"Rate limited, retrying in {int(wait)}s...", level="warning")
                     time.sleep(wait)
