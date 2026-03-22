@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "daf1e714ebd1ba19108ee0b721294bef",
+    "content-hash": "18285d6649542af555522d6dbd2af132",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -4304,7 +4304,7 @@
         },
         {
             "name": "waaseyaa/cache",
-            "version": "v0.1.0-alpha.41",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/waaseyaa/cache.git",
@@ -4328,6 +4328,7 @@
                 "waaseyaa/config": "Required for ConfigCacheInvalidator listener",
                 "waaseyaa/entity": "Required for EntityCacheInvalidator listener"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -4347,7 +4348,7 @@
             "description": "Cache bins with cache tag invalidation for Waaseyaa",
             "support": {
                 "issues": "https://github.com/waaseyaa/cache/issues",
-                "source": "https://github.com/waaseyaa/cache/tree/v0.1.0-alpha.41"
+                "source": "https://github.com/waaseyaa/cache/tree/v0.1.0-alpha.10"
             },
             "time": "2026-03-16T21:50:01+00:00"
         },
@@ -5700,6 +5701,7 @@
         "waaseyaa/admin-surface": 20,
         "waaseyaa/ai-pipeline": 20,
         "waaseyaa/api": 20,
+        "waaseyaa/cache": 20,
         "waaseyaa/cli": 20,
         "waaseyaa/config": 20,
         "waaseyaa/core": 20,
