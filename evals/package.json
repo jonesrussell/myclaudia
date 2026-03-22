@@ -1,0 +1,16 @@
+{
+  "name": "claudriel-evals",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LLM-judge and trajectory evals for Claudriel skills",
+  "scripts": {
+    "eval": "promptfoo eval",
+    "eval:view": "promptfoo view",
+    "eval:skill": "promptfoo eval --tests"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "promptfoo": "^0.103.0",
+    "yaml": "^2.7.0"
+  }
+}

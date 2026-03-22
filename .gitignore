@@ -58,3 +58,4 @@ agent/.venv/
 .codex/skills/*/*
 !.codex/skills/*/SKILL.md
 .nuxtrc
+evals/node_modules/
