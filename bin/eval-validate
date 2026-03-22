@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Claudriel\Eval\Command\EvalValidateCommand;
+use Symfony\Component\Console\Application;
+
+$skillsPath = dirname(__DIR__) . '/.claude/skills';
+
+$app = new Application('eval-validate', '1.0.0');
+$app->add(new EvalValidateCommand($skillsPath));
+$app->setDefaultCommand('claudriel:eval-validate', true);
+$app->run();
