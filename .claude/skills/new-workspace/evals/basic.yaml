@@ -2,115 +2,207 @@
 # Tests GraphQL-based workspace lifecycle operations
 # Includes regression test for the original conjunction-splitting bug
 
-prompts:
+schema_version: "1.0"
+skill: new-workspace
+entity_type: workspace
+
+tests:
   # === CREATE ===
 
-  - prompt: "create a workspace for Acme Corp"
-    expectations:
-      - "extracts name as 'Acme Corp', not the full sentence"
-      - "shows confirmation with fields before creating"
-      - "calls createWorkspace GraphQL mutation"
-      - "does NOT create files or directories"
+  - name: create-acme-corp
+    operation: create
+    input: "create a workspace for Acme Corp"
+    assertions:
+      - type: field_extraction
+        field: name
+        should_match: "Acme Corp"
+        must_not_equal: "create a workspace for Acme Corp"
+      - type: confirmation_shown
+      - type: graphql_operation
+        operation: createWorkspace
+      - type: no_file_operations
 
-  - prompt: "new workspace jonesrussell/me so we can do some milestone planning"
-    expectations:
-      - "extracts name from repo identifier (e.g., 'me'), not the full sentence"
-      - "queues 'milestone planning' as secondary intent"
-      - "calls createWorkspace mutation first, then handles secondary intent"
+  - name: create-from-repo-identifier
+    operation: create
+    input: "new workspace jonesrussell/me so we can do some milestone planning"
+    assertions:
+      - type: field_extraction
+        field: name
+        should_match: "me"
+        must_not_equal: "new workspace jonesrussell/me so we can do some milestone planning"
+      - type: secondary_intent_queued
+        intent: "milestone planning"
+      - type: graphql_operation
+        operation: createWorkspace
 
-  - prompt: "set up a project workspace and link the GitHub repo"
-    expectations:
-      - "does NOT use full sentence as workspace name"
-      - "asks for the workspace name since it cannot be cleanly extracted"
-      - "queues 'link the GitHub repo' as secondary intent"
+  - name: create-ambiguous-name
+    operation: create
+    input: "set up a project workspace and link the GitHub repo"
+    assertions:
+      - type: field_extraction
+        field: name
+        must_not_equal: "set up a project workspace and link the GitHub repo"
+      - type: asks_for_field
+        field: name
+      - type: secondary_intent_queued
+        intent: "link the GitHub repo"
 
   # === LIST ===
 
-  - prompt: "show my workspaces"
-    expectations:
-      - "calls workspaceList GraphQL query"
-      - "presents results in a table with name, status, mode, created"
-      - "does NOT attempt to read files or directories"
+  - name: list-all-workspaces
+    operation: list
+    input: "show my workspaces"
+    assertions:
+      - type: graphql_operation
+        operation: workspaceList
+        mutation: false
+      - type: table_presented
+        columns: [name, status, mode, created]
+      - type: no_file_operations
 
-  - prompt: "list active workspaces"
-    expectations:
-      - "calls workspaceList GraphQL query"
-      - "filters results by status 'active' (query filter or post-filter)"
+  - name: list-active-workspaces
+    operation: list
+    input: "list active workspaces"
+    assertions:
+      - type: graphql_operation
+        operation: workspaceList
+        mutation: false
+      - type: filter_applied
+        field: status
+        value: active
 
   # === UPDATE ===
 
-  - prompt: "rename Acme Corp to Acme Corporation"
-    context: "Workspace 'Acme Corp' exists with uuid abc-123"
-    expectations:
-      - "fetches existing workspaces via workspaceList BEFORE parsing"
-      - "matches 'Acme Corp' against existing workspace names"
-      - "shows before/after: name change"
-      - "calls updateWorkspace GraphQL mutation with correct uuid"
+  - name: rename-acme-corp
+    operation: update
+    input: "rename Acme Corp to Acme Corporation"
+    context:
+      existing_entities:
+        - uuid: abc-123
+          fields:
+            name: "Acme Corp"
+    assertions:
+      - type: resolve_first
+      - type: before_after_shown
+      - type: graphql_operation
+        operation: updateWorkspace
 
-  - prompt: "mark the old test workspace as archived"
-    context: "Workspace 'old test' exists with uuid xyz-456"
-    expectations:
-      - "resolves 'old test' against existing workspaces via list query"
-      - "shows before/after: status change to archived"
-      - "calls updateWorkspace GraphQL mutation"
+  - name: archive-old-test
+    operation: update
+    input: "mark the old test workspace as archived"
+    context:
+      existing_entities:
+        - uuid: xyz-456
+          fields:
+            name: "old test"
+    assertions:
+      - type: resolve_first
+      - type: before_after_shown
+      - type: graphql_operation
+        operation: updateWorkspace
 
   # === DELETE ===
 
-  - prompt: "delete the old test workspace"
-    context: "Workspace 'old test' exists with uuid xyz-789"
-    expectations:
-      - "fetches existing workspaces via workspaceList BEFORE parsing"
-      - "matches 'old test' against existing workspace names"
-      - "shows what will be deleted with uuid and status"
-      - "requires the workspace name echoed back, not just 'yes'"
-      - "calls deleteWorkspace GraphQL mutation only after name confirmation"
+  - name: delete-old-test
+    operation: delete
+    input: "delete the old test workspace"
+    context:
+      existing_entities:
+        - uuid: xyz-789
+          fields:
+            name: "old test"
+    assertions:
+      - type: resolve_first
+      - type: confirmation_shown
+      - type: echo_back_required
+        field: name
+      - type: graphql_operation
+        operation: deleteWorkspace
 
   # === CONJUNCTION BUG REGRESSION ===
 
-  - prompt: "delete the 'and clone jonesrussell/me so we can do some milestone planning' workspace"
-    context: "Workspace named 'and clone jonesrussell/me so we can do some milestone planning' exists with uuid edge-001"
-    expectations:
-      - "does NOT split on 'and' or treat parts as separate workspace names"
-      - "does NOT try to find workspaces named 'the' and 'clone'"
-      - "fetches existing workspaces and matches against actual names"
-      - "finds 'and clone jonesrussell/me so we can do some milestone planning'"
-      - "requires name echo-back before deletion"
+  - name: delete-workspace-with-and-in-name
+    operation: delete
+    input: "delete the 'and clone jonesrussell/me so we can do some milestone planning' workspace"
+    context:
+      existing_entities:
+        - uuid: edge-001
+          fields:
+            name: "and clone jonesrussell/me so we can do some milestone planning"
+    tags: [regression]
+    assertions:
+      - type: no_conjunction_split
+      - type: resolve_first
+      - type: echo_back_required
+        field: name
 
-  - prompt: "remove the workspace called 'plan and execute the migration'"
-    context: "Workspace named 'plan and execute the migration' exists with uuid edge-002"
-    expectations:
-      - "does NOT split on 'and'"
-      - "resolves against existing workspaces"
-      - "matches 'plan and execute the migration'"
+  - name: delete-workspace-plan-and-execute
+    operation: delete
+    input: "remove the workspace called 'plan and execute the migration'"
+    context:
+      existing_entities:
+        - uuid: edge-002
+          fields:
+            name: "plan and execute the migration"
+    tags: [regression]
+    assertions:
+      - type: no_conjunction_split
+      - type: resolve_first
 
   # === INTENT PARSING EDGE CASES ===
 
-  - prompt: "create a workspace and also add a person"
-    expectations:
-      - "extracts create operation for workspace"
-      - "does NOT use full sentence as workspace name"
-      - "asks for workspace name"
-      - "queues 'add a person' as secondary intent"
+  - name: create-with-secondary-add-person
+    operation: create
+    input: "create a workspace and also add a person"
+    tags: [edge-case]
+    assertions:
+      - type: field_extraction
+        field: name
+        must_not_equal: "create a workspace and also add a person"
+      - type: asks_for_field
+        field: name
+      - type: secondary_intent_queued
+        intent: "add a person"
 
-  - prompt: "update the workspace I made yesterday"
-    context: "Only one workspace was created recently: 'Sprint Planning'"
-    expectations:
-      - "fetches existing workspaces via workspaceList"
-      - "if only one recent match, resolves to 'Sprint Planning'"
-      - "asks what field to update"
+  - name: update-recent-workspace
+    operation: update
+    input: "update the workspace I made yesterday"
+    context:
+      existing_entities:
+        - uuid: recent-001
+          fields:
+            name: "Sprint Planning"
+      notes: "Only one workspace was created recently"
+    tags: [edge-case]
+    assertions:
+      - type: resolve_first
+      - type: asks_for_field
+        field: update_target
 
   # === ERROR HANDLING ===
 
-  - prompt: "delete NonExistent Workspace"
-    context: "No workspace with this name exists"
-    expectations:
-      - "fetches existing workspaces via workspaceList"
-      - "reports no match found"
-      - "offers to create instead"
-      - "does NOT call deleteWorkspace mutation"
+  - name: delete-nonexistent-workspace
+    operation: delete
+    input: "delete NonExistent Workspace"
+    context:
+      notes: "No workspace with this name exists"
+    tags: [error-handling]
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
+      - type: offers_alternative
+        alternative: create
 
-  - prompt: "update workspace status to legendary"
-    context: "Workspace 'Acme Corp' exists, but 'legendary' is not a valid status"
-    expectations:
-      - "resolves workspace against existing entries"
-      - "either catches invalid status before API call or surfaces API validation error"
+  - name: update-invalid-status
+    operation: update
+    input: "update workspace status to legendary"
+    context:
+      existing_entities:
+        - uuid: abc-123
+          fields:
+            name: "Acme Corp"
+      notes: "'legendary' is not a valid status"
+    tags: [error-handling]
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
