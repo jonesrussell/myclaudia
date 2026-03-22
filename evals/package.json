@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "promptfoo": "^0.103.0",
+    "promptfoo": "^0.121.2",
     "yaml": "^2.7.0"
   }
 }
