@@ -1,0 +1,278 @@
+schema_version: "1.0"
+skill: judgment-rule
+entity_type: judgment_rule
+
+tests:
+
+  # --- Create ---
+
+  - name: create-strips-filler-from-now-on
+    operation: create
+    input: "from now on, always CC the team lead on client emails"
+    assertions:
+      - type: field_extraction
+        field: rule_text
+        should_match: "Always CC the team lead on client emails"
+      - type: field_extraction
+        field: rule_text
+        must_not_contain: ["from now on"]
+      - type: confirmation_shown
+
+  - name: create-strips-filler-remember-that
+    operation: create
+    input: "remember that we never schedule meetings on Fridays"
+    assertions:
+      - type: field_extraction
+        field: rule_text
+        should_match: "We never schedule meetings on Fridays"
+      - type: field_extraction
+        field: rule_text
+        must_not_contain: ["remember that", "remember"]
+      - type: confirmation_shown
+
+  - name: create-extracts-context
+    operation: create
+    input: "new rule for scheduling: block 9-10am for deep work"
+    assertions:
+      - type: field_extraction
+        field: rule_text
+        should_match: "Block 9-10am for deep work"
+      - type: field_extraction
+        field: context
+        should_match: "scheduling"
+      - type: confirmation_shown
+
+  - name: create-detects-conflict
+    operation: create
+    input: "add rule: always respond to emails within 1 hour"
+    context:
+      existing_entities:
+        - uuid: "conflict-rule-1"
+          fields:
+            rule_text: "Batch email responses to twice daily"
+            status: active
+    assertions:
+      - type: error_surfaced
+        contains: "conflict"
+      - type: confirmation_shown
+
+  # --- List ---
+
+  - name: list-default-active-filter
+    operation: list
+    input: "show my rules"
+    assertions:
+      - type: graphql_operation
+        operation: judgmentRuleList
+        mutation: false
+      - type: filter_applied
+        field: status
+        value: active
+      - type: table_presented
+        columns: ["rule_text", "status"]
+
+  - name: list-all-statuses
+    operation: list
+    input: "show all rules including disabled"
+    assertions:
+      - type: graphql_operation
+        operation: judgmentRuleList
+        mutation: false
+
+  # --- Update (resolve-first) ---
+
+  - name: update-resolve-first
+    operation: update
+    input: "refine the email rule to include Slack messages"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            rule_text: "Always confirm before sending emails"
+            status: active
+        - uuid: "def-456"
+          fields:
+            rule_text: "Block 9-10am for deep work"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: before_after_shown
+      - type: confirmation_shown
+
+  - name: update-disable-maps-to-status
+    operation: update
+    input: "disable the scheduling rule"
+    context:
+      existing_entities:
+        - uuid: "def-456"
+          fields:
+            rule_text: "Block 9-10am for deep work"
+            context: scheduling
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: graphql_operation
+        operation: updateJudgmentRule
+        mutation: true
+      - type: before_after_shown
+
+  - name: update-multiple-matches-asks
+    operation: update
+    input: "update the email rule"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            rule_text: "Always confirm before sending emails"
+            status: active
+        - uuid: "ghi-789"
+          fields:
+            rule_text: "Respond to emails within 4 hours"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: disambiguation
+
+  - name: update-no-conjunction-splitting
+    operation: update
+    input: "update the rule about emails and Slack messages"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            rule_text: "Always confirm before sending emails and Slack messages"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: no_conjunction_split
+
+  # --- Delete (resolve-first) ---
+
+  - name: delete-resolve-first-with-echoback
+    operation: delete
+    input: "delete the deep work rule"
+    context:
+      existing_entities:
+        - uuid: "def-456"
+          fields:
+            rule_text: "Block 9-10am for deep work"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: echo_back_required
+        field: rule_text
+      - type: confirmation_shown
+
+  - name: delete-no-match
+    operation: delete
+    input: "delete the vacation rule"
+    context:
+      existing_entities:
+        - uuid: "def-456"
+          fields:
+            rule_text: "Block 9-10am for deep work"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
+    tags: [error-handling]
+
+  # --- Edge Cases ---
+
+  - name: disable-vs-delete-distinction
+    operation: update
+    input: "disable the Friday meeting rule"
+    context:
+      existing_entities:
+        - uuid: "jkl-012"
+          fields:
+            rule_text: "We never schedule meetings on Fridays"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: graphql_operation
+        operation: updateJudgmentRule
+        mutation: true
+      - type: before_after_shown
+    tags: [edge-case]
+
+  - name: contradicting-existing-rule
+    operation: create
+    input: "new rule: respond to all emails immediately"
+    context:
+      existing_entities:
+        - uuid: "mno-345"
+          fields:
+            rule_text: "Batch email responses to twice daily"
+            status: active
+    assertions:
+      - type: error_surfaced
+        contains: "conflict"
+    tags: [edge-case]
+
+  - name: filler-stripping-complex
+    operation: create
+    input: "add a new rule to remember that from now on we should always double-check invoices"
+    assertions:
+      - type: field_extraction
+        field: rule_text
+        should_match: "We should always double-check invoices"
+      - type: field_extraction
+        field: rule_text
+        must_not_contain: ["add a new rule", "remember that", "from now on"]
+    tags: [edge-case]
+
+  # --- Error Handling ---
+
+  - name: error-not-found-after-resolve
+    operation: update
+    input: "update the email rule to add Slack"
+    context:
+      existing_entities:
+        - uuid: "abc-123"
+          fields:
+            rule_text: "Always confirm before sending emails"
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
+        contains: "may have been deleted"
+    tags: [error-handling]
+
+  - name: error-access-denied
+    operation: delete
+    input: "delete the deep work rule"
+    context:
+      existing_entities:
+        - uuid: "def-456"
+          fields:
+            rule_text: "Block 9-10am for deep work"
+            status: active
+    assertions:
+      - type: error_surfaced
+        contains: "Access denied"
+    tags: [error-handling]
+
+  - name: error-validation
+    operation: create
+    input: "create rule with empty text"
+    assertions:
+      - type: error_surfaced
+      - type: asks_for_field
+        field: rule_text
+    tags: [error-handling]
+
+  - name: error-rule-conflict-detection
+    operation: create
+    input: "add rule: never respond to emails"
+    context:
+      existing_entities:
+        - uuid: "ghi-789"
+          fields:
+            rule_text: "Respond to emails within 4 hours"
+            status: active
+    assertions:
+      - type: error_surfaced
+        contains: "conflict"
+      - type: confirmation_shown
+    tags: [error-handling, regression]
