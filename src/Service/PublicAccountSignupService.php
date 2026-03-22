@@ -18,6 +18,7 @@ final class PublicAccountSignupService
         private readonly ?MailTransportInterface $mailTransport = null,
         private readonly ?string $appUrl = null,
         private readonly ?string $storageDir = null,
+        private readonly ?string $adminEmail = null,
     ) {}
 
     /**
@@ -94,6 +95,8 @@ final class PublicAccountSignupService
         $tokenEntity->set('used_at', $now->format(\DateTimeInterface::ATOM));
         $this->entityTypeManager->getStorage('account_verification_token')->save($tokenEntity);
 
+        $this->notifyAdminOfVerifiedRegistration($account, $now);
+
         return [
             'account' => $account,
             'redirect_path' => (string) ($tokenEntity->get('redirect_path') ?? '/'),
@@ -169,6 +172,40 @@ final class PublicAccountSignupService
         $appUrl = $_ENV['CLAUDRIEL_APP_URL'] ?? getenv('CLAUDRIEL_APP_URL') ?: 'http://localhost:9889';
 
         return is_string($appUrl) ? $appUrl : 'http://localhost:9889';
+    }
+
+    private function notifyAdminOfVerifiedRegistration(Account $account, \DateTimeImmutable $verifiedAt): void
+    {
+        $adminEmail = $this->resolveAdminEmail();
+        if ($adminEmail === null) {
+            return;
+        }
+
+        $name = (string) $account->get('name');
+        $email = (string) $account->get('email');
+        $timestamp = $verifiedAt->format('Y-m-d H:i:s T');
+
+        try {
+            $this->mailTransport()->send([
+                'to_email' => $adminEmail,
+                'to_name' => 'Admin',
+                'subject' => "New user registration: {$name}",
+                'text' => "A new user has verified their Claudriel account.\n\nName: {$name}\nEmail: {$email}\nVerified at: {$timestamp}",
+            ]);
+        } catch (\RuntimeException) {
+            // Admin notification is best-effort; do not fail the verification flow.
+        }
+    }
+
+    private function resolveAdminEmail(): ?string
+    {
+        if ($this->adminEmail !== null && trim($this->adminEmail) !== '') {
+            return trim($this->adminEmail);
+        }
+
+        $envEmail = $_ENV['CLAUDRIEL_ADMIN_EMAIL'] ?? getenv('CLAUDRIEL_ADMIN_EMAIL') ?: null;
+
+        return is_string($envEmail) && trim($envEmail) !== '' ? trim($envEmail) : null;
     }
 
     private function mailTransport(): MailTransportInterface

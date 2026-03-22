@@ -154,11 +154,14 @@ final class PublicAccountController
 
     private function service(): PublicAccountSignupService
     {
+        $adminEmail = $_ENV['CLAUDRIEL_ADMIN_EMAIL'] ?? getenv('CLAUDRIEL_ADMIN_EMAIL') ?: null;
+
         return new PublicAccountSignupService(
             entityTypeManager: $this->entityTypeManager,
             mailTransport: $this->mailTransport,
             appUrl: $this->appUrl,
             storageDir: $this->storageDir,
+            adminEmail: is_string($adminEmail) ? $adminEmail : null,
         );
     }
 
