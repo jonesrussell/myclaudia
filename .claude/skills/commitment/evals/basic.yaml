@@ -1,173 +1,350 @@
-name: commitment-skill-basic
-description: "Evals for commitment CRUD skill: intent parsing, resolve-first, confirmations, error handling"
+schema_version: "1.0"
+skill: commitment
+entity_type: commitment
 
 tests:
   # --- Create ---
 
   - name: create-extracts-title-not-full-sentence
+    operation: create
     input: "I owe Sarah a proposal by Friday"
-    expected:
-      - title must NOT be "I owe Sarah a proposal by Friday"
-      - title should be something like "Send proposal to Sarah" or "Proposal for Sarah"
-      - direction must be "outbound"
-      - due_date must resolve to the next Friday from today
-      - confirmation prompt shown before API call
+    assertions:
+      - type: field_extraction
+        field: title
+        must_not_equal: "I owe Sarah a proposal by Friday"
+      - type: field_extraction
+        field: title
+        should_match: "Send proposal to Sarah"
+      - type: direction_detected
+        direction: outbound
+      - type: field_extraction
+        field: due_date
+        should_match: "next Friday from today (ISO format)"
+      - type: confirmation_shown
 
   - name: create-inbound-direction
+    operation: create
     input: "they owe me feedback on the design"
-    expected:
-      - direction must be "inbound"
-      - title should be "Feedback on design" or similar (not full sentence)
-      - confirmation prompt shown before API call
+    assertions:
+      - type: direction_detected
+        direction: inbound
+      - type: field_extraction
+        field: title
+        should_match: "Feedback on design"
+      - type: confirmation_shown
 
   - name: create-ambiguous-direction-asks
+    operation: create
     input: "new commitment with Sarah about the contract"
-    expected:
-      - skill asks whether this is outbound or inbound before proceeding
-      - does NOT default silently
+    assertions:
+      - type: asks_for_field
+        field: direction
 
   - name: create-relative-date-converted
+    operation: create
     input: "I owe Jim a report by next Tuesday"
-    expected:
-      - due_date is an absolute date (ISO format), not "next Tuesday"
-      - title extracted (not full sentence)
-      - direction is outbound
+    assertions:
+      - type: field_extraction
+        field: due_date
+        should_match: "absolute ISO date (not 'next Tuesday')"
+      - type: field_extraction
+        field: title
+        must_not_equal: "I owe Jim a report by next Tuesday"
+      - type: direction_detected
+        direction: outbound
 
   - name: create-no-person-reference
+    operation: create
     input: "add commitment to finish the quarterly review"
-    expected:
-      - person_uuid is null or not set
-      - title extracted as "Finish quarterly review" or similar
-      - direction defaults to outbound
-      - confirmation shown
+    assertions:
+      - type: field_extraction
+        field: title
+        should_match: "Finish quarterly review"
+      - type: direction_detected
+        direction: outbound
+      - type: confirmation_shown
 
   # --- List ---
 
   - name: list-all-commitments
+    operation: list
     input: "show my commitments"
-    expected:
-      - calls commitmentList GraphQL query
-      - presents results as table with Title, Direction, Status, Due Date columns
+    assertions:
+      - type: graphql_operation
+        operation: commitmentList
+        mutation: false
+      - type: table_presented
+        columns:
+          - Title
+          - Direction
+          - Status
+          - Due Date
 
   - name: list-filtered-by-status
+    operation: list
     input: "what commitments are pending?"
-    expected:
-      - filters by status "pending" (in query or post-filter)
-      - presents only matching items
+    assertions:
+      - type: filter_applied
+        field: status
+        value: "pending"
 
   - name: list-filtered-by-direction
+    operation: list
     input: "what do I owe?"
-    expected:
-      - filters by direction "outbound"
-      - presents only outbound commitments
+    assertions:
+      - type: filter_applied
+        field: direction
+        value: "outbound"
 
   - name: list-combined-filter
+    operation: list
     input: "show pending inbound commitments"
-    expected:
-      - filters by status "pending" AND direction "inbound"
+    assertions:
+      - type: filter_applied
+        field: status
+        value: "pending"
+      - type: filter_applied
+        field: direction
+        value: "inbound"
 
   # --- Update ---
 
   - name: update-resolve-first
+    operation: update
     input: "mark the proposal as complete"
-    expected:
-      - fetches existing commitments via commitmentList BEFORE parsing
-      - matches "proposal" against returned titles
-      - does NOT parse "the proposal" as a new title
-      - shows before/after confirmation
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0001-4000-8000-000000000001"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-28"
+        - uuid: "a1b2c3d4-0002-4000-8000-000000000002"
+          fields:
+            title: "Review contract terms"
+            direction: outbound
+            status: active
+            due_date: "2026-04-01"
+    assertions:
+      - type: resolve_first
+      - type: graphql_operation
+        operation: updateCommitment
+        mutation: true
+      - type: before_after_shown
 
   - name: update-ambiguous-match-presents-options
+    operation: update
     input: "complete the review"
-    expected:
-      - if multiple commitments match "review", presents options and asks
-      - does NOT pick one silently
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0003-4000-8000-000000000003"
+          fields:
+            title: "Review contract terms"
+            direction: outbound
+            status: active
+        - uuid: "a1b2c3d4-0004-4000-8000-000000000004"
+          fields:
+            title: "Review quarterly report"
+            direction: outbound
+            status: active
+    assertions:
+      - type: disambiguation
 
   - name: update-no-match-offers-create
+    operation: update
     input: "mark the nonexistent thing as done"
-    expected:
-      - says no matching commitment found
-      - offers to create one instead
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0005-4000-8000-000000000005"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+    assertions:
+      - type: error_surfaced
+      - type: offers_alternative
+        alternative: create
 
   - name: update-shows-before-after
+    operation: update
     input: "reschedule proposal to next Monday"
-    expected:
-      - resolves commitment first
-      - shows before/after with old and new due_date
-      - waits for confirmation before calling mutation
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0006-4000-8000-000000000006"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-28"
+    assertions:
+      - type: resolve_first
+      - type: before_after_shown
+      - type: confirmation_shown
 
   # --- Delete ---
 
   - name: delete-resolve-first
+    operation: delete
     input: "delete the proposal commitment"
-    expected:
-      - fetches existing commitments via commitmentList BEFORE parsing
-      - matches "proposal" against returned titles
-      - does NOT parse "the proposal commitment" as a title
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0007-4000-8000-000000000007"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+            due_date: "2026-03-28"
+        - uuid: "a1b2c3d4-0008-4000-8000-000000000008"
+          fields:
+            title: "Review contract terms"
+            direction: outbound
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: graphql_operation
+        operation: deleteCommitment
+        mutation: true
 
   - name: delete-shows-details
+    operation: delete
     input: "remove the feedback commitment"
-    expected:
-      - shows commitment details (title, UUID, direction, status, due date)
-      - before asking for confirmation
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0009-4000-8000-000000000009"
+          fields:
+            title: "Feedback on design"
+            direction: inbound
+            status: pending
+            due_date: "2026-04-05"
+    assertions:
+      - type: resolve_first
+      - type: confirmation_shown
 
   - name: delete-requires-title-echo-back
+    operation: delete
     input: "delete the proposal commitment"
-    expected:
-      - after showing details, requires user to type the commitment title
-      - does NOT accept just "yes" as confirmation
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0010-4000-8000-000000000010"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+    assertions:
+      - type: resolve_first
+      - type: echo_back_required
+        field: title
 
   - name: delete-conjunction-in-title-not-split
+    operation: delete
     input: "delete follow up and review deliverables"
-    expected:
-      - matches against existing titles as a whole phrase
-      - does NOT split into two separate delete operations
-      - finds "Follow up and review deliverables" as one entity
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0011-4000-8000-000000000011"
+          fields:
+            title: "Follow up and review deliverables"
+            direction: outbound
+            status: active
+    assertions:
+      - type: no_conjunction_split
+      - type: resolve_first
 
   # --- Edge Cases ---
 
   - name: edge-conjunction-in-title-create
+    operation: create
     input: "I owe them a review and summary by Friday"
-    expected:
-      - title is "Review and summary" or similar (conjunction preserved in title)
-      - does NOT create two separate commitments
-      - direction is outbound
+    tags:
+      - edge-case
+    assertions:
+      - type: field_extraction
+        field: title
+        should_match: "Review and summary"
+      - type: no_conjunction_split
+      - type: direction_detected
+        direction: outbound
 
   - name: edge-relative-date-today
+    operation: create
     input: "I owe Sarah a call today"
-    expected:
-      - due_date resolves to today's date in ISO format
-      - title is "Call Sarah" or similar
+    tags:
+      - edge-case
+    assertions:
+      - type: field_extraction
+        field: due_date
+        should_match: "today's date in ISO format"
+      - type: field_extraction
+        field: title
+        should_match: "Call Sarah"
 
   - name: edge-no-direction-keyword
+    operation: create
     input: "new commitment to review the contract"
-    expected:
-      - direction defaults to outbound (or asks if ambiguous)
-      - title extracted, not full sentence
+    tags:
+      - edge-case
+    assertions:
+      - type: direction_detected
+        direction: outbound
+      - type: field_extraction
+        field: title
+        must_not_equal: "new commitment to review the contract"
 
   # --- Error Handling ---
 
   - name: error-not-found-after-resolve
+    operation: update
     input: "update the proposal commitment"
-    expected:
-      - if the resolved UUID returns a not-found error from the API
-      - surfaces that the commitment may have been deleted since resolution
-      - does NOT retry silently
+    tags:
+      - error-handling
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0012-4000-8000-000000000012"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+      notes: "Simulates a commitment deleted between resolve and mutation"
+    assertions:
+      - type: resolve_first
+      - type: error_surfaced
 
   - name: error-invalid-status
+    operation: update
     input: "mark proposal as snoozed"
-    expected:
-      - API returns validation error (invalid status value)
-      - surfaces the error and valid status options
-      - asks user to correct input
+    tags:
+      - error-handling
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0013-4000-8000-000000000013"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+    assertions:
+      - type: error_surfaced
+      - type: asks_for_field
+        field: status
 
   - name: error-graphql-failure
+    operation: create
     input: "create commitment to do the thing"
-    expected:
-      - if GraphQL returns an error, surfaces error message to user
-      - does NOT swallow errors or retry silently
+    tags:
+      - error-handling
+    assertions:
+      - type: error_surfaced
 
   - name: error-access-denied
+    operation: delete
     input: "delete the proposal"
-    expected:
-      - if API rejects with access denied, surfaces "Access denied" with operation
-      - does NOT retry or work around
+    tags:
+      - error-handling
+    context:
+      existing_entities:
+        - uuid: "a1b2c3d4-0014-4000-8000-000000000014"
+          fields:
+            title: "Send proposal to Sarah"
+            direction: outbound
+            status: active
+    assertions:
+      - type: error_surfaced
