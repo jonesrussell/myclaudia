@@ -1,0 +1,65 @@
+schema_version: "1.0"
+skill: new-person
+entity_type: person
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a person, then update using pronouns"
+    turns:
+      - input: "add Sarah Chen, VP of Engineering at Acme"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createPerson
+          - type: field_extraction
+            field: name
+            should_match: "Sarah Chen"
+        mock_response:
+          createPerson:
+            uuid: "test-mt-001"
+            name: "Sarah Chen"
+            title: "VP of Engineering"
+            organization: "Acme"
+      - input: "change her email to sarah@newco.com"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updatePerson
+        mock_response:
+          updatePerson:
+            uuid: "test-mt-001"
+            name: "Sarah Chen"
+            email: "sarah@newco.com"
+    rubric: new-person
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a person, then delete referring without full name"
+    turns:
+      - input: "add Sarah Chen, VP of Engineering at Acme"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createPerson
+        mock_response:
+          createPerson:
+            uuid: "test-mt-002"
+            name: "Sarah Chen"
+            title: "VP of Engineering"
+            organization: "Acme"
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: name
+        mock_response:
+          deletePerson:
+            success: true
+    rubric: new-person
+    tags: [multi-turn, context-preservation]

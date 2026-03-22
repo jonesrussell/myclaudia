@@ -1,0 +1,60 @@
+schema_version: "1.0"
+skill: new-workspace
+entity_type: workspace
+eval_type: multi-turn
+max_turns: 10
+subject_model: sonnet
+judge_model: haiku
+
+tests:
+  - name: pronoun-resolution
+    description: "Create a workspace, then update using pronouns"
+    turns:
+      - input: "create a workspace for Acme Corp"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createWorkspace
+          - type: field_extraction
+            field: name
+            should_match: "Acme Corp"
+        mock_response:
+          createWorkspace:
+            uuid: "test-mt-001"
+            name: "Acme Corp"
+      - input: "rename it to Acme Corporation"
+        operation: update
+        assertions:
+          - type: resolve_first
+          - type: graphql_operation
+            operation: updateWorkspace
+        mock_response:
+          updateWorkspace:
+            uuid: "test-mt-001"
+            name: "Acme Corporation"
+    rubric: new-workspace
+    tags: [multi-turn, pronoun-resolution]
+
+  - name: follow-up-delete
+    description: "Create a workspace, then delete referring without full name"
+    turns:
+      - input: "create a workspace for Acme Corp"
+        operation: create
+        assertions:
+          - type: graphql_operation
+            operation: createWorkspace
+        mock_response:
+          createWorkspace:
+            uuid: "test-mt-002"
+            name: "Acme Corp"
+      - input: "actually, remove that"
+        operation: delete
+        assertions:
+          - type: resolve_first
+          - type: echo_back_required
+            field: name
+        mock_response:
+          deleteWorkspace:
+            success: true
+    rubric: new-workspace
+    tags: [multi-turn, context-preservation]
