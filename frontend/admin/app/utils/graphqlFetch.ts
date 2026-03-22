@@ -23,6 +23,7 @@ export async function graphqlFetch<T = unknown>(
     response = await fetch('/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ query, variables }),
       signal: controller.signal,
     });
