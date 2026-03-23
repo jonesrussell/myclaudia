@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "40b12291d2b170d7e734fb4d5147f219",
+    "content-hash": "ada84ce4e5663fb7db92f08a0fe3bfb5",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -4155,6 +4155,51 @@
             "time": "2026-03-16T21:50:01+00:00"
         },
         {
+            "name": "waaseyaa/ai-agent",
+            "version": "v0.1.0-alpha.51",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/waaseyaa/ai-agent.git",
+                "reference": "41f3f31dca6aa3d55e0e7ab677fdceb56f3a87e1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/waaseyaa/ai-agent/zipball/41f3f31dca6aa3d55e0e7ab677fdceb56f3a87e1",
+                "reference": "41f3f31dca6aa3d55e0e7ab677fdceb56f3a87e1",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4",
+                "waaseyaa/access": "^0.1",
+                "waaseyaa/ai-schema": "^0.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev",
+                    "dev-develop/v1.1": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Waaseyaa\\AI\\Agent\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "AI agent orchestration and tool execution for Waaseyaa",
+            "support": {
+                "issues": "https://github.com/waaseyaa/ai-agent/issues",
+                "source": "https://github.com/waaseyaa/ai-agent/tree/v0.1.0-alpha.51"
+            },
+            "time": "2026-03-23T06:24:45+00:00"
+        },
+        {
             "name": "waaseyaa/ai-pipeline",
             "version": "dev-main",
             "source": {
@@ -4205,6 +4250,50 @@
                 "source": "https://github.com/waaseyaa/ai-pipeline/tree/v0.1.0-alpha.43"
             },
             "time": "2026-03-23T01:07:56+00:00"
+        },
+        {
+            "name": "waaseyaa/ai-schema",
+            "version": "v0.1.0-alpha.51",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/waaseyaa/ai-schema.git",
+                "reference": "cb7bf171d71a8eb5ceeb339e1a135b7182410a75"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/waaseyaa/ai-schema/zipball/cb7bf171d71a8eb5ceeb339e1a135b7182410a75",
+                "reference": "cb7bf171d71a8eb5ceeb339e1a135b7182410a75",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4",
+                "waaseyaa/entity": "^0.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev",
+                    "dev-develop/v1.1": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Waaseyaa\\AI\\Schema\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "AI-friendly schema definitions and entity metadata for Waaseyaa",
+            "support": {
+                "issues": "https://github.com/waaseyaa/ai-schema/issues",
+                "source": "https://github.com/waaseyaa/ai-schema/tree/v0.1.0-alpha.51"
+            },
+            "time": "2026-03-23T06:34:58+00:00"
         },
         {
             "name": "waaseyaa/ai-vector",
@@ -4922,6 +5011,59 @@
                 "source": "https://github.com/waaseyaa/mail/tree/v0.1.0-alpha.10"
             },
             "time": "2026-03-16T21:50:01+00:00"
+        },
+        {
+            "name": "waaseyaa/mcp",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/waaseyaa/mcp.git",
+                "reference": "a3bab351de92e8d83ded5253b763873a2b060211"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/waaseyaa/mcp/zipball/a3bab351de92e8d83ded5253b763873a2b060211",
+                "reference": "a3bab351de92e8d83ded5253b763873a2b060211",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4",
+                "waaseyaa/access": "^0.1",
+                "waaseyaa/ai-agent": "^0.1",
+                "waaseyaa/ai-schema": "^0.1",
+                "waaseyaa/ai-vector": "^0.1",
+                "waaseyaa/api": "^0.1",
+                "waaseyaa/cache": "^0.1",
+                "waaseyaa/entity": "^0.1",
+                "waaseyaa/routing": "^0.1",
+                "waaseyaa/workflows": "^0.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev",
+                    "dev-develop/v1.1": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Waaseyaa\\Mcp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Remote MCP server endpoint for Waaseyaa",
+            "support": {
+                "issues": "https://github.com/waaseyaa/mcp/issues",
+                "source": "https://github.com/waaseyaa/mcp/tree/v0.1.0-alpha.51"
+            },
+            "time": "2026-03-23T06:06:06+00:00"
         },
         {
             "name": "waaseyaa/path",
@@ -5864,6 +6006,7 @@
         "waaseyaa/github": 20,
         "waaseyaa/graphql": 20,
         "waaseyaa/mail": 20,
+        "waaseyaa/mcp": 20,
         "waaseyaa/path": 20,
         "waaseyaa/queue": 20,
         "waaseyaa/relationship": 20,
