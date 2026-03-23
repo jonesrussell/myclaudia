@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Claudriel\CLI;
 
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 #[AsCommand(name: 'claudriel:workspace:link-repo', description: 'Link a local repository checkout to a workspace')]
 final class WorkspaceLinkRepoCommand extends Command
 {
     public function __construct(
-        private readonly EntityRepositoryInterface $workspaceRepository,
+        private readonly WorkspaceRepoResolver $resolver,
     ) {
         parent::__construct();
     }
@@ -34,8 +34,7 @@ final class WorkspaceLinkRepoCommand extends Command
         $repoPath = (string) $input->getArgument('repo_path');
         $repoUrl = $input->getArgument('repo_url');
 
-        $results = $this->workspaceRepository->findBy(['uuid' => $workspaceUuid]);
-        $workspace = $results[0] ?? null;
+        $workspace = $this->resolver->findWorkspace($workspaceUuid);
 
         if (! $workspace instanceof Workspace) {
             $output->writeln('Workspace not found.');
@@ -48,7 +47,7 @@ final class WorkspaceLinkRepoCommand extends Command
             $workspace->set('repo_url', $repoUrl);
         }
 
-        $this->workspaceRepository->save($workspace);
+        $this->resolver->getWorkspaceRepository()->save($workspace);
 
         $output->writeln('Repository linked to workspace.');
 

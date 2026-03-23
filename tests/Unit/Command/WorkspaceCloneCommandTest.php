@@ -7,7 +7,10 @@ namespace Claudriel\Tests\Unit\Command;
 use Claudriel\Command\WorkspaceCloneCommand;
 use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Artifact;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceRepo;
+use Claudriel\Support\WorkspaceRepoResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -20,6 +23,8 @@ final class WorkspaceCloneCommandTest extends TestCase
     private EntityRepository $workspaceRepo;
 
     private EntityRepository $artifactRepo;
+
+    private WorkspaceRepoResolver $resolver;
 
     protected function setUp(): void
     {
@@ -36,6 +41,20 @@ final class WorkspaceCloneCommandTest extends TestCase
             new InMemoryStorageDriver,
             $dispatcher,
         );
+
+        $repoRepo = new EntityRepository(
+            new EntityType(id: 'repo', label: 'Repo', class: Repo::class, keys: ['id' => 'rid', 'uuid' => 'uuid', 'label' => 'name']),
+            new InMemoryStorageDriver,
+            $dispatcher,
+        );
+
+        $junctionRepo = new EntityRepository(
+            new EntityType(id: 'workspace_repo', label: 'Workspace Repo', class: WorkspaceRepo::class, keys: ['id' => 'id', 'uuid' => 'uuid', 'label' => 'uuid']),
+            new InMemoryStorageDriver,
+            $dispatcher,
+        );
+
+        $this->resolver = new WorkspaceRepoResolver($this->workspaceRepo, $repoRepo, $junctionRepo);
     }
 
     public function test_clones_workspace_repository_and_saves_artifact(): void
@@ -51,7 +70,7 @@ final class WorkspaceCloneCommandTest extends TestCase
             return ['exit_code' => 0, 'output' => ''];
         });
 
-        $tester = new CommandTester(new WorkspaceCloneCommand($this->workspaceRepo, $this->artifactRepo, $manager));
+        $tester = new CommandTester(new WorkspaceCloneCommand($this->resolver, $this->artifactRepo, $manager));
         $tester->execute([
             'workspace_uuid' => $workspace->get('uuid'),
             'repo_url' => 'git@github.com:jonesrussell/claudriel.git',
@@ -71,7 +90,7 @@ final class WorkspaceCloneCommandTest extends TestCase
     {
         $manager = new GitRepositoryManager('/tmp/claudriel-tests', fn (string $command): array => ['exit_code' => 0, 'output' => '']);
 
-        $tester = new CommandTester(new WorkspaceCloneCommand($this->workspaceRepo, $this->artifactRepo, $manager));
+        $tester = new CommandTester(new WorkspaceCloneCommand($this->resolver, $this->artifactRepo, $manager));
         $tester->execute([
             'workspace_uuid' => 'missing-workspace',
             'repo_url' => 'git@github.com:jonesrussell/claudriel.git',

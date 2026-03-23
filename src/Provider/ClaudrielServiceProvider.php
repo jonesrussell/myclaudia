@@ -69,6 +69,7 @@ use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
 use Claudriel\Support\GitHubTokenManager;
 use Claudriel\Support\StorageRepositoryAdapter;
+use Claudriel\Support\WorkspaceRepoResolver;
 use GraphQL\Type\Definition\Type;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Waaseyaa\AdminSurface\AdminSurfaceServiceProvider;
@@ -673,6 +674,10 @@ final class ClaudrielServiceProvider extends ServiceProvider
         );
         $operationRepo = new StorageRepositoryAdapter(new SqlEntityStorage($operationType, $database, $dispatcher));
 
+        $repoRepo = new StorageRepositoryAdapter($entityTypeManager->getStorage('repo'));
+        $workspaceRepoJunctionRepo = new StorageRepositoryAdapter($entityTypeManager->getStorage('workspace_repo'));
+        $workspaceRepoResolver = new WorkspaceRepoResolver($workspaceRepo, $repoRepo, $workspaceRepoJunctionRepo);
+
         $gitRepositoryManager = new GitRepositoryManager;
         $promptBuilder = new PromptBuilder;
         $gitOperator = new GitOperator;
@@ -691,14 +696,14 @@ final class ClaudrielServiceProvider extends ServiceProvider
             new SkillsCommand($skillRepo),
             new WorkspacesCommand($workspaceRepo),
             new WorkspaceCreateCommand($workspaceRepo),
-            new WorkspaceCloneCommand($workspaceRepo, $artifactRepo, $gitRepositoryManager),
+            new WorkspaceCloneCommand($workspaceRepoResolver, $artifactRepo, $gitRepositoryManager),
             new WorkspacePullCommand($workspaceRepo, $artifactRepo, $gitRepositoryManager),
             new WorkspaceIterateCommand($workspaceRepo, $operationRepo, $promptBuilder, $gitOperator),
-            new WorkspaceStatusCommand($workspaceRepo),
-            new WorkspaceLinkRepoCommand($workspaceRepo),
-            new WorkspaceRunLoopCommand($workspaceRepo, $operationRepo, $promptBuilder, $gitOperator),
+            new WorkspaceStatusCommand($workspaceRepoResolver),
+            new WorkspaceLinkRepoCommand($workspaceRepoResolver),
+            new WorkspaceRunLoopCommand($workspaceRepoResolver, $operationRepo, $promptBuilder, $gitOperator),
             new WorkspaceOpsCommand($workspaceRepo, $operationRepo),
-            new WorkspaceVerifyCommand($workspaceRepo),
+            new WorkspaceVerifyCommand($workspaceRepoResolver),
             new RecategorizeEventsCommand($entityTypeManager, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
             $this->buildTelescopeCommand(),
         ];

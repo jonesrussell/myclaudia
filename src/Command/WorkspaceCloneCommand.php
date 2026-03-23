@@ -6,7 +6,7 @@ namespace Claudriel\Command;
 
 use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Artifact;
-use Claudriel\Entity\Workspace;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +19,7 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 final class WorkspaceCloneCommand extends Command
 {
     public function __construct(
-        private readonly EntityRepositoryInterface $workspaceRepo,
+        private readonly WorkspaceRepoResolver $resolver,
         private readonly EntityRepositoryInterface $artifactRepo,
         private readonly GitRepositoryManager $gitRepositoryManager,
     ) {
@@ -39,7 +39,7 @@ final class WorkspaceCloneCommand extends Command
         $repoUrl = trim((string) $input->getArgument('repo_url'));
         $branch = trim((string) $input->getOption('branch'));
 
-        $workspace = $this->findWorkspace($workspaceUuid);
+        $workspace = $this->resolver->findWorkspace($workspaceUuid);
         if ($workspace === null) {
             $output->writeln(sprintf('<error>Workspace not found:</error> %s', $workspaceUuid));
 
@@ -64,14 +64,6 @@ final class WorkspaceCloneCommand extends Command
         $output->writeln(sprintf('<info>Latest commit:</info> %s', $artifact->get('last_commit')));
 
         return Command::SUCCESS;
-    }
-
-    private function findWorkspace(string $workspaceUuid): ?Workspace
-    {
-        $results = $this->workspaceRepo->findBy(['uuid' => $workspaceUuid]);
-        $workspace = $results[0] ?? null;
-
-        return $workspace instanceof Workspace ? $workspace : null;
     }
 
     private function findRepoArtifact(string $workspaceUuid): ?Artifact

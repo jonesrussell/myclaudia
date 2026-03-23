@@ -8,6 +8,7 @@ use Claudriel\AI\CodexExecutionPipeline;
 use Claudriel\AI\PromptBuilder;
 use Claudriel\Domain\Git\GitOperator;
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +20,7 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 final class WorkspaceRunLoopCommand extends Command
 {
     public function __construct(
-        private readonly EntityRepositoryInterface $workspaceRepository,
+        private readonly WorkspaceRepoResolver $resolver,
         private readonly EntityRepositoryInterface $operationRepository,
         private readonly PromptBuilder $promptBuilder,
         private readonly GitOperator $gitOperator,
@@ -38,8 +39,7 @@ final class WorkspaceRunLoopCommand extends Command
         $workspaceUuid = (string) $input->getArgument('workspace_uuid');
         $instruction = (string) $input->getArgument('instruction');
 
-        $results = $this->workspaceRepository->findBy(['uuid' => $workspaceUuid]);
-        $workspace = $results[0] ?? null;
+        $workspace = $this->resolver->findWorkspace($workspaceUuid);
 
         if (! $workspace instanceof Workspace) {
             $output->writeln('Workspace not found.');
@@ -56,7 +56,7 @@ final class WorkspaceRunLoopCommand extends Command
         $pipeline = new CodexExecutionPipeline(
             $this->promptBuilder,
             $this->gitOperator,
-            $this->workspaceRepository,
+            $this->resolver->getWorkspaceRepository(),
             $this->operationRepository,
         );
 
