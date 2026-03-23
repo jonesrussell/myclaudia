@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c7530394b4d05e68340e2a4303c1304",
+    "content-hash": "a0c1922c28ff4057b52ec0c6bb3c777c",
     "packages": [
         {
             "name": "doctrine/dbal",
@@ -5063,6 +5063,56 @@
             "time": "2026-03-16T21:50:01+00:00"
         },
         {
+            "name": "waaseyaa/relationship",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/waaseyaa/relationship.git",
+                "reference": "36217f500914080063ed37e914400e946b43c806"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/waaseyaa/relationship/zipball/36217f500914080063ed37e914400e946b43c806",
+                "reference": "36217f500914080063ed37e914400e946b43c806",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.4",
+                "waaseyaa/access": "^0.1",
+                "waaseyaa/database-legacy": "^0.1",
+                "waaseyaa/entity": "^0.1",
+                "waaseyaa/workflows": "^0.1"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "waaseyaa": {
+                    "providers": [
+                        "Waaseyaa\\Relationship\\RelationshipServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev",
+                    "dev-develop/v1.1": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Waaseyaa\\Relationship\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Reusable relationship primitives for Waaseyaa applications",
+            "support": {
+                "issues": "https://github.com/waaseyaa/relationship/issues",
+                "source": "https://github.com/waaseyaa/relationship/tree/v0.1.0-alpha.43"
+            },
+            "time": "2026-03-23T01:07:56+00:00"
+        },
+        {
             "name": "waaseyaa/routing",
             "version": "dev-main",
             "source": {
@@ -5765,6 +5815,7 @@
         "waaseyaa/mail": 20,
         "waaseyaa/path": 20,
         "waaseyaa/queue": 20,
+        "waaseyaa/relationship": 20,
         "waaseyaa/routing": 20,
         "waaseyaa/ssr": 20,
         "waaseyaa/state": 20,
