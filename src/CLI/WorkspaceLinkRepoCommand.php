@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\CLI;
 
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\LinkedRepoLookup;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,8 +16,12 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 #[AsCommand(name: 'claudriel:workspace:link-repo', description: 'Link a local repository checkout to a workspace')]
 final class WorkspaceLinkRepoCommand extends Command
 {
+    use LinkedRepoLookup;
+
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepository,
+        private readonly EntityRepositoryInterface $repoRepository,
+        private readonly EntityRepositoryInterface $workspaceRepoRepository,
     ) {
         parent::__construct();
     }
@@ -43,12 +48,8 @@ final class WorkspaceLinkRepoCommand extends Command
             return Command::FAILURE;
         }
 
-        $workspace->set('repo_path', $repoPath);
-        if (is_string($repoUrl) && $repoUrl !== '') {
-            $workspace->set('repo_url', $repoUrl);
-        }
-
-        $this->workspaceRepository->save($workspace);
+        $repo = $this->findOrCreateRepo($repoPath, is_string($repoUrl) ? $repoUrl : '');
+        $this->ensureJunction($workspaceUuid, (string) $repo->get('uuid'));
 
         $output->writeln('Repository linked to workspace.');
 

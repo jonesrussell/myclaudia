@@ -7,6 +7,7 @@ namespace Claudriel\Command;
 use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\Artifact;
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\LinkedRepoLookup;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -18,10 +19,14 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 #[AsCommand(name: 'claudriel:workspace:clone', description: 'Clone a workspace repository')]
 final class WorkspaceCloneCommand extends Command
 {
+    use LinkedRepoLookup;
+
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepo,
         private readonly EntityRepositoryInterface $artifactRepo,
         private readonly GitRepositoryManager $gitRepositoryManager,
+        private readonly EntityRepositoryInterface $repoRepository,
+        private readonly EntityRepositoryInterface $workspaceRepoRepository,
     ) {
         parent::__construct();
     }
@@ -59,6 +64,13 @@ final class WorkspaceCloneCommand extends Command
 
         $this->gitRepositoryManager->ensureLocalCopy($artifact);
         $this->artifactRepo->save($artifact);
+
+        $repo = $this->findOrCreateRepo(
+            (string) $artifact->get('local_path'),
+            $repoUrl,
+            $branch !== '' ? $branch : 'main',
+        );
+        $this->ensureJunction($workspaceUuid, (string) $repo->get('uuid'));
 
         $output->writeln(sprintf('<info>Cloned workspace repository:</info> %s', $artifact->get('local_path')));
         $output->writeln(sprintf('<info>Latest commit:</info> %s', $artifact->get('last_commit')));

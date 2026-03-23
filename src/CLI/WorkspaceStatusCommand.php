@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\CLI;
 
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\LinkedRepoLookup;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,8 +16,12 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 #[AsCommand(name: 'claudriel:workspace:status', description: 'Inspect workspace repository status')]
 final class WorkspaceStatusCommand extends Command
 {
+    use LinkedRepoLookup;
+
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepository,
+        private readonly EntityRepositoryInterface $repoRepository,
+        private readonly EntityRepositoryInterface $workspaceRepoRepository,
     ) {
         parent::__construct();
     }
@@ -38,11 +43,13 @@ final class WorkspaceStatusCommand extends Command
             return Command::FAILURE;
         }
 
-        $output->writeln('repo_path: '.(string) ($workspace->get('repo_path') ?? ''));
-        $output->writeln('repo_url: '.(string) ($workspace->get('repo_url') ?? ''));
-        $output->writeln('branch: '.(string) ($workspace->get('branch') ?? ''));
-        $output->writeln('last_commit_hash: '.(string) ($workspace->get('last_commit_hash') ?? ''));
-        $output->writeln('ci_status: '.(string) ($workspace->get('ci_status') ?? ''));
+        $repo = $this->findLinkedRepo($workspaceUuid);
+
+        $output->writeln('repo_path: '.(string) ($repo?->get('local_path') ?? ''));
+        $output->writeln('repo_url: '.(string) ($repo?->get('url') ?? ''));
+        $output->writeln('branch: '.(string) ($repo?->get('default_branch') ?? ''));
+        $output->writeln('last_commit_hash: '.(string) ($repo?->get('last_commit_hash') ?? ''));
+        $output->writeln('ci_status: '.(string) ($repo?->get('ci_status') ?? ''));
 
         return Command::SUCCESS;
     }

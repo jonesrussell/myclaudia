@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Claudriel\CLI;
 
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\LinkedRepoLookup;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,8 +17,12 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 #[AsCommand(name: 'claudriel:workspace:verify', description: 'Stub verification for a workspace repository')]
 final class WorkspaceVerifyCommand extends Command
 {
+    use LinkedRepoLookup;
+
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepository,
+        private readonly EntityRepositoryInterface $repoRepository,
+        private readonly EntityRepositoryInterface $workspaceRepoRepository,
     ) {
         parent::__construct();
     }
@@ -38,11 +44,15 @@ final class WorkspaceVerifyCommand extends Command
             return Command::FAILURE;
         }
 
-        $workspace->set('ci_status', 'verification pending');
-        $this->workspaceRepository->save($workspace);
+        $repo = $this->findLinkedRepo($workspaceUuid);
 
-        $output->writeln('last_commit_hash: '.(string) ($workspace->get('last_commit_hash') ?? ''));
-        $output->writeln((string) $workspace->get('ci_status'));
+        if ($repo instanceof Repo) {
+            $repo->set('ci_status', 'verification pending');
+            $this->repoRepository->save($repo);
+        }
+
+        $output->writeln('last_commit_hash: '.(string) ($repo?->get('last_commit_hash') ?? ''));
+        $output->writeln((string) ($repo?->get('ci_status') ?? 'no linked repo'));
 
         return Command::SUCCESS;
     }
