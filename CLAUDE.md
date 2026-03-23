@@ -142,6 +142,10 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - `CommitmentHandler` silently skips candidates with `confidence < 0.7`
 - `DriftDetector::findDrifting()` only checks `status=active` + `updated_at < 48h`; pending commitments are NOT checked
 - `GmailMessageNormalizer::normalize()` base64-decodes body with URL-safe alphabet (`-_` → `+/`)
+- `InternalWorkspaceController::create()` must set `account_id` on new workspaces; without it, `WorkspaceAccessPolicy` denies access and workspaces are invisible in GraphQL/sidebar
+- `WorkspaceAccessPolicy` matches ownership by numeric ID (admin SPA session) OR UUID string (agent subprocess HMAC token); both paths must be checked
+- After `composer update 'waaseyaa/*'`, run `vendor/bin/phpstan analyse` and regenerate baseline (`--generate-baseline`) if `ignore.unmatched` errors appear; also check `tests/Feature/Access/AccessPolicyTestHelpers.php` anonymous classes implement all interface methods
+- Repo entity lookup from workspace uses `WorkspaceRepoResolver` (class in `src/Support/`); query `workspace_repo` junction by `workspace_uuid`, then load Repo by `repo_uuid` — do not access `repo_path`/`repo_url` fields on workspace directly (#517)
 - When refactoring a subsystem, update the relevant `docs/specs/` file. Stale specs cause agents to generate conflicting code.
 - ConsoleKernel auto-discovery of CLI commands may need explicit wiring (issue #9 is open)
 - `EntityRepositoryInterface::findBy()` returns `EntityInterface[]`, but most callers need `ContentEntityInterface`. Use `assert($entity instanceof ConcreteType)` for type narrowing (established pattern), or `/** @var */` for array-level annotations before `array_filter`
