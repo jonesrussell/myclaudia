@@ -1,51 +1,13 @@
 """Tests for dynamic agent tool discovery."""
-
 from __future__ import annotations
 
 import importlib
-import sys
 import textwrap
-import types
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
-
-def _stub_main_dependencies() -> None:
-    for mod_name in [
-        "anthropic",
-        "util.http",
-        "tools.gmail_list",
-        "tools.gmail_read",
-        "tools.gmail_send",
-        "tools.calendar_list",
-        "tools.calendar_create",
-        "tools.judgment_rule_suggest",
-        "tools.commitment_list",
-        "tools.commitment_update",
-        "tools.person_search",
-        "tools.person_detail",
-        "tools.brief_generate",
-        "tools.event_search",
-        "tools.search_global",
-        "tools.workspace_list",
-        "tools.workspace_context",
-        "tools.schedule_query",
-        "tools.triage_list",
-        "tools.triage_resolve",
-    ]:
-        if mod_name in sys.modules:
-            continue
-        stub = types.ModuleType(mod_name)
-        stub.TOOL_DEF = {"name": mod_name.split(".")[-1], "input_schema": {"type": "object", "properties": {}}}
-        stub.execute = lambda api, args: {}
-        stub.PhpApiClient = MagicMock
-        sys.modules[mod_name] = stub
-
-
-_stub_main_dependencies()
-main = importlib.import_module("main")
+import main
 
 
 def _write_tool(path: Path, body: str) -> None:

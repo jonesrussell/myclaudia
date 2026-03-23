@@ -14,7 +14,7 @@ import yaml
 
 from eval_schema import discover_eval_files, load_and_validate
 from eval_judge import judge_response
-from eval_report import generate_report, format_markdown, SkillResult, TestResult
+from eval_report import generate_report, format_markdown, SkillResult, EvalTestResult
 
 PASS_THRESHOLD = 3.0
 
@@ -47,7 +47,7 @@ def run_deterministic(skills_dir: Path) -> dict:
         results[skill_name].tests_run += 1
         if errors:
             for error in errors:
-                results[skill_name].failures.append(TestResult(
+                results[skill_name].failures.append(EvalTestResult(
                     name=f"{eval_file.name}:{error.message}",
                     score=0.0,
                     reason=error.message,
@@ -107,7 +107,7 @@ def run_llm_judge(skills_dir: Path, skill_filter: str | None = None, type_filter
             if score.overall >= PASS_THRESHOLD:
                 results[skill_name].tests_passed += 1
             else:
-                results[skill_name].failures.append(TestResult(
+                results[skill_name].failures.append(EvalTestResult(
                     name=test_name,
                     score=score.overall,
                     reason="; ".join(s.reason for s in score.scores if s.score < PASS_THRESHOLD),

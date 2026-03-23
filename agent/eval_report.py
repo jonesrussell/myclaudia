@@ -5,7 +5,7 @@ from typing import Any
 
 
 @dataclass
-class TestResult:
+class EvalTestResult:
     name: str
     score: float
     reason: str
@@ -16,7 +16,7 @@ class SkillResult:
     tests_run: int
     tests_passed: int
     average_score: float
-    failures: list[TestResult] = field(default_factory=list)
+    failures: list[EvalTestResult] = field(default_factory=list)
 
 
 def generate_report(results: dict[str, SkillResult], mode: str = "llm-judge") -> dict[str, Any]:

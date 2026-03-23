@@ -1,6 +1,6 @@
 """Tests for eval report generation."""
 import json
-from eval_report import generate_report, format_markdown, SkillResult, TestResult
+from eval_report import generate_report, format_markdown, SkillResult, EvalTestResult
 
 
 def test_generate_report_structure():
@@ -9,7 +9,7 @@ def test_generate_report_structure():
             tests_run=10,
             tests_passed=9,
             average_score=4.2,
-            failures=[TestResult(name="edge-case", score=1.0, reason="missed")],
+            failures=[EvalTestResult(name="edge-case", score=1.0, reason="missed")],
         ),
     }
     report = generate_report(results)
@@ -42,8 +42,8 @@ def test_format_markdown_shows_failures():
             tests_passed=1,
             average_score=2.0,
             failures=[
-                TestResult(name="test-a", score=1.0, reason="bad"),
-                TestResult(name="test-b", score=0.0, reason="wrong"),
+                EvalTestResult(name="test-a", score=1.0, reason="bad"),
+                EvalTestResult(name="test-b", score=0.0, reason="wrong"),
             ],
         ),
     }

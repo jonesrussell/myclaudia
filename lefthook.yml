@@ -17,5 +17,5 @@ pre-push:
       run: composer analyse
     php-tests:
       run: vendor/bin/phpunit --testsuite Unit
-    python-eval-tests:
-      run: cd agent && python3 -m pytest tests/test_eval_schema.py tests/test_eval_judge.py tests/test_eval_report.py tests/test_eval_runner.py -q
+    python-tests:
+      run: cd agent && python3 -m pytest tests/ -q

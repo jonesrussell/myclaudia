@@ -111,7 +111,14 @@ def load_configured_tools() -> tuple[list[dict], dict[str, Callable]]:
     return discover_tools(enabled_tool_names=enabled_tool_names)
 
 
-TOOLS, EXECUTORS = load_configured_tools()
+TOOLS: list[dict] = []
+EXECUTORS: dict[str, Callable] = {}
+
+
+def _ensure_tools_loaded() -> None:
+    global TOOLS, EXECUTORS
+    if not TOOLS:
+        TOOLS, EXECUTORS = load_configured_tools()
 
 
 def classify_task_type(messages: list) -> str:
@@ -182,6 +189,8 @@ def main() -> None:
     api_base = request.get("api_base", "http://localhost:8000")
     api_token = request.get("api_token", "")
     model = request.get("model", "claude-sonnet-4-6")
+
+    _ensure_tools_loaded()
 
     api = PhpApiClient(api_base, api_token, account_id, tenant_id)
     client = anthropic.Anthropic()
