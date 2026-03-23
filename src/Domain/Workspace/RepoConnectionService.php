@@ -5,21 +5,26 @@ declare(strict_types=1);
 namespace Claudriel\Domain\Workspace;
 
 use Claudriel\Domain\Git\GitRepositoryManager;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceRepo;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class RepoConnectionService
 {
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepo,
+        private readonly EntityRepositoryInterface $repoRepo,
+        private readonly EntityRepositoryInterface $workspaceRepoJunctionRepo,
         private readonly GitRepositoryManager $gitRepositoryManager,
     ) {}
 
     /**
      * Connect a repository to a workspace by URL.
      *
-     * Validates the URL format (https or ssh), sets workspace fields,
-     * and triggers a clone via GitRepositoryManager.
+     * Validates the URL format (https or ssh), creates a Repo entity,
+     * links it via WorkspaceRepo junction, and triggers a clone via GitRepositoryManager.
      */
     public function connect(string $workspaceUuid, string $repoUrl, ?string $branch = 'main'): void
     {
@@ -27,15 +32,23 @@ final class RepoConnectionService
 
         $this->validateRepoUrl($repoUrl);
 
-        $workspace = $this->loadWorkspace($workspaceUuid);
+        $this->loadWorkspace($workspaceUuid);
 
         $repoPath = $this->gitRepositoryManager->buildWorkspaceRepoPath($workspaceUuid);
 
-        $workspace->set('repo_url', $repoUrl);
-        $workspace->set('branch', $branch);
-        $workspace->set('repo_path', $repoPath);
+        $repo = new Repo([
+            'url' => $repoUrl,
+            'name' => WorkspaceRepoResolver::extractRepoName($repoUrl),
+            'default_branch' => $branch,
+            'local_path' => $repoPath,
+        ]);
+        $this->repoRepo->save($repo);
 
-        $this->workspaceRepo->save($workspace);
+        $junction = new WorkspaceRepo([
+            'workspace_uuid' => $workspaceUuid,
+            'repo_uuid' => (string) $repo->get('uuid'),
+        ]);
+        $this->workspaceRepoJunctionRepo->save($junction);
 
         $this->gitRepositoryManager->clone($repoUrl, $repoPath, $branch);
     }

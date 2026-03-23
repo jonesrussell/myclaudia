@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Domain\Git;
 
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class AgentGitBridge
@@ -12,6 +13,7 @@ final class AgentGitBridge
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepo,
         private readonly GitPipeline $gitPipeline,
+        private readonly ?WorkspaceRepoResolver $repoResolver = null,
     ) {}
 
     /**
@@ -21,15 +23,9 @@ final class AgentGitBridge
      */
     public function commitForAgent(string $workspaceUuid, string $message): array
     {
-        $workspace = $this->loadWorkspace($workspaceUuid);
-        $repoPath = $this->resolveRepoPath($workspace);
+        $repoPath = $this->resolveRepoPath($workspaceUuid);
 
-        $result = $this->gitPipeline->commitAndPush($repoPath, $message);
-
-        $workspace->set('last_commit_hash', $result['commit_hash']);
-        $this->workspaceRepo->save($workspace);
-
-        return $result;
+        return $this->gitPipeline->commitAndPush($repoPath, $message);
     }
 
     /**
@@ -37,10 +33,7 @@ final class AgentGitBridge
      */
     public function diffForAgent(string $workspaceUuid): string
     {
-        $workspace = $this->loadWorkspace($workspaceUuid);
-        $repoPath = $this->resolveRepoPath($workspace);
-
-        return $this->gitPipeline->generateDiff($repoPath);
+        return $this->gitPipeline->generateDiff($this->resolveRepoPath($workspaceUuid));
     }
 
     /**
@@ -50,9 +43,13 @@ final class AgentGitBridge
      */
     public function pushForAgent(string $workspaceUuid): array
     {
-        $workspace = $this->loadWorkspace($workspaceUuid);
-        $repoPath = $this->resolveRepoPath($workspace);
-        $branch = (string) ($workspace->get('branch') ?: 'main');
+        $repoPath = $this->resolveRepoPath($workspaceUuid);
+
+        $repo = $this->repoResolver?->findLinkedRepo($workspaceUuid);
+        $branch = trim((string) ($repo?->get('default_branch') ?? 'main'));
+        if ($branch === '') {
+            $branch = 'main';
+        }
 
         $this->gitPipeline->commitAndPush($repoPath, '', $branch);
 
@@ -62,27 +59,21 @@ final class AgentGitBridge
         ];
     }
 
-    private function loadWorkspace(string $workspaceUuid): Workspace
+    private function resolveRepoPath(string $workspaceUuid): string
     {
         $results = $this->workspaceRepo->findBy(['uuid' => $workspaceUuid]);
-        $workspace = $results[0] ?? null;
-
-        if (! $workspace instanceof Workspace) {
+        if (! ($results[0] ?? null) instanceof Workspace) {
             throw new \RuntimeException(sprintf('Workspace not found: %s', $workspaceUuid));
         }
 
-        return $workspace;
-    }
+        $repo = $this->repoResolver?->findLinkedRepo($workspaceUuid);
+        if ($repo === null) {
+            throw new \RuntimeException(sprintf('Workspace %s has no repository connected', $workspaceUuid));
+        }
 
-    private function resolveRepoPath(Workspace $workspace): string
-    {
-        $repoPath = (string) $workspace->get('repo_path');
-
+        $repoPath = trim((string) ($repo->get('local_path') ?? ''));
         if ($repoPath === '') {
-            throw new \RuntimeException(sprintf(
-                'Workspace %s has no repo_path configured',
-                (string) $workspace->get('uuid'),
-            ));
+            throw new \RuntimeException(sprintf('Workspace %s has no local repo path configured', $workspaceUuid));
         }
 
         return $repoPath;

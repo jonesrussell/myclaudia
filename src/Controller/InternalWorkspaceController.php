@@ -6,7 +6,9 @@ namespace Claudriel\Controller;
 
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\Git\GitRepositoryManager;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceRepo;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
@@ -21,6 +23,8 @@ final class InternalWorkspaceController
         private readonly InternalApiTokenGenerator $apiTokenGenerator,
         private readonly string $tenantId,
         private readonly ?GitRepositoryManager $gitManager = null,
+        private readonly ?EntityRepositoryInterface $repoRepo = null,
+        private readonly ?EntityRepositoryInterface $workspaceRepoJunctionRepo = null,
     ) {}
 
     public function listWorkspaces(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
@@ -173,6 +177,24 @@ final class InternalWorkspaceController
             $this->gitManager->clone($repoUrl, $localPath, $branch);
         } catch (\RuntimeException $e) {
             return $this->jsonError('Clone failed', 500);
+        }
+
+        if ($this->repoRepo !== null && $this->workspaceRepoJunctionRepo !== null) {
+            $repoParts = explode('/', $repo);
+            $repoEntity = new Repo([
+                'owner' => $repoParts[0] ?? '',
+                'name' => $repoParts[1] ?? '',
+                'url' => $repoUrl,
+                'default_branch' => $branch,
+                'local_path' => $localPath,
+            ]);
+            $this->repoRepo->save($repoEntity);
+
+            $junction = new WorkspaceRepo([
+                'workspace_uuid' => $uuid,
+                'repo_uuid' => (string) $repoEntity->get('uuid'),
+            ]);
+            $this->workspaceRepoJunctionRepo->save($junction);
         }
 
         return $this->jsonResponse([

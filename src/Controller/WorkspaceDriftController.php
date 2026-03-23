@@ -6,8 +6,12 @@ namespace Claudriel\Controller;
 
 use Claudriel\Domain\Git\DriftDetector;
 use Claudriel\Domain\Git\GitRepositoryManager;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceRepo;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\EntityTypeManager;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 use Waaseyaa\SSR\SsrResponse;
 
 /**
@@ -19,6 +23,9 @@ final class WorkspaceDriftController
         private readonly EntityTypeManager $entityTypeManager,
         private readonly GitRepositoryManager $gitRepositoryManager,
         private readonly DriftDetector $driftDetector,
+        private readonly ?EntityRepositoryInterface $repoRepo = null,
+        private readonly ?EntityRepositoryInterface $workspaceRepoJunctionRepo = null,
+        private readonly ?WorkspaceRepoResolver $repoResolver = null,
     ) {}
 
     /**
@@ -45,7 +52,6 @@ final class WorkspaceDriftController
 
         $branch = trim((string) ($input['branch'] ?? 'main'));
 
-        // Validate URL format
         $httpsPattern = '#^https://[a-zA-Z0-9._\-]+(/[a-zA-Z0-9._\-]+)+(?:\.git)?$#';
         $sshPattern = '#^git@[a-zA-Z0-9._\-]+:[a-zA-Z0-9._\-]+(/[a-zA-Z0-9._\-]+)+(?:\.git)?$#';
         if (preg_match($httpsPattern, $repoUrl) !== 1 && preg_match($sshPattern, $repoUrl) !== 1) {
@@ -59,17 +65,26 @@ final class WorkspaceDriftController
 
         $repoPath = $this->gitRepositoryManager->buildWorkspaceRepoPath($uuid);
 
-        $workspace->set('repo_url', $repoUrl);
-        $workspace->set('branch', $branch);
-        $workspace->set('repo_path', $repoPath);
-
-        $storage = $this->entityTypeManager->getStorage('workspace');
-        $storage->save($workspace);
-
         try {
             $this->gitRepositoryManager->clone($repoUrl, $repoPath, $branch);
         } catch (\RuntimeException $e) {
             return $this->json(['error' => sprintf('Clone failed: %s', $e->getMessage())], 500);
+        }
+
+        if ($this->repoRepo !== null && $this->workspaceRepoJunctionRepo !== null) {
+            $repoEntity = new Repo([
+                'url' => $repoUrl,
+                'name' => WorkspaceRepoResolver::extractRepoName($repoUrl),
+                'default_branch' => $branch,
+                'local_path' => $repoPath,
+            ]);
+            $this->repoRepo->save($repoEntity);
+
+            $junction = new WorkspaceRepo([
+                'workspace_uuid' => $uuid,
+                'repo_uuid' => (string) $repoEntity->get('uuid'),
+            ]);
+            $this->workspaceRepoJunctionRepo->save($junction);
         }
 
         return $this->json(['connected' => true, 'repo_url' => $repoUrl, 'branch' => $branch]);
@@ -92,7 +107,9 @@ final class WorkspaceDriftController
             return $this->json(['error' => sprintf('Workspace not found: %s', $uuid)], 404);
         }
 
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $linkedRepo = $this->repoResolver?->findLinkedRepo($uuid);
+        $repoPath = $linkedRepo !== null ? trim((string) ($linkedRepo->get('local_path') ?? '')) : '';
+
         if ($repoPath === '' || ! is_dir($repoPath.'/.git')) {
             return $this->json([
                 'drift_status' => 'no_repo',
@@ -100,7 +117,7 @@ final class WorkspaceDriftController
             ]);
         }
 
-        $branch = trim((string) ($workspace->get('branch') ?? 'main'));
+        $branch = trim((string) ($linkedRepo->get('default_branch') ?? 'main'));
 
         try {
             $driftResult = $this->driftDetector->detectDrift($repoPath, $branch);

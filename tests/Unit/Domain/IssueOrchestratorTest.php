@@ -227,7 +227,6 @@ final class IssueOrchestratorTest extends TestCase
             keys: ['id' => 'wid', 'uuid' => 'uuid', 'label' => 'name'],
             fieldDefinitions: [
                 'name' => ['type' => 'string', 'label' => 'Name'],
-                'repo_path' => ['type' => 'string', 'label' => 'Repo Path'],
                 'branch' => ['type' => 'string', 'label' => 'Branch'],
                 'description' => ['type' => 'string', 'label' => 'Description'],
                 'tenant_id' => ['type' => 'string', 'label' => 'Tenant ID'],
@@ -240,6 +239,7 @@ final class IssueOrchestratorTest extends TestCase
             pipeline: null,
             instructionBuilder: new IssueInstructionBuilder,
             gitOperator: null,
+            repoResolver: null,
         );
     }
 }

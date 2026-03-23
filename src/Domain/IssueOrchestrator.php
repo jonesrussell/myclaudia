@@ -8,6 +8,7 @@ use Claudriel\AI\CodexExecutionPipeline;
 use Claudriel\Domain\Git\GitOperator;
 use Claudriel\Entity\IssueRun;
 use Claudriel\Entity\Workspace;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\GitHub\GitHubClient;
 
@@ -27,6 +28,7 @@ final class IssueOrchestrator
         private readonly ?CodexExecutionPipeline $pipeline,
         private readonly IssueInstructionBuilder $instructionBuilder,
         private readonly ?GitOperator $gitOperator,
+        private readonly ?WorkspaceRepoResolver $repoResolver = null,
     ) {}
 
     public function createRun(int $issueNumber): IssueRun
@@ -163,7 +165,7 @@ final class IssueOrchestrator
         }
 
         $workspace = $this->loadWorkspace($run);
-        $repoPath = $workspace->get('repo_path');
+        $repoPath = $this->resolveRepoPath($workspace);
 
         if ($repoPath === null || ! is_dir($repoPath)) {
             return '';
@@ -263,5 +265,19 @@ final class IssueOrchestrator
         }
 
         return $entity;
+    }
+
+    private function resolveRepoPath(Workspace $workspace): ?string
+    {
+        $wsUuid = (string) ($workspace->get('uuid') ?? '');
+        $repo = $this->repoResolver?->findLinkedRepo($wsUuid);
+
+        if ($repo === null) {
+            return null;
+        }
+
+        $localPath = $repo->get('local_path');
+
+        return is_string($localPath) && $localPath !== '' ? $localPath : null;
     }
 }

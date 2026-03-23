@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Claudriel\Domain\Project;
 
+use Claudriel\Entity\ProjectRepo;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceProject;
+use Claudriel\Entity\WorkspaceRepo;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class ProjectRepoLinker
@@ -12,10 +17,15 @@ final class ProjectRepoLinker
     public function __construct(
         private readonly EntityRepositoryInterface $workspaceRepo,
         private readonly EntityRepositoryInterface $projectRepo,
+        private readonly EntityRepositoryInterface $repoRepo,
+        private readonly EntityRepositoryInterface $workspaceRepoJunctionRepo,
+        private readonly EntityRepositoryInterface $workspaceProjectJunctionRepo,
+        private readonly EntityRepositoryInterface $projectRepoJunctionRepo,
     ) {}
 
     /**
-     * Create a workspace for a repo URL and link it to a project.
+     * Create a workspace for a repo URL, create a Repo entity,
+     * and link everything via junction entities.
      *
      * @return string The UUID of the created workspace
      */
@@ -23,22 +33,50 @@ final class ProjectRepoLinker
     {
         $this->assertProjectExists($projectUuid);
 
-        $repoName = $this->extractRepoName($repoUrl);
+        $repoName = WorkspaceRepoResolver::extractRepoName($repoUrl);
 
+        // Create the Repo entity
+        $repo = new Repo([
+            'name' => $repoName,
+            'url' => $repoUrl,
+        ]);
+        $this->repoRepo->save($repo);
+        $repoUuid = (string) $repo->get('uuid');
+
+        // Create the Workspace entity
         $workspace = new Workspace([
             'name' => $repoName,
             'description' => sprintf('Repository workspace for %s', $repoUrl),
-            'repo_url' => $repoUrl,
-            'project_id' => $projectUuid,
         ]);
-
         $this->workspaceRepo->save($workspace);
+        $workspaceUuid = (string) $workspace->get('uuid');
 
-        return (string) $workspace->get('uuid');
+        // Create WorkspaceRepo junction
+        $wsRepoJunction = new WorkspaceRepo([
+            'workspace_uuid' => $workspaceUuid,
+            'repo_uuid' => $repoUuid,
+        ]);
+        $this->workspaceRepoJunctionRepo->save($wsRepoJunction);
+
+        // Create WorkspaceProject junction
+        $wsProjectJunction = new WorkspaceProject([
+            'workspace_uuid' => $workspaceUuid,
+            'project_uuid' => $projectUuid,
+        ]);
+        $this->workspaceProjectJunctionRepo->save($wsProjectJunction);
+
+        // Create ProjectRepo junction
+        $prJunction = new ProjectRepo([
+            'project_uuid' => $projectUuid,
+            'repo_uuid' => $repoUuid,
+        ]);
+        $this->projectRepoJunctionRepo->save($prJunction);
+
+        return $workspaceUuid;
     }
 
     /**
-     * Unlink a workspace from a project by setting project_id to null.
+     * Unlink a workspace from a project by deleting the WorkspaceProject junction.
      */
     public function unlinkRepo(string $projectUuid, string $workspaceUuid): void
     {
@@ -51,20 +89,29 @@ final class ProjectRepoLinker
             throw new \RuntimeException(sprintf('Workspace not found: %s', $workspaceUuid));
         }
 
-        if ($workspace->get('project_id') !== $projectUuid) {
+        // Find and delete the WorkspaceProject junction
+        $junctions = $this->workspaceProjectJunctionRepo->findBy(['workspace_uuid' => $workspaceUuid]);
+        $found = false;
+
+        foreach ($junctions as $junction) {
+            if ($junction->get('project_uuid') === $projectUuid) {
+                $this->workspaceProjectJunctionRepo->delete($junction);
+                $found = true;
+                break;
+            }
+        }
+
+        if (! $found) {
             throw new \RuntimeException(sprintf(
                 'Workspace %s is not linked to project %s',
                 $workspaceUuid,
                 $projectUuid,
             ));
         }
-
-        $workspace->set('project_id', null);
-        $this->workspaceRepo->save($workspace);
     }
 
     /**
-     * List all workspaces linked to a project that have a repo_url set.
+     * List all workspaces linked to a project that have an associated Repo.
      *
      * @return Workspace[]
      */
@@ -72,14 +119,28 @@ final class ProjectRepoLinker
     {
         $this->assertProjectExists($projectUuid);
 
-        $results = $this->workspaceRepo->findBy(['project_id' => $projectUuid]);
+        // Find WorkspaceProject junctions for this project
+        $wpJunctions = $this->workspaceProjectJunctionRepo->findBy(['project_uuid' => $projectUuid]);
 
-        return array_values(array_filter(
-            $results,
-            static fn (mixed $ws): bool => $ws instanceof Workspace
-                && $ws->get('repo_url') !== null
-                && $ws->get('repo_url') !== '',
-        ));
+        $workspaces = [];
+        foreach ($wpJunctions as $wpJunction) {
+            $wsUuid = $wpJunction->get('workspace_uuid');
+
+            // Check if this workspace has a linked repo via WorkspaceRepo junction
+            $wrJunctions = $this->workspaceRepoJunctionRepo->findBy(['workspace_uuid' => $wsUuid]);
+            if ($wrJunctions === []) {
+                continue;
+            }
+
+            $wsResults = $this->workspaceRepo->findBy(['uuid' => $wsUuid]);
+            $ws = $wsResults[0] ?? null;
+
+            if ($ws instanceof Workspace) {
+                $workspaces[] = $ws;
+            }
+        }
+
+        return $workspaces;
     }
 
     private function assertProjectExists(string $projectUuid): void
@@ -89,22 +150,5 @@ final class ProjectRepoLinker
         if (($results[0] ?? null) === null) {
             throw new \RuntimeException(sprintf('Project not found: %s', $projectUuid));
         }
-    }
-
-    private function extractRepoName(string $repoUrl): string
-    {
-        $path = parse_url($repoUrl, PHP_URL_PATH);
-
-        if ($path === null || $path === false) {
-            // SSH format: git@host:owner/repo.git
-            $parts = explode(':', $repoUrl);
-            $path = $parts[1] ?? $repoUrl;
-        }
-
-        $basename = basename((string) $path);
-
-        return str_ends_with($basename, '.git')
-            ? substr($basename, 0, -4)
-            : $basename;
     }
 }

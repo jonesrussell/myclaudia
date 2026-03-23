@@ -5,14 +5,21 @@ declare(strict_types=1);
 namespace Claudriel\Domain\Workspace;
 
 use Claudriel\Domain\Git\GitRepositoryManager;
+use Claudriel\Entity\Repo;
 use Claudriel\Entity\Workspace;
+use Claudriel\Entity\WorkspaceRepo;
+use Claudriel\Support\WorkspaceRepoResolver;
 use Waaseyaa\Entity\EntityTypeManager;
+use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class WorkspaceLifecycleManager
 {
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
         private readonly GitRepositoryManager $gitRepositoryManager,
+        private readonly EntityRepositoryInterface $repoRepo,
+        private readonly EntityRepositoryInterface $workspaceRepoJunctionRepo,
+        private readonly ?WorkspaceRepoResolver $repoResolver = null,
     ) {}
 
     /**
@@ -30,21 +37,33 @@ final class WorkspaceLifecycleManager
         $data['mode'] = $mode;
         $data['status'] = $data['status'] ?? 'active';
 
+        $repoUrl = trim((string) ($data['repo_url'] ?? ''));
+        $branch = trim((string) ($data['branch'] ?? 'main'));
+        unset($data['repo_url'], $data['repo_path'], $data['last_commit_hash']);
+
         $workspace = new Workspace($data);
         $storage = $this->entityTypeManager->getStorage('workspace');
         $storage->save($workspace);
 
-        $repoUrl = trim((string) ($data['repo_url'] ?? ''));
         if ($repoUrl !== '') {
             $uuid = (string) $workspace->get('uuid');
             $localPath = $this->gitRepositoryManager->buildWorkspaceRepoPath($uuid);
-            $branch = trim((string) ($data['branch'] ?? 'main'));
 
             $this->gitRepositoryManager->clone($repoUrl, $localPath, $branch);
 
-            $workspace->set('repo_path', $localPath);
-            $workspace->set('last_commit_hash', $this->gitRepositoryManager->getLatestCommit($localPath));
-            $storage->save($workspace);
+            $repo = new Repo([
+                'url' => $repoUrl,
+                'name' => WorkspaceRepoResolver::extractRepoName($repoUrl),
+                'default_branch' => $branch,
+                'local_path' => $localPath,
+            ]);
+            $this->repoRepo->save($repo);
+
+            $junction = new WorkspaceRepo([
+                'workspace_uuid' => $uuid,
+                'repo_uuid' => (string) $repo->get('uuid'),
+            ]);
+            $this->workspaceRepoJunctionRepo->save($junction);
         }
 
         return $workspace;
@@ -87,7 +106,9 @@ final class WorkspaceLifecycleManager
             throw new \RuntimeException(sprintf('Cannot destroy persistent workspace %s. Archive it instead.', $uuid));
         }
 
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $repo = $this->repoResolver?->findLinkedRepo($uuid);
+        $repoPath = $repo !== null ? trim((string) ($repo->get('local_path') ?? '')) : '';
+
         if ($repoPath !== '' && is_dir($repoPath)) {
             $this->removeDirectory($repoPath);
         }
@@ -122,26 +143,26 @@ final class WorkspaceLifecycleManager
 
     /**
      * Check if local workspace is behind remote.
+     *
+     * Without last_commit_hash on workspace, drift detection requires
+     * comparing local HEAD against remote. Currently returns false as
+     * a safe default; full implementation deferred to DriftDetector.
      */
     public function isDrifted(Workspace $workspace): bool
     {
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $wsUuid = (string) ($workspace->get('uuid') ?? '');
+        $repo = $this->repoResolver?->findLinkedRepo($wsUuid);
+
+        if ($repo === null) {
+            return false;
+        }
+
+        $repoPath = trim((string) ($repo->get('local_path') ?? ''));
         if ($repoPath === '' || ! is_dir($repoPath.'/.git')) {
             return false;
         }
 
-        try {
-            $localHash = $this->gitRepositoryManager->getLatestCommit($repoPath);
-            $storedHash = trim((string) ($workspace->get('last_commit_hash') ?? ''));
-
-            if ($storedHash === '' || $localHash === $storedHash) {
-                return false;
-            }
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -158,20 +179,22 @@ final class WorkspaceLifecycleManager
             return false;
         }
 
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $repo = $this->repoResolver?->findLinkedRepo($uuid);
+        if ($repo === null) {
+            return false;
+        }
+
+        $repoPath = trim((string) ($repo->get('local_path') ?? ''));
         if ($repoPath === '' || ! is_dir($repoPath.'/.git')) {
             return false;
         }
 
-        if ($this->isSyncing($workspace)) {
+        if ($this->isSyncingAtPath($repoPath)) {
             return false;
         }
 
         try {
             $this->gitRepositoryManager->pull($repoPath);
-            $newHash = $this->gitRepositoryManager->getLatestCommit($repoPath);
-            $workspace->set('last_commit_hash', $newHash);
-            $this->entityTypeManager->getStorage('workspace')->save($workspace);
 
             return true;
         } catch (\Throwable) {
@@ -193,30 +216,31 @@ final class WorkspaceLifecycleManager
             throw new \RuntimeException(sprintf('Cannot rebuild persistent workspace %s. Use autoSync instead.', $uuid));
         }
 
-        $repoUrl = trim((string) ($workspace->get('repo_url') ?? ''));
+        $repo = $this->repoResolver?->findLinkedRepo($uuid);
+        if ($repo === null) {
+            throw new \RuntimeException(sprintf('Workspace %s has no repository connected.', $uuid));
+        }
+
+        $repoUrl = trim((string) ($repo->get('url') ?? ''));
         if ($repoUrl === '') {
             throw new \RuntimeException(sprintf('Workspace %s has no repository URL configured.', $uuid));
         }
 
-        $branch = trim((string) ($workspace->get('branch') ?? 'main'));
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $branch = trim((string) ($repo->get('default_branch') ?? 'main'));
+        $repoPath = trim((string) ($repo->get('local_path') ?? ''));
 
         if ($repoPath === '') {
             $repoPath = $this->gitRepositoryManager->buildWorkspaceRepoPath($uuid);
         }
 
-        // Remove existing clone
         if (is_dir($repoPath)) {
             $this->removeDirectory($repoPath);
         }
 
-        // Re-clone
         $this->gitRepositoryManager->clone($repoUrl, $repoPath, $branch);
 
-        $newHash = $this->gitRepositoryManager->getLatestCommit($repoPath);
-        $workspace->set('repo_path', $repoPath);
-        $workspace->set('last_commit_hash', $newHash);
-        $this->entityTypeManager->getStorage('workspace')->save($workspace);
+        $repo->set('local_path', $repoPath);
+        $this->repoRepo->save($repo);
     }
 
     /**
@@ -224,7 +248,20 @@ final class WorkspaceLifecycleManager
      */
     public function isSyncing(Workspace $workspace): bool
     {
-        $repoPath = trim((string) ($workspace->get('repo_path') ?? ''));
+        $wsUuid = (string) ($workspace->get('uuid') ?? '');
+        $repo = $this->repoResolver?->findLinkedRepo($wsUuid);
+
+        if ($repo === null) {
+            return false;
+        }
+
+        $repoPath = trim((string) ($repo->get('local_path') ?? ''));
+
+        return $this->isSyncingAtPath($repoPath);
+    }
+
+    private function isSyncingAtPath(string $repoPath): bool
+    {
         if ($repoPath === '') {
             return false;
         }
