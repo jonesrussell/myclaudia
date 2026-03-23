@@ -180,9 +180,9 @@ final class InternalWorkspaceController
         }
 
         if ($this->repoRepo !== null && $this->workspaceRepoJunctionRepo !== null) {
-            $repoParts = explode('/', $repo);
+            $repoParts = explode('/', $repo, 2);
             $repoEntity = new Repo([
-                'owner' => $repoParts[0] ?? '',
+                'owner' => $repoParts[0],
                 'name' => $repoParts[1] ?? '',
                 'url' => $repoUrl,
                 'default_branch' => $branch,

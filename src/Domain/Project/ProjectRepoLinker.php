@@ -94,6 +94,7 @@ final class ProjectRepoLinker
         $found = false;
 
         foreach ($junctions as $junction) {
+            assert($junction instanceof WorkspaceProject);
             if ($junction->get('project_uuid') === $projectUuid) {
                 $this->workspaceProjectJunctionRepo->delete($junction);
                 $found = true;
@@ -124,6 +125,7 @@ final class ProjectRepoLinker
 
         $workspaces = [];
         foreach ($wpJunctions as $wpJunction) {
+            assert($wpJunction instanceof WorkspaceProject);
             $wsUuid = $wpJunction->get('workspace_uuid');
 
             // Check if this workspace has a linked repo via WorkspaceRepo junction

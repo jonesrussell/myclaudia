@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Support;
 
 use Claudriel\Entity\Repo;
+use Claudriel\Entity\WorkspaceRepo;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 /**
@@ -28,7 +29,10 @@ final class WorkspaceRepoResolver
             return null;
         }
 
-        $repoUuid = $junctions[0]->get('repo_uuid');
+        $junction = $junctions[0];
+        assert($junction instanceof WorkspaceRepo);
+        $repoUuid = $junction->get('repo_uuid');
+
         $repos = $this->repoRepo->findBy(['uuid' => $repoUuid]);
         $repo = $repos[0] ?? null;
 
