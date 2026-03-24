@@ -140,7 +140,7 @@ class NativeAgentClient
                 // Ensure tool_use input is always an object (PHP json_encode turns [] into JSON array).
                 $assistantContent = array_map(static function (array $block): array {
                     if (($block['type'] ?? '') === 'tool_use' && ($block['input'] ?? null) === []) {
-                        $block['input'] = new \stdClass();
+                        $block['input'] = new \stdClass;
                     }
 
                     return $block;
