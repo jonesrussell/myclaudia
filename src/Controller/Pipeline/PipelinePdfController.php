@@ -31,18 +31,18 @@ final class PipelinePdfController
 
         $uuid = $params['uuid'] ?? '';
         $prospect = $this->loadProspect($uuid);
-        if (!$prospect instanceof Prospect) {
+        if (! $prospect instanceof Prospect) {
             return new JsonResponse(['error' => 'Prospect not found'], 404);
         }
 
         $workspaceUuid = (string) ($prospect->get('workspace_uuid') ?? '');
         $config = $this->loadPipelineConfig($workspaceUuid);
-        if (!$config instanceof PipelineConfig) {
+        if (! $config instanceof PipelineConfig) {
             return new JsonResponse(['error' => 'No PipelineConfig found'], 404);
         }
 
-        $latex = new LatexPdfGenerator();
-        $html = new HtmlPdfGenerator();
+        $latex = new LatexPdfGenerator;
+        $html = new HtmlPdfGenerator;
 
         $generator = $latex->isAvailable() ? $latex : $html;
 
@@ -55,13 +55,13 @@ final class PipelinePdfController
         $filename = sprintf('response-%s-%s.pdf', preg_replace('/[^a-z0-9]+/i', '-', (string) ($prospect->get('name') ?? 'untitled')), date('Ymd'));
 
         // Store as ProspectAttachment
-        $storageDir = getenv('CLAUDRIEL_STORAGE') ?: dirname(__DIR__, 3) . '/storage';
-        $attachmentDir = $storageDir . '/pipeline-attachments';
-        if (!is_dir($attachmentDir)) {
+        $storageDir = getenv('CLAUDRIEL_STORAGE') ?: dirname(__DIR__, 3).'/storage';
+        $attachmentDir = $storageDir.'/pipeline-attachments';
+        if (! is_dir($attachmentDir)) {
             mkdir($attachmentDir, 0o755, true);
         }
 
-        $storedPath = $attachmentDir . '/' . $filename;
+        $storedPath = $attachmentDir.'/'.$filename;
         copy($pdfPath, $storedPath);
 
         $attachmentStorage = $this->entityTypeManager->getStorage('prospect_attachment');
@@ -85,17 +85,17 @@ final class PipelinePdfController
     {
         $uuid = $params['uuid'] ?? '';
         $prospect = $this->loadProspect($uuid);
-        if (!$prospect instanceof Prospect) {
+        if (! $prospect instanceof Prospect) {
             return new JsonResponse(['error' => 'Prospect not found'], 404);
         }
 
         $workspaceUuid = (string) ($prospect->get('workspace_uuid') ?? '');
         $config = $this->loadPipelineConfig($workspaceUuid);
-        if (!$config instanceof PipelineConfig) {
+        if (! $config instanceof PipelineConfig) {
             return new JsonResponse(['error' => 'No PipelineConfig found'], 404);
         }
 
-        $builder = new BrandedResponseBuilder();
+        $builder = new BrandedResponseBuilder;
         $html = $builder->buildHtml($prospect, $config);
 
         return new Response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
@@ -105,17 +105,17 @@ final class PipelinePdfController
     {
         $uuid = $params['uuid'] ?? '';
         $prospect = $this->loadProspect($uuid);
-        if (!$prospect instanceof Prospect) {
+        if (! $prospect instanceof Prospect) {
             return new JsonResponse(['error' => 'Prospect not found'], 404);
         }
 
         $workspaceUuid = (string) ($prospect->get('workspace_uuid') ?? '');
         $config = $this->loadPipelineConfig($workspaceUuid);
-        if (!$config instanceof PipelineConfig) {
+        if (! $config instanceof PipelineConfig) {
             return new JsonResponse(['error' => 'No PipelineConfig found'], 404);
         }
 
-        $builder = new BrandedResponseBuilder();
+        $builder = new BrandedResponseBuilder;
         $latex = $builder->buildLatex($prospect, $config);
 
         return new Response($latex, 200, ['Content-Type' => 'text/plain; charset=utf-8']);

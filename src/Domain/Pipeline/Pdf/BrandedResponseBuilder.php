@@ -78,7 +78,7 @@ final class BrandedResponseBuilder
         $body = htmlspecialchars($body, ENT_QUOTES);
         $body = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $body) ?? $body;
         $paragraphs = array_filter(array_map('trim', explode("\n\n", $body)));
-        $bodyHtml = implode("\n", array_map(fn(string $p) => "<p>{$p}</p>", $paragraphs));
+        $bodyHtml = implode("\n", array_map(fn (string $p) => "<p>{$p}</p>", $paragraphs));
 
         $profileName = htmlspecialchars($profile['name'], ENT_QUOTES);
         $profileTitle = htmlspecialchars($profile['title'], ENT_QUOTES);
@@ -131,7 +131,7 @@ final class BrandedResponseBuilder
     {
         $raw = (string) ($config->get('company_profile') ?? '');
         $decoded = $raw !== '' ? json_decode($raw, true) : [];
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             $decoded = [];
         }
 

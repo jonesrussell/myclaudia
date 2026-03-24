@@ -33,6 +33,7 @@ final class SectorNormalizer
             'development' => 'Software',
             'infra' => 'Infrastructure',
         ];
+
         return $mapping[$lower] ?? 'Other';
     }
 }

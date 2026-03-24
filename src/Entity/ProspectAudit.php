@@ -9,6 +9,7 @@ use Waaseyaa\Entity\ContentEntityBase;
 final class ProspectAudit extends ContentEntityBase
 {
     protected string $entityTypeId = 'prospect_audit';
+
     protected array $entityKeys = [
         'id' => 'paud',
         'uuid' => 'uuid',

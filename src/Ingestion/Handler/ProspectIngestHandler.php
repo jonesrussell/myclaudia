@@ -24,7 +24,7 @@ final class ProspectIngestHandler implements IngestHandlerInterface
     }
 
     /**
-     * @param array{source: string, type: string, payload: array<string, mixed>, timestamp?: string, tenant_id?: mixed, trace_id?: mixed} $data
+     * @param  array{source: string, type: string, payload: array<string, mixed>, timestamp?: string, tenant_id?: mixed, trace_id?: mixed}  $data
      * @return array<string, mixed>
      */
     public function handle(array $data): array
@@ -93,7 +93,7 @@ final class ProspectIngestHandler implements IngestHandlerInterface
             'uuid' => $prospect->uuid(),
             'event_uuid' => $event->uuid(),
             'person_uuid' => $personUuid,
-        ], static fn(mixed $value): bool => $value !== null);
+        ], static fn (mixed $value): bool => $value !== null);
     }
 
     private function findExistingProspect(string $externalId, string $workspaceUuid): ?Prospect
@@ -118,8 +118,8 @@ final class ProspectIngestHandler implements IngestHandlerInterface
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $data
      */
     private function upsertPerson(array $payload, array $data): string
     {

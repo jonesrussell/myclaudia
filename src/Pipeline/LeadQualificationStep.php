@@ -50,13 +50,13 @@ final class LeadQualificationStep implements PipelineStepInterface
         }
 
         $result = json_decode($raw, true);
-        if (!is_array($result)) {
+        if (! is_array($result)) {
             if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $raw, $matches)) {
                 $result = json_decode($matches[1], true);
             }
         }
 
-        if (!is_array($result)) {
+        if (! is_array($result)) {
             return StepResult::failure('Failed to parse AI qualification response as JSON.');
         }
 

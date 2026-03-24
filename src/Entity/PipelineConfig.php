@@ -9,6 +9,7 @@ use Waaseyaa\Entity\ContentEntityBase;
 final class PipelineConfig extends ContentEntityBase
 {
     protected string $entityTypeId = 'pipeline_config';
+
     protected array $entityKeys = [
         'id' => 'pcid',
         'uuid' => 'uuid',

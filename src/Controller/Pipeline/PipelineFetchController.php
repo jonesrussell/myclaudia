@@ -32,14 +32,14 @@ final class PipelineFetchController
         }
 
         $config = $this->loadPipelineConfig($workspaceUuid);
-        if (!$config instanceof PipelineConfig) {
+        if (! $config instanceof PipelineConfig) {
             return new JsonResponse(['error' => 'No PipelineConfig found for workspace'], 404);
         }
 
         $tenantId = (string) ($config->get('tenant_id') ?? $_ENV['CLAUDRIEL_DEFAULT_TENANT'] ?? getenv('CLAUDRIEL_DEFAULT_TENANT') ?: 'default');
 
-        $fetcher = new NorthCloudLeadFetcher();
-        $normalizer = new NorthCloudLeadNormalizer();
+        $fetcher = new NorthCloudLeadFetcher;
+        $normalizer = new NorthCloudLeadNormalizer;
         $handler = new ProspectIngestHandler($this->entityTypeManager);
 
         $hits = $fetcher->fetch($config);

@@ -58,14 +58,14 @@ final class LeadFilterStep implements PipelineStepInterface
         }
 
         $result = json_decode($raw, true);
-        if (!is_array($result)) {
+        if (! is_array($result)) {
             // Try to extract JSON from markdown code blocks
             if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $raw, $matches)) {
                 $result = json_decode($matches[1], true);
             }
         }
 
-        if (!is_array($result)) {
+        if (! is_array($result)) {
             return StepResult::failure('Failed to parse AI response as JSON.');
         }
 

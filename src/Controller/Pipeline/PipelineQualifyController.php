@@ -38,7 +38,7 @@ final class PipelineQualifyController
         $ids = $entityQuery->execute();
 
         $prospect = $ids !== [] ? $storage->load(reset($ids)) : null;
-        if (!$prospect instanceof Prospect) {
+        if (! $prospect instanceof Prospect) {
             return new JsonResponse(['error' => 'Prospect not found'], 404);
         }
 
@@ -48,9 +48,9 @@ final class PipelineQualifyController
             'description' => (string) ($prospect->get('description') ?? ''),
             'sector' => (string) ($prospect->get('sector') ?? ''),
             'company_profile' => '',
-        ], new PipelineContext('qualify-' . $uuid, time()));
+        ], new PipelineContext('qualify-'.$uuid, time()));
 
-        if (!$result->success) {
+        if (! $result->success) {
             return new JsonResponse(['error' => $result->message], 500);
         }
 

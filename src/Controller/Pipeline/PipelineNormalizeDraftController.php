@@ -36,7 +36,7 @@ final class PipelineNormalizeDraftController
         $ids = $entityQuery->execute();
 
         $prospect = $ids !== [] ? $storage->load(reset($ids)) : null;
-        if (!$prospect instanceof Prospect) {
+        if (! $prospect instanceof Prospect) {
             return new JsonResponse(['error' => 'Prospect not found'], 404);
         }
 

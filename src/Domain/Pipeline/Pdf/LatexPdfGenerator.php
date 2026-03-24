@@ -17,10 +17,10 @@ final class LatexPdfGenerator implements PdfGeneratorInterface
     {
         $latex = $this->builder->buildLatex($prospect, $config);
 
-        $tmpDir = sys_get_temp_dir() . '/claudriel-pdf-' . uniqid();
+        $tmpDir = sys_get_temp_dir().'/claudriel-pdf-'.uniqid();
         mkdir($tmpDir, 0o755, true);
 
-        $texFile = $tmpDir . '/response.tex';
+        $texFile = $tmpDir.'/response.tex';
         file_put_contents($texFile, $latex);
 
         $descriptors = [
@@ -35,7 +35,7 @@ final class LatexPdfGenerator implements PdfGeneratorInterface
             $pipes,
         );
 
-        if (!is_resource($process)) {
+        if (! is_resource($process)) {
             throw new \RuntimeException('Failed to start pdflatex process.');
         }
 
@@ -46,8 +46,8 @@ final class LatexPdfGenerator implements PdfGeneratorInterface
         fclose($pipes[2]);
         proc_close($process);
 
-        $pdfFile = $tmpDir . '/response.pdf';
-        if (!file_exists($pdfFile)) {
+        $pdfFile = $tmpDir.'/response.pdf';
+        if (! file_exists($pdfFile)) {
             throw new \RuntimeException('pdflatex did not produce a PDF file.');
         }
 
@@ -58,7 +58,7 @@ final class LatexPdfGenerator implements PdfGeneratorInterface
     {
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
         $process = proc_open(['pdflatex', '--version'], $descriptors, $pipes);
-        if (!is_resource($process)) {
+        if (! is_resource($process)) {
             return false;
         }
         stream_get_contents($pipes[1]);

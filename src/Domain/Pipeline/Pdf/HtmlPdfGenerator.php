@@ -17,18 +17,18 @@ final class HtmlPdfGenerator implements PdfGeneratorInterface
     {
         $html = $this->builder->buildHtml($prospect, $config);
 
-        $tmpDir = sys_get_temp_dir() . '/claudriel-pdf-' . uniqid();
+        $tmpDir = sys_get_temp_dir().'/claudriel-pdf-'.uniqid();
         mkdir($tmpDir, 0o755, true);
 
-        $htmlFile = $tmpDir . '/response.html';
-        $pdfFile = $tmpDir . '/response.pdf';
+        $htmlFile = $tmpDir.'/response.html';
+        $pdfFile = $tmpDir.'/response.pdf';
         file_put_contents($htmlFile, $html);
 
         // Try wkhtmltopdf first, then Chrome headless
         $commands = [
             ['wkhtmltopdf', '--quiet', $htmlFile, $pdfFile],
-            ['chromium', '--headless', '--disable-gpu', '--print-to-pdf=' . $pdfFile, $htmlFile],
-            ['google-chrome', '--headless', '--disable-gpu', '--print-to-pdf=' . $pdfFile, $htmlFile],
+            ['chromium', '--headless', '--disable-gpu', '--print-to-pdf='.$pdfFile, $htmlFile],
+            ['google-chrome', '--headless', '--disable-gpu', '--print-to-pdf='.$pdfFile, $htmlFile],
         ];
 
         foreach ($commands as $command) {
@@ -39,7 +39,7 @@ final class HtmlPdfGenerator implements PdfGeneratorInterface
             ];
 
             $process = proc_open($command, $descriptors, $pipes);
-            if (!is_resource($process)) {
+            if (! is_resource($process)) {
                 continue;
             }
 
@@ -63,7 +63,7 @@ final class HtmlPdfGenerator implements PdfGeneratorInterface
         foreach (['wkhtmltopdf', 'chromium', 'google-chrome'] as $binary) {
             $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
             $process = proc_open([$binary, '--version'], $descriptors, $pipes);
-            if (!is_resource($process)) {
+            if (! is_resource($process)) {
                 continue;
             }
             stream_get_contents($pipes[1]);

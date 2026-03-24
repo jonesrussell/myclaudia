@@ -9,7 +9,7 @@ final class NorthCloudLeadNormalizer
     /**
      * Normalize a raw north-cloud lead hit into ingestion data format.
      *
-     * @param array<string, mixed> $hit Raw lead data from north-cloud API
+     * @param  array<string, mixed>  $hit  Raw lead data from north-cloud API
      * @return array{source: string, type: string, payload: array<string, mixed>, timestamp: string, tenant_id: string, trace_id: string|null}
      */
     public function normalize(array $hit, string $tenantId, string $workspaceUuid): array

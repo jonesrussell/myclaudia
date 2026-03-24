@@ -20,7 +20,7 @@ final class NorthCloudLeadFetcher
             return [];
         }
 
-        $url = rtrim($sourceUrl, '/') . '/api/leads';
+        $url = rtrim($sourceUrl, '/').'/api/leads';
 
         $context = stream_context_create([
             'http' => [
@@ -46,7 +46,7 @@ final class NorthCloudLeadFetcher
         }
 
         $data = json_decode($response, true);
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             return [];
         }
 
@@ -55,7 +55,7 @@ final class NorthCloudLeadFetcher
     }
 
     /**
-     * @param list<string> $headers
+     * @param  list<string>  $headers
      */
     private function extractStatusCode(array $headers): int
     {
@@ -63,6 +63,7 @@ final class NorthCloudLeadFetcher
         if (preg_match('/\s(\d{3})\s/', $first, $matches)) {
             return (int) $matches[1];
         }
+
         return 0;
     }
 }

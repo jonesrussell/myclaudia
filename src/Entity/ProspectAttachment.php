@@ -9,6 +9,7 @@ use Waaseyaa\Entity\ContentEntityBase;
 final class ProspectAttachment extends ContentEntityBase
 {
     protected string $entityTypeId = 'prospect_attachment';
+
     protected array $entityKeys = [
         'id' => 'paid',
         'uuid' => 'uuid',
