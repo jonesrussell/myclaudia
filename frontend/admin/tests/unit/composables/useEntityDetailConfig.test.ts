@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { useEntityDetailConfig } from '~/composables/useEntityDetailConfig'
-import '~/components/entities/workspace/workspaceDetailConfig'
+import '~/components/entities'
 
 describe('useEntityDetailConfig', () => {
   it('returns null for unknown entity type', () => {
@@ -58,5 +58,41 @@ describe('useEntityDetailConfig', () => {
     const config = useEntityDetailConfig('workspace')!
     const last = config.sidebar[config.sidebar.length - 1]
     expect(last.key).toBe('details')
+  })
+
+  // Validate all 8 entity configs are registered
+  const ALL_TYPES = [
+    'workspace', 'project', 'repo', 'person',
+    'commitment', 'schedule_entry', 'triage_entry', 'judgment_rule',
+  ]
+
+  for (const type of ALL_TYPES) {
+    it(`returns config for ${type}`, () => {
+      const config = useEntityDetailConfig(type)
+      expect(config).not.toBeNull()
+      expect(config!.sidebar.length).toBeGreaterThan(0)
+      expect(config!.sidebar.some(s => s.key === 'details')).toBe(true)
+      expect(config!.metadata).toBeDefined()
+      expect(config!.metadata!.length).toBeGreaterThan(0)
+    })
+  }
+
+  it('project has junction queries for repos and workspaces', () => {
+    const config = useEntityDetailConfig('project')!
+    expect(config.sidebar.find(s => s.key === 'repos')!.query!.resolveType).toBe('repo')
+    expect(config.sidebar.find(s => s.key === 'workspaces')!.query!.resolveType).toBe('workspace')
+  })
+
+  it('repo has reverse junction queries', () => {
+    const config = useEntityDetailConfig('repo')!
+    expect(config.sidebar.find(s => s.key === 'workspaces')!.query!.filterField).toBe('repo_uuid')
+    expect(config.sidebar.find(s => s.key === 'projects')!.query!.filterField).toBe('repo_uuid')
+  })
+
+  it('person has direct commitment query', () => {
+    const config = useEntityDetailConfig('person')!
+    const commitments = config.sidebar.find(s => s.key === 'commitments')!
+    expect(commitments.query!.entityType).toBe('commitment')
+    expect(commitments.query!.filterField).toBe('person_uuid')
   })
 })
