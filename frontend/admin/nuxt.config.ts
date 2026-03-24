@@ -2,7 +2,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   devtools: { enabled: true },
   ssr: false,
-  spaLoadingTemplate: './app/spa-loading-template.html',
+  spaLoadingTemplate: 'app/spa-loading-template.html',
 
   experimental: {
     viteEnvironmentApi: true,
