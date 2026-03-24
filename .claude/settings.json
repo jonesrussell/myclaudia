@@ -8,6 +8,11 @@
             "type": "command",
             "command": "bin/check-milestones",
             "show_output": true
+          },
+          {
+            "type": "command",
+            "command": "tools/drift-detector.sh 20 2>&1",
+            "show_output": true
           }
         ]
       }
