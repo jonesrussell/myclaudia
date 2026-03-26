@@ -52,6 +52,7 @@ class NativeAgentClient
         private readonly string $apiKey,
         private readonly array $tools = [],
         private readonly string $model = 'claude-sonnet-4-6',
+        private readonly ?Closure $onToolResult = null,
     ) {}
 
     /**
@@ -171,6 +172,14 @@ class NativeAgentClient
                             $result = $executor($toolInput);
                         } catch (\Throwable $e) {
                             $result = ['error' => $e->getMessage()];
+                        }
+                    }
+
+                    if ($this->onToolResult !== null) {
+                        try {
+                            ($this->onToolResult)($toolName, $result, $tenantId);
+                        } catch (\Throwable) {
+                            // Best-effort telemetry should never fail the chat response.
                         }
                     }
 

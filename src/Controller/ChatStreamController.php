@@ -23,6 +23,7 @@ use Claudriel\Domain\Chat\Tool\WorkspaceListTool;
 use Claudriel\Domain\DayBrief\Assembler\DayBriefAssembler;
 use Claudriel\Domain\IssueOrchestrator;
 use Claudriel\Entity\ChatMessage;
+use Claudriel\Entity\MemoryAccessEvent;
 use Claudriel\Entity\Workspace;
 use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
@@ -341,7 +342,87 @@ final class ChatStreamController
 
         $tools = $this->buildAgentTools($accountId, $tenantId);
 
-        return new NativeAgentClient($apiKey, $tools, $model);
+        return new NativeAgentClient(
+            $apiKey,
+            $tools,
+            $model,
+            function (string $toolName, mixed $result, string $eventTenantId): void {
+                $this->recordMemoryAccessEvents($toolName, $result, $eventTenantId);
+            },
+        );
+    }
+
+    private function recordMemoryAccessEvents(string $toolName, mixed $result, string $tenantId): void
+    {
+        try {
+            $storage = $this->entityTypeManager->getStorage('memory_access_event');
+        } catch (\Throwable) {
+            return;
+        }
+
+        $refs = $this->extractEntityReferencesFromToolResult($toolName, $result);
+        if ($refs === []) {
+            $refs[] = ['entity_type' => null, 'entity_uuid' => null];
+        }
+
+        $timestamp = (new \DateTimeImmutable)->format('c');
+        foreach ($refs as $ref) {
+            $event = new MemoryAccessEvent([
+                'uuid' => $this->generateUuid(),
+                'entity_type' => $ref['entity_type'],
+                'entity_uuid' => $ref['entity_uuid'],
+                'tool_name' => $toolName,
+                'tenant_id' => $tenantId,
+                'accessed_at' => $timestamp,
+                'metadata' => json_encode([
+                    'result_keys' => is_array($result) ? array_map('strval', array_keys($result)) : [],
+                ], JSON_THROW_ON_ERROR),
+            ]);
+            $storage->save($event);
+        }
+    }
+
+    /**
+     * @return list<array{entity_type: ?string, entity_uuid: ?string}>
+     */
+    private function extractEntityReferencesFromToolResult(string $toolName, mixed $result): array
+    {
+        if (! is_array($result)) {
+            return [];
+        }
+
+        $map = [
+            'commitment_list' => 'commitment',
+            'commitment_update' => 'commitment',
+            'workspace_list' => 'workspace',
+            'workspace_create' => 'workspace',
+            'workspace_delete' => 'workspace',
+        ];
+
+        $entityType = $map[$toolName] ?? null;
+        if ($entityType === null) {
+            return [];
+        }
+
+        $rows = [];
+        if (isset($result['items']) && is_array($result['items'])) {
+            $rows = $result['items'];
+        } else {
+            $rows = [$result];
+        }
+
+        $refs = [];
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $uuid = $row['uuid'] ?? null;
+            if (is_string($uuid) && $uuid !== '') {
+                $refs[] = ['entity_type' => $entityType, 'entity_uuid' => $uuid];
+            }
+        }
+
+        return $refs;
     }
 
     private function resolveChatModel(?Workspace $workspace): string

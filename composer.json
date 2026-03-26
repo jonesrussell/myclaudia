@@ -61,6 +61,7 @@
                 "Claudriel\\Provider\\CommitmentServiceProvider",
                 "Claudriel\\Provider\\CommitmentToolServiceProvider",
                 "Claudriel\\Provider\\ChatServiceProvider",
+                "Claudriel\\Provider\\MemoryServiceProvider",
                 "Claudriel\\Provider\\DayBriefServiceProvider",
                 "Claudriel\\Provider\\ProjectServiceProvider",
                 "Claudriel\\Provider\\RepoServiceProvider",

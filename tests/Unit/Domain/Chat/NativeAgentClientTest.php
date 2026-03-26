@@ -123,6 +123,59 @@ final class NativeAgentClientTest extends TestCase
     }
 
     #[Test]
+    public function stream_calls_tool_result_callback_when_tool_executes(): void
+    {
+        $tool = new class implements AgentToolInterface
+        {
+            public function definition(): array
+            {
+                return [
+                    'name' => 'test_tool',
+                    'description' => 'A test tool',
+                    'input_schema' => ['type' => 'object', 'properties' => new \stdClass],
+                ];
+            }
+
+            public function execute(array $args): array
+            {
+                return ['items' => [['uuid' => 'abc-123']]];
+            }
+        };
+
+        $calls = [];
+        $client = $this->createMockClient(
+            [
+                $this->buildApiResponse([
+                    ['type' => 'tool_use', 'id' => 'tool-1', 'name' => 'test_tool', 'input' => new \stdClass],
+                ]),
+                $this->buildApiResponse([
+                    ['type' => 'text', 'text' => 'done'],
+                ]),
+            ],
+            [$tool],
+            function (string $toolName, mixed $result, string $tenantId) use (&$calls): void {
+                $calls[] = [$toolName, $result, $tenantId];
+            },
+        );
+
+        $client->stream(
+            systemPrompt: 'test',
+            messages: [['role' => 'user', 'content' => 'run tool']],
+            accountId: 'acc-1',
+            tenantId: 'tenant-1',
+            apiBase: '',
+            apiToken: '',
+            onToken: function (string $token): void {},
+            onDone: function (string $full): void {},
+            onError: function (string $err): void {},
+        );
+
+        self::assertCount(1, $calls);
+        self::assertSame('test_tool', $calls[0][0]);
+        self::assertSame('tenant-1', $calls[0][2]);
+    }
+
+    #[Test]
     public function stream_handles_unknown_tool_gracefully(): void
     {
         $client = $this->createMockClient([
@@ -190,9 +243,9 @@ final class NativeAgentClientTest extends TestCase
      * @param  list<string>  $responses  JSON response bodies to return in sequence
      * @param  list<AgentToolInterface>  $tools
      */
-    private function createMockClient(array $responses, array $tools = []): NativeAgentClient
+    private function createMockClient(array $responses, array $tools = [], ?\Closure $onToolResult = null): NativeAgentClient
     {
-        return new class('fake-api-key', $tools, 'claude-sonnet-4-6', $responses) extends NativeAgentClient
+        return new class('fake-api-key', $tools, 'claude-sonnet-4-6', $responses, $onToolResult) extends NativeAgentClient
         {
             /** @var list<string> */
             private array $mockResponses;
@@ -203,9 +256,9 @@ final class NativeAgentClientTest extends TestCase
              * @param  list<AgentToolInterface>  $tools
              * @param  list<string>  $responses
              */
-            public function __construct(string $apiKey, array $tools, string $model, array $responses)
+            public function __construct(string $apiKey, array $tools, string $model, array $responses, ?\Closure $onToolResult)
             {
-                parent::__construct($apiKey, $tools, $model);
+                parent::__construct($apiKey, $tools, $model, $onToolResult);
                 $this->mockResponses = $responses;
             }
 
