@@ -38,13 +38,14 @@ const cells = computed<HeatCell[]>(() => {
     }))
 })
 
+/** Editorial operator heatmap: purple (AI) intensity on dark surface */
 function cellBackground(intensity: number): string {
-  const alpha = 0.15 + intensity * 0.85
-  return `rgba(79, 70, 229, ${alpha.toFixed(2)})`
+  const alpha = 0.12 + intensity * 0.42
+  return `rgba(167, 139, 250, ${alpha.toFixed(2)})`
 }
 
 function cellColor(intensity: number): string {
-  return intensity > 0.5 ? '#fff' : '#1e1b4b'
+  return intensity > 0.52 ? '#f8fafc' : 'var(--text-primary, #e8e9ed)'
 }
 </script>
 
@@ -67,18 +68,22 @@ function cellColor(intensity: number): string {
 </template>
 
 <style scoped>
+.heatmap {
+  font-family: var(--font-body, system-ui, sans-serif);
+}
 .heatmap-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  gap: var(--space-sm, 0.5rem);
 }
 .heatmap-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
+  padding: var(--space-sm, 0.5rem) var(--space-md, 0.75rem);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
   min-width: 6rem;
   max-width: 12rem;
   cursor: default;
@@ -87,6 +92,7 @@ function cellColor(intensity: number): string {
 .cell-path {
   font-size: 0.75rem;
   font-weight: 600;
+  font-family: var(--font-display, system-ui, sans-serif);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -94,7 +100,10 @@ function cellColor(intensity: number): string {
 }
 .cell-count {
   font-size: 0.65rem;
-  opacity: 0.8;
+  color: var(--text-muted, #6b6d82);
 }
-.empty { color: #9ca3af; }
+.empty {
+  color: var(--text-muted, #6b6d82);
+  font-size: 0.9rem;
+}
 </style>

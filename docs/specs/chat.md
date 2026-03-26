@@ -25,6 +25,8 @@ Conversation history is compacted before each model call:
 
 This keeps context bounded while retaining short-term coherence.
 
+**Tradeoffs:** Larger context windows cost more per turn and increase rate-limit surface; compaction prioritizes recency and tool snippets so multi-turn tool work stays usable without sending full thread history on every call.
+
 ## Model Selection
 
 Model resolution order in `ChatStreamController`:

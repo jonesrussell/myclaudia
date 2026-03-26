@@ -53,7 +53,28 @@ final class ClaudrielAdminHost
         }
 
         $candidate = trim($value);
-        if ($candidate === '' || ! str_starts_with($candidate, '/')) {
+        if ($candidate === '') {
+            return null;
+        }
+
+        if (str_starts_with($candidate, 'http://') || str_starts_with($candidate, 'https://')) {
+            $parsed = parse_url($candidate);
+            if ($parsed === false || ! isset($parsed['scheme'], $parsed['host'], $parsed['path'])) {
+                return null;
+            }
+            if (! str_starts_with($parsed['path'], '/')) {
+                return null;
+            }
+            $host = strtolower($parsed['host']);
+
+            if (in_array($host, ['127.0.0.1', 'localhost'], true)) {
+                return $candidate;
+            }
+
+            return null;
+        }
+
+        if (! str_starts_with($candidate, '/')) {
             return null;
         }
 

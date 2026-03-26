@@ -428,6 +428,51 @@ final class ChatStreamControllerTest extends TestCase
         self::assertGreaterThan(500, strlen($messages[1]->get('content')));
     }
 
+    public function test_trim_conversation_history_empty_returns_empty(): void
+    {
+        $controller = new ChatStreamController($this->buildEntityTypeManager());
+        $method = new \ReflectionMethod(ChatStreamController::class, 'trimConversationHistory');
+        $method->setAccessible(true);
+
+        $trimmed = $method->invoke($controller, []);
+
+        self::assertSame([], $trimmed);
+    }
+
+    public function test_trim_conversation_history_under_cap_passes_through_without_marker(): void
+    {
+        $controller = new ChatStreamController($this->buildEntityTypeManager());
+        $method = new \ReflectionMethod(ChatStreamController::class, 'trimConversationHistory');
+        $method->setAccessible(true);
+
+        $messages = [
+            new ChatMessage([
+                'uuid' => 'a',
+                'session_uuid' => 's',
+                'role' => 'user',
+                'content' => 'Hello',
+                'created_at' => date('c'),
+                'tenant_id' => 'default',
+            ]),
+            new ChatMessage([
+                'uuid' => 'b',
+                'session_uuid' => 's',
+                'role' => 'assistant',
+                'content' => 'Hi there',
+                'created_at' => date('c'),
+                'tenant_id' => 'default',
+            ]),
+        ];
+
+        $trimmed = $method->invoke($controller, $messages);
+
+        self::assertCount(2, $trimmed);
+        self::assertSame('user', $trimmed[0]['role']);
+        self::assertSame('Hello', $trimmed[0]['content']);
+        self::assertSame('assistant', $trimmed[1]['role']);
+        self::assertStringNotContainsString('[Earlier conversation trimmed', $trimmed[1]['content']);
+    }
+
     public function test_stream_records_turn_metadata_and_token_usage(): void
     {
         $originalKey = getenv('ANTHROPIC_API_KEY');

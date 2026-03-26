@@ -12,7 +12,19 @@ export default defineNuxtConfig({
   nitro: {
     devProxy: {
       '/api': {
-        target: 'http://localhost:8081/api',
+        target: 'http://127.0.0.1:8081/api',
+        changeOrigin: true,
+      },
+      '/graphql': {
+        target: 'http://127.0.0.1:8081/graphql',
+        changeOrigin: true,
+      },
+      '/admin/session': {
+        target: 'http://127.0.0.1:8081/admin/session',
+        changeOrigin: true,
+      },
+      '/admin/logout': {
+        target: 'http://127.0.0.1:8081/admin/logout',
         changeOrigin: true,
       },
     },
@@ -44,6 +56,8 @@ export default defineNuxtConfig({
       // Set NUXT_PUBLIC_ENABLE_REALTIME=1 to force-enable.
       enableRealtime: process.env.NUXT_PUBLIC_ENABLE_REALTIME ?? (process.env.NODE_ENV === 'production' ? '1' : '0'),
       appName: process.env.NUXT_PUBLIC_APP_NAME ?? 'Claudriel Admin',
+      /** Override when PHP is not on 127.0.0.1:8081 (split Nuxt/PHP dev). */
+      phpOrigin: process.env.NUXT_PUBLIC_PHP_ORIGIN ?? '',
     },
   },
 })

@@ -1,6 +1,7 @@
 import type { EntityTypeInfo } from '~/composables/useNavGroups'
 import type { HostAdapter } from '~/host/hostAdapter'
 import type { AdminSessionPayload, EntitySchema, JsonApiResource, SessionBootstrap } from '~/host/types'
+import { claudrielAdminReturnUrl, claudrielPhpLoginUrl } from '~/utils/claudrielAuthUrls'
 import { graphqlFetch } from '~/utils/graphqlFetch'
 
 /** Default label field per entity type (used by search when no override is given). */
@@ -134,7 +135,13 @@ export const claudrielHostAdapter: HostAdapter = {
   },
 
   loginUrl(path: string = '/admin'): string {
-    return `/login?redirect=${encodeURIComponent(path)}`
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return claudrielPhpLoginUrl(path)
+    }
+
+    const normalized = path.startsWith('/') ? path : `/${path}`
+
+    return claudrielPhpLoginUrl(claudrielAdminReturnUrl(normalized))
   },
 
   async logout(): Promise<void> {

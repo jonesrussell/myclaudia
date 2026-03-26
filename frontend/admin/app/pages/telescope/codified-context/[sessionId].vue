@@ -91,20 +91,37 @@ function formatDate(iso: string): string {
 
 <style scoped>
 .card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-2xl);
+}
+.section h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-md);
+  color: var(--text-primary);
 }
 .meta-grid {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0.25rem 1rem;
 }
-dt { font-weight: 600; color: #374151; }
-dd { margin: 0; color: #6b7280; }
+dt {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+dd {
+  margin: 0;
+  color: var(--text-secondary);
+}
 </style>

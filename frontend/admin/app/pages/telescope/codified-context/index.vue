@@ -83,18 +83,74 @@ function severityClass(severity: string | null): string {
 </template>
 
 <style scoped>
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.data-table th,
+.data-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+.data-table a:hover {
+  text-decoration: underline;
+}
 .badge {
   display: inline-block;
-  padding: 0.15em 0.6em;
-  border-radius: 0.25rem;
-  font-size: 0.8em;
-  font-weight: 600;
+  padding: 0.22rem 0.55rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: capitalize;
+  border: 1px solid transparent;
 }
-.badge--critical { background: #fee2e2; color: #991b1b; }
-.badge--high     { background: #ffedd5; color: #9a3412; }
-.badge--medium   { background: #dbeafe; color: #1e40af; }
-.badge--low      { background: #dcfce7; color: #166534; }
-.badge--none     { background: #f3f4f6; color: #6b7280; }
-.empty-state     { color: #6b7280; margin-top: 1.5rem; }
+.badge--critical {
+  color: #fca5a5;
+  background: rgba(240, 96, 96, 0.12);
+  border-color: rgba(240, 96, 96, 0.28);
+}
+.badge--high {
+  color: var(--accent-amber);
+  background: rgba(240, 176, 64, 0.12);
+  border-color: rgba(240, 176, 64, 0.28);
+}
+.badge--medium {
+  color: var(--accent-blue);
+  background: rgba(107, 155, 255, 0.1);
+  border-color: rgba(107, 155, 255, 0.22);
+}
+.badge--low {
+  color: var(--accent-teal);
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.25);
+}
+.badge--none {
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border-color: var(--border-emphasis);
+}
+.empty-state {
+  color: var(--text-muted);
+  margin-top: var(--space-lg);
+}
 </style>

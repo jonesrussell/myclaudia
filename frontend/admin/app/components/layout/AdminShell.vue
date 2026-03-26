@@ -6,7 +6,7 @@ const config = useRuntimeConfig()
 const appName = config.public.appName as string
 const isDesktop = ref(false)
 const sidebarOpen = ref(false)
-const { logout } = useAuth()
+const { logout, loginUrl } = useAuth()
 
 onMounted(() => {
   const mql = window.matchMedia('(min-width: 769px)')
@@ -36,7 +36,7 @@ function onLocaleChange(event: Event) {
 
 async function handleLogout() {
   await logout()
-  window.location.assign('/login?redirect=%2Fadmin')
+  window.location.assign(loginUrl('/admin/'))
 }
 </script>
 
