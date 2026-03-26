@@ -17,6 +17,8 @@ frontend/admin/.nuxt/
 frontend/admin/.output/
 frontend/admin/dist
 frontend/admin/dist/
+frontend/admin/playwright-report/
+frontend/admin/test-results/
 public/admin/
 
 # User data (gitignored, .gitkeep preserves dirs)
