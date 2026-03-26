@@ -46,8 +46,8 @@ function wrapTextValues(type: string, attrs: Record<string, any>): Record<string
 
 /** Fields to request per GraphQL entity type. */
 const GRAPHQL_FIELDS: Record<string, string> = {
-  commitment: 'uuid title status workflow_state confidence direction due_date person_uuid source tenant_id created_at updated_at',
-  person: 'uuid name email tier source tenant_id latest_summary last_interaction_at last_inbox_category created_at updated_at',
+  commitment: 'uuid title status workflow_state confidence direction due_date person_uuid source tenant_id importance_score access_count last_accessed_at created_at updated_at',
+  person: 'uuid name email tier source tenant_id latest_summary last_interaction_at last_inbox_category importance_score access_count last_accessed_at created_at updated_at',
   project: 'uuid name description status account_id tenant_id created_at updated_at',
   workspace: 'uuid name description saved_context { value } anthropic_model account_id tenant_id mode status created_at updated_at',
   repo: 'uuid owner name full_name url default_branch local_path account_id tenant_id created_at updated_at',
