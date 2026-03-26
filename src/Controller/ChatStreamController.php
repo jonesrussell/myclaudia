@@ -41,6 +41,15 @@ use Waaseyaa\SSR\SsrResponse;
 
 final class ChatStreamController
 {
+    private const DEFAULT_ANTHROPIC_MODEL = 'claude-sonnet-4-6';
+
+    /** @var array<string, true> */
+    private const ALLOWED_ANTHROPIC_MODELS = [
+        'claude-opus-4-6' => true,
+        'claude-sonnet-4-6' => true,
+        'claude-haiku-4-5-20251001' => true,
+    ];
+
     public function __construct(
         private readonly EntityTypeManager $entityTypeManager,
         private readonly mixed $agentClientFactory = null,
@@ -164,7 +173,9 @@ final class ChatStreamController
         // Build system prompt (tools always available)
         $projectRoot = $this->resolveProjectRoot();
         $promptBuilder = $this->buildPromptBuilder($projectRoot);
-        $activeWorkspace = $workspaceUuid !== null ? $this->findWorkspaceByUuid($workspaceUuid, $tenantId)?->get('name') : null;
+        $workspace = $workspaceUuid !== null ? $this->findWorkspaceByUuid($workspaceUuid, $tenantId) : null;
+        $activeWorkspace = $workspace?->get('name');
+        $resolvedModel = $this->resolveChatModel($workspace);
         $systemPrompt = $promptBuilder->build($tenantId, activeWorkspace: is_string($activeWorkspace) ? $activeWorkspace : null, snapshot: $snapshot);
 
         $onToken = function (string $token): void {
@@ -216,7 +227,7 @@ final class ChatStreamController
             'level' => 'info',
         ]);
 
-        $client = $this->createAgentClient($accountId, $tenantId);
+        $client = $this->createAgentClient($accountId, $tenantId, $resolvedModel);
 
         $client->stream(
             systemPrompt: $systemPrompt,
@@ -229,6 +240,7 @@ final class ChatStreamController
             onDone: $onDone,
             onError: $onError,
             onProgress: $onProgress,
+            model: $resolvedModel,
             onNeedsContinuation: $onNeedsContinuation,
         );
     }
@@ -318,18 +330,45 @@ final class ChatStreamController
         return new ChatSystemPromptBuilder($assembler, $projectRoot);
     }
 
-    private function createAgentClient(string $accountId, string $tenantId): NativeAgentClient
+    private function createAgentClient(string $accountId, string $tenantId, ?string $model = null): NativeAgentClient
     {
         if (is_callable($this->agentClientFactory)) {
             return ($this->agentClientFactory)();
         }
 
         $apiKey = $_ENV['ANTHROPIC_API_KEY'] ?? getenv('ANTHROPIC_API_KEY') ?: '';
-        $model = $_ENV['ANTHROPIC_MODEL'] ?? getenv('ANTHROPIC_MODEL') ?: 'claude-sonnet-4-6';
+        $model ??= $this->resolveDefaultModel();
 
         $tools = $this->buildAgentTools($accountId, $tenantId);
 
         return new NativeAgentClient($apiKey, $tools, $model);
+    }
+
+    private function resolveChatModel(?Workspace $workspace): string
+    {
+        $workspaceModel = $workspace?->get('anthropic_model');
+        if (is_string($workspaceModel)) {
+            $trimmed = trim($workspaceModel);
+            if ($trimmed !== '' && isset(self::ALLOWED_ANTHROPIC_MODELS[$trimmed])) {
+                return $trimmed;
+            }
+        }
+
+        return $this->resolveDefaultModel();
+    }
+
+    private function resolveDefaultModel(): string
+    {
+        $configured = $_ENV['ANTHROPIC_MODEL'] ?? getenv('ANTHROPIC_MODEL') ?: self::DEFAULT_ANTHROPIC_MODEL;
+
+        if (is_string($configured)) {
+            $trimmed = trim($configured);
+            if ($trimmed !== '' && isset(self::ALLOWED_ANTHROPIC_MODELS[$trimmed])) {
+                return $trimmed;
+            }
+        }
+
+        return self::DEFAULT_ANTHROPIC_MODEL;
     }
 
     /**

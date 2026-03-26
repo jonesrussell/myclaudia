@@ -100,6 +100,7 @@ final class SchemaContractTest extends TestCase
                 'name' => ['type' => 'string', 'required' => true],
                 'description' => ['type' => 'string'],
                 'saved_context' => ['type' => 'text_long'],
+                'anthropic_model' => ['type' => 'string'],
                 'account_id' => ['type' => 'string'],
                 'tenant_id' => ['type' => 'string'],
                 'mode' => ['type' => 'string'],
@@ -514,7 +515,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(ObjectType::class, $type);
 
-        $expectedFields = ['id', 'uuid', 'name', 'description', 'saved_context', 'account_id', 'tenant_id', 'mode', 'status', 'created_at', 'updated_at'];
+        $expectedFields = ['id', 'uuid', 'name', 'description', 'saved_context', 'anthropic_model', 'account_id', 'tenant_id', 'mode', 'status', 'created_at', 'updated_at'];
         foreach ($expectedFields as $fieldName) {
             self::assertTrue($type->hasField($fieldName), "Workspace missing field: {$fieldName}");
         }
@@ -570,6 +571,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertTrue($inputType->hasField('name'));
         self::assertTrue($inputType->hasField('description'));
+        self::assertTrue($inputType->hasField('anthropic_model'));
 
         self::assertFalse($inputType->hasField('wid'));
         self::assertFalse($inputType->hasField('id'));

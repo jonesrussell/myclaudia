@@ -31,6 +31,7 @@ final class WorkspaceServiceProvider extends ServiceProvider
                 'name' => ['type' => 'string', 'required' => true],
                 'description' => ['type' => 'string'],
                 'saved_context' => ['type' => 'text_long'],
+                'anthropic_model' => ['type' => 'string'],
                 'account_id' => ['type' => 'string'],
                 'tenant_id' => ['type' => 'string'],
                 'mode' => ['type' => 'string'],

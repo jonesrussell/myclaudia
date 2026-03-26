@@ -49,7 +49,7 @@ const GRAPHQL_FIELDS: Record<string, string> = {
   commitment: 'uuid title status workflow_state confidence direction due_date person_uuid source tenant_id created_at updated_at',
   person: 'uuid name email tier source tenant_id latest_summary last_interaction_at last_inbox_category created_at updated_at',
   project: 'uuid name description status account_id tenant_id created_at updated_at',
-  workspace: 'uuid name description saved_context { value } account_id tenant_id mode status created_at updated_at',
+  workspace: 'uuid name description saved_context { value } anthropic_model account_id tenant_id mode status created_at updated_at',
   repo: 'uuid owner name full_name url default_branch local_path account_id tenant_id created_at updated_at',
   project_repo: 'uuid project_uuid repo_uuid created_at',
   workspace_project: 'uuid workspace_uuid project_uuid created_at',

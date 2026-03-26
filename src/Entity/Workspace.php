@@ -32,6 +32,9 @@ final class Workspace extends ContentEntityBase
         if ($this->get('saved_context') === null) {
             $this->set('saved_context', null);
         }
+        if ($this->get('anthropic_model') === null) {
+            $this->set('anthropic_model', null);
+        }
         if ($this->get('mode') === null) {
             $this->set('mode', 'persistent');
         }

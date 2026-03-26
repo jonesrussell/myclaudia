@@ -252,6 +252,96 @@ final class ChatStreamControllerTest extends TestCase
         }
     }
 
+    public function test_stream_uses_workspace_anthropic_model_override(): void
+    {
+        $originalKey = getenv('ANTHROPIC_API_KEY');
+        putenv('ANTHROPIC_API_KEY=test-key');
+
+        $etm = $this->buildEntityTypeManager();
+        $workspaceStorage = $etm->getStorage('workspace');
+        $workspaceStorage->save(new Workspace([
+            'uuid' => 'workspace-model',
+            'name' => 'Workspace Model',
+            'tenant_id' => 'default',
+            'anthropic_model' => 'claude-opus-4-6',
+        ]));
+
+        $sessionStorage = $etm->getStorage('chat_session');
+        $sessionStorage->save(new ChatSession([
+            'uuid' => 'sess-model',
+            'title' => 'Model Test',
+            'created_at' => date('c'),
+            'tenant_id' => 'default',
+            'workspace_id' => 'workspace-model',
+        ]));
+
+        $msgStorage = $etm->getStorage('chat_message');
+        $msgStorage->save(new ChatMessage([
+            'uuid' => 'msg-model',
+            'session_uuid' => 'sess-model',
+            'role' => 'user',
+            'content' => 'hello',
+            'created_at' => date('c'),
+            'tenant_id' => 'default',
+            'workspace_id' => 'workspace-model',
+        ]));
+
+        $capturedModel = null;
+        $controller = new ChatStreamController(
+            $etm,
+            agentClientFactory: static function () use (&$capturedModel): NativeAgentClient {
+                return new class('fake-key', $capturedModel) extends NativeAgentClient
+                {
+                    private mixed $captureRef;
+
+                    public function __construct(string $apiKey, mixed &$captureRef = null)
+                    {
+                        parent::__construct($apiKey);
+                        $this->captureRef = &$captureRef;
+                    }
+
+                    public function stream(
+                        string $systemPrompt,
+                        array $messages,
+                        string $accountId,
+                        string $tenantId,
+                        string $apiBase,
+                        string $apiToken,
+                        \Closure $onToken,
+                        \Closure $onDone,
+                        \Closure $onError,
+                        ?\Closure $onProgress = null,
+                        ?string $model = null,
+                        ?\Closure $onNeedsContinuation = null,
+                    ): void {
+                        $this->captureRef = $model;
+                        $onToken('Done.');
+                        $onDone('Done.');
+                    }
+                };
+            },
+        );
+
+        $response = $controller->stream(['messageId' => 'msg-model'], [], null, null);
+        self::assertInstanceOf(StreamedResponse::class, $response);
+
+        ob_start();
+        ob_start();
+        $callback = $response->getCallback();
+        self::assertIsCallable($callback);
+        $callback();
+        ob_end_flush();
+        ob_get_clean();
+
+        self::assertSame('claude-opus-4-6', $capturedModel);
+
+        if ($originalKey !== false) {
+            putenv("ANTHROPIC_API_KEY={$originalKey}");
+        } else {
+            putenv('ANTHROPIC_API_KEY');
+        }
+    }
+
     private static function createMockAgent(): NativeAgentClient
     {
         return new class('fake-key') extends NativeAgentClient
