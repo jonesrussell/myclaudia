@@ -2,8 +2,7 @@
 
 import json
 
-from eval_report import (EvalTestResult, SkillResult, format_markdown,
-                         generate_report)
+from eval_report import EvalTestResult, SkillResult, format_markdown, generate_report
 
 
 def test_generate_report_structure():

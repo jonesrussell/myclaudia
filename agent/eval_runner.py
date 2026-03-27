@@ -13,8 +13,7 @@ from pathlib import Path
 
 import yaml
 from eval_judge import judge_response
-from eval_report import (EvalTestResult, SkillResult, format_markdown,
-                         generate_report)
+from eval_report import EvalTestResult, SkillResult, format_markdown, generate_report
 from eval_schema import discover_eval_files, load_and_validate
 
 PASS_THRESHOLD = 3.0
