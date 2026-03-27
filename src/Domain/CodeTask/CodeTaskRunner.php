@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Claudriel\Domain\CodeTask;
 
-use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\CodeTask;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
@@ -21,7 +20,6 @@ final class CodeTaskRunner
 
     public function __construct(
         private readonly EntityRepositoryInterface $codeTaskRepo,
-        private readonly GitRepositoryManager $gitManager, // @phpstan-ignore property.onlyWritten
         ?callable $processRunner = null,
     ) {
         $this->processRunner = $processRunner;
@@ -37,8 +35,8 @@ final class CodeTaskRunner
             $this->prepareWorkingBranch($repoPath, (string) $task->get('branch_name'));
             $result = $this->invokeClaudeCode($repoPath, (string) $task->get('prompt'));
 
-            $exitCode = (int) ($result['exit_code'] ?? 1);
-            $output = (string) ($result['output'] ?? '');
+            $exitCode = (int) $result['exit_code'];
+            $output = (string) $result['output'];
 
             $task->set('claude_output', mb_substr($output, 0, 50000));
 
@@ -102,6 +100,9 @@ final class CodeTaskRunner
         ));
     }
 
+    /**
+     * @return array{exit_code: int, output: string}
+     */
     private function invokeClaudeCode(string $repoPath, string $prompt): array
     {
         if ($this->processRunner !== null) {
@@ -197,8 +198,8 @@ final class CodeTaskRunner
 
     private function shellExec(string $command): void
     {
-        shell_exec($command.' 2>&1');
-        // Fire and forget for git operations - errors caught by caller
+        $output = shell_exec($command.' 2>&1');
+        // Fire and forget for git operations — errors caught by caller
     }
 
     private function shellExecSafe(string $command): string

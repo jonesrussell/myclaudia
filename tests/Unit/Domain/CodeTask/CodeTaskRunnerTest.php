@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Claudriel\Tests\Unit\Domain\CodeTask;
 
 use Claudriel\Domain\CodeTask\CodeTaskRunner;
-use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\CodeTask;
 use PHPUnit\Framework\TestCase;
 use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
@@ -25,9 +24,7 @@ final class CodeTaskRunnerTest extends TestCase
         $repo = $this->createMock(EntityRepositoryInterface::class);
         $repo->expects($this->atLeastOnce())->method('save');
 
-        $gitManager = new GitRepositoryManager(runner: fn () => ['exit_code' => 0, 'output' => '']);
-
-        $runner = new CodeTaskRunner($repo, $gitManager, fn () => [
+        $runner = new CodeTaskRunner($repo, fn () => [
             'exit_code' => 0,
             'output' => json_encode([
                 'result' => 'I fixed the login bug by updating the session handler.',
@@ -53,9 +50,7 @@ final class CodeTaskRunnerTest extends TestCase
         $repo = $this->createMock(EntityRepositoryInterface::class);
         $repo->expects($this->atLeastOnce())->method('save');
 
-        $gitManager = new GitRepositoryManager(runner: fn () => ['exit_code' => 0, 'output' => '']);
-
-        $runner = new CodeTaskRunner($repo, $gitManager, fn () => [
+        $runner = new CodeTaskRunner($repo, fn () => [
             'exit_code' => 1,
             'output' => 'Error: something went wrong',
         ]);
@@ -69,8 +64,7 @@ final class CodeTaskRunnerTest extends TestCase
     public function test_generate_branch_name(): void
     {
         $repo = $this->createMock(EntityRepositoryInterface::class);
-        $gitManager = new GitRepositoryManager(runner: fn () => ['exit_code' => 0, 'output' => '']);
-        $runner = new CodeTaskRunner($repo, $gitManager);
+        $runner = new CodeTaskRunner($repo);
 
         $result = $runner->generateBranchName('Fix the login bug in auth module!');
         $this->assertSame('claudriel/fix-the-login-bug-in-auth-module', $result);
@@ -79,8 +73,7 @@ final class CodeTaskRunnerTest extends TestCase
     public function test_generate_branch_name_truncates(): void
     {
         $repo = $this->createMock(EntityRepositoryInterface::class);
-        $gitManager = new GitRepositoryManager(runner: fn () => ['exit_code' => 0, 'output' => '']);
-        $runner = new CodeTaskRunner($repo, $gitManager);
+        $runner = new CodeTaskRunner($repo);
 
         $longPrompt = str_repeat('a very long prompt that goes on ', 5);
         $result = $runner->generateBranchName($longPrompt);
