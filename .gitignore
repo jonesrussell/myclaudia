@@ -42,6 +42,7 @@ v1.0-plan.md
 
 # Screenshots
 *.png
+!public/images/*.png
 
 # Signal files
 storage/brief-signal.txt
