@@ -92,7 +92,7 @@ jobs:
           path: claudriel
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '25'
           cache: npm
@@ -128,7 +128,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '25'
           cache: npm
