@@ -1,6 +1,5 @@
 """Tests for eval report generation."""
 
-
 from eval_report import EvalTestResult, SkillResult, format_markdown, generate_report
 
 

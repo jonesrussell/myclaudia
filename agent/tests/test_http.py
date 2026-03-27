@@ -1,6 +1,5 @@
 """Tests for util.http.PhpApiClient."""
 
-
 from util.http import PhpApiClient
 
 

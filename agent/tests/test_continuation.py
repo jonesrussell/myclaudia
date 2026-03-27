@@ -4,6 +4,8 @@ import sys
 import types
 from unittest.mock import MagicMock
 
+from main import DEFAULT_TURN_LIMITS, classify_task_type
+
 # Stub out modules that aren't available in the test environment
 # before importing main, so the import chain doesn't fail.
 _stubs = {}
@@ -30,8 +32,6 @@ for mod_name in [
         stub.PhpApiClient = MagicMock
         sys.modules[mod_name] = stub
         _stubs[mod_name] = stub
-
-from main import DEFAULT_TURN_LIMITS, classify_task_type
 
 
 def test_classify_email():
