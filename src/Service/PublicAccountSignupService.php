@@ -103,6 +103,36 @@ final class PublicAccountSignupService
         ];
     }
 
+    public function createFromGoogle(string $email, string $name): Account
+    {
+        $email = strtolower(trim($email));
+        $name = trim($name);
+
+        $existing = $this->findAccountByEmail($email);
+        if ($existing instanceof Account) {
+            if ($existing->get('status') === 'pending_verification') {
+                $existing->set('status', 'active');
+                $existing->set('email_verified_at', (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM));
+                $this->entityTypeManager->getStorage('account')->save($existing);
+            }
+
+            return $existing;
+        }
+
+        $account = new Account([
+            'name' => $name,
+            'email' => $email,
+            'password_hash' => null,
+            'status' => 'active',
+            'email_verified_at' => (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM),
+            'roles' => [],
+            'permissions' => [],
+        ]);
+        $this->entityTypeManager->getStorage('account')->save($account);
+
+        return $account;
+    }
+
     public function findAccountByEmail(string $email): ?Account
     {
         $ids = $this->entityTypeManager->getStorage('account')->getQuery()

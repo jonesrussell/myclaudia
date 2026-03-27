@@ -6,12 +6,14 @@ namespace Claudriel\Controller;
 
 use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Entity\Integration;
+use Claudriel\Service\PublicAccountSignupService;
 use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
 use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\Entity\EntityTypeManager;
+use Waaseyaa\User\Middleware\CsrfMiddleware;
 
 final class GoogleOAuthController
 {
@@ -36,11 +38,19 @@ final class GoogleOAuthController
         'https://www.googleapis.com/auth/drive.file',
     ];
 
+    private const SIGNIN_SCOPES = [
+        'openid',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
+    ];
+
     private readonly string $clientId;
 
     private readonly string $clientSecret;
 
     private readonly string $redirectUri;
+
+    private readonly string $signinRedirectUri;
 
     /** @phpstan-ignore constructor.unusedParameter */
     public function __construct(
@@ -50,6 +60,7 @@ final class GoogleOAuthController
         $this->clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
         $this->clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
         $this->redirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? getenv('GOOGLE_REDIRECT_URI') ?: '';
+        $this->signinRedirectUri = $_ENV['GOOGLE_SIGNIN_REDIRECT_URI'] ?? getenv('GOOGLE_SIGNIN_REDIRECT_URI') ?: '';
     }
 
     public function redirect(
@@ -125,13 +136,97 @@ final class GoogleOAuthController
         return new RedirectResponse('/app', 302);
     }
 
-    private function exchangeCodeForTokens(string $code): ?array
+    public function signin(
+        array $params = [],
+        array $query = [],
+        ?AccountInterface $account = null,
+        ?Request $httpRequest = null,
+    ): RedirectResponse {
+        $state = bin2hex(random_bytes(32));
+        $_SESSION['google_oauth_state'] = $state;
+        $_SESSION['google_oauth_flow'] = 'signin';
+
+        $authUrl = self::AUTH_ENDPOINT.'?'.http_build_query([
+            'client_id' => $this->clientId,
+            'redirect_uri' => $this->signinRedirectUri,
+            'response_type' => 'code',
+            'scope' => implode(' ', self::SIGNIN_SCOPES),
+            'access_type' => 'offline',
+            'prompt' => 'consent',
+            'state' => $state,
+        ]);
+
+        return new RedirectResponse($authUrl, 302);
+    }
+
+    public function signinCallback(
+        array $params = [],
+        array $query = [],
+        ?AccountInterface $account = null,
+        ?Request $httpRequest = null,
+    ): RedirectResponse {
+        if (isset($query['error'])) {
+            $_SESSION['flash_error'] = 'Google sign-in denied: '.$query['error'];
+
+            return new RedirectResponse('/login', 302);
+        }
+
+        $expectedState = $_SESSION['google_oauth_state'] ?? null;
+        $expectedFlow = $_SESSION['google_oauth_flow'] ?? null;
+        unset($_SESSION['google_oauth_state'], $_SESSION['google_oauth_flow']);
+
+        if ($expectedState === null || $expectedFlow !== 'signin' || ! hash_equals($expectedState, $query['state'] ?? '')) {
+            $_SESSION['flash_error'] = 'Invalid OAuth state. Please try again.';
+
+            return new RedirectResponse('/login', 302);
+        }
+
+        $tokenData = $this->exchangeCodeForTokens($query['code'] ?? '', $this->signinRedirectUri);
+
+        if ($tokenData === null) {
+            $_SESSION['flash_error'] = 'Failed to exchange authorization code.';
+
+            return new RedirectResponse('/login', 302);
+        }
+
+        $userInfo = $this->fetchUserInfo($tokenData['access_token']);
+        $email = $userInfo['email'] ?? null;
+        $name = $userInfo['name'] ?? '';
+        $emailVerified = $userInfo['verified_email'] ?? false;
+
+        if ($email === null || ! $emailVerified) {
+            $_SESSION['flash_error'] = 'Google account email is not verified.';
+
+            return new RedirectResponse('/login', 302);
+        }
+
+        $signupService = new PublicAccountSignupService($this->entityTypeManager);
+        $accountEntity = $signupService->createFromGoogle($email, $name);
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $_SESSION['claudriel_account_uuid'] = $accountEntity->get('uuid');
+        session_regenerate_id(true);
+        CsrfMiddleware::regenerate();
+
+        $this->upsertIntegration(
+            new AuthenticatedAccount($accountEntity),
+            $tokenData,
+            $email,
+        );
+
+        return new RedirectResponse('/app', 302);
+    }
+
+    private function exchangeCodeForTokens(string $code, ?string $overrideRedirectUri = null): ?array
     {
         $payload = http_build_query([
             'code' => $code,
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'redirect_uri' => $this->redirectUri,
+            'redirect_uri' => $overrideRedirectUri ?? $this->redirectUri,
             'grant_type' => 'authorization_code',
         ]);
 

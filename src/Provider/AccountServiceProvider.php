@@ -274,6 +274,24 @@ final class AccountServiceProvider extends ServiceProvider
         $googleCallbackRoute->setOption('_csrf', false);
         $router->addRoute('claudriel.auth.google.callback', $googleCallbackRoute);
 
+        // Google OAuth Sign-In (identity only, no service scopes)
+        $router->addRoute(
+            'claudriel.auth.google.signin',
+            RouteBuilder::create('/auth/google/signin')
+                ->controller(GoogleOAuthController::class.'::signin')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $googleSigninCallbackRoute = RouteBuilder::create('/auth/google/signin/callback')
+            ->controller(GoogleOAuthController::class.'::signinCallback')
+            ->allowAll()
+            ->methods('GET')
+            ->build();
+        $googleSigninCallbackRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.auth.google.signin.callback', $googleSigninCallbackRoute);
+
         // GitHub OAuth
         $router->addRoute(
             'claudriel.auth.github.connect',
