@@ -1,0 +1,6 @@
+--requirement agent/requirements.txt
+
+black
+isort
+mypy
+ruff
