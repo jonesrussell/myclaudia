@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Claudriel\Provider;
 
 use Claudriel\Domain\CodeTask\CodeTaskRunner;
-use Claudriel\Domain\Git\GitRepositoryManager;
 use Claudriel\Entity\CodeTask;
 use Claudriel\Support\StorageRepositoryAdapter;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -29,10 +28,7 @@ final class CodeTaskServiceProvider extends ServiceProvider
             $storage = new SqlEntityStorage($entityType, $database, $dispatcher);
             $repo = new StorageRepositoryAdapter($storage);
 
-            return new CodeTaskRunner(
-                $repo,
-                new GitRepositoryManager,
-            );
+            return new CodeTaskRunner($repo);
         });
 
         $this->entityType(new EntityType(
