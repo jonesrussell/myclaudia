@@ -24,7 +24,7 @@ jobs:
           path: eval-report.json
       - name: Comment on PR (failures only)
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
