@@ -26,9 +26,9 @@ final class BriefSignalTest extends TestCase
     public function test_touch_creates_file_and_returns_current_time(): void
     {
         $signal = new BriefSignal($this->signalFile);
-        $before = time();
+        $before = time() - 1;
         $signal->touch();
-        $after = time();
+        $after = time() + 1;
 
         self::assertFileExists($this->signalFile);
         $mtime = $signal->lastModified();
