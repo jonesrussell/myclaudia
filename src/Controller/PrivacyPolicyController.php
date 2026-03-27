@@ -19,7 +19,7 @@ final class PrivacyPolicyController
     {
         $context = [
             'last_updated' => '2026-03-20',
-            'contact_email' => 'privacy@claudriel.ai',
+            'contact_email' => 'jonesrussell42@gmail.com',
         ];
 
         if ($this->twig === null) {
