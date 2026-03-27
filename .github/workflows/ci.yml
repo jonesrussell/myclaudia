@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: Checkout claudriel
         uses: actions/checkout@v4
-        with:
-          path: claudriel
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -24,15 +22,12 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        working-directory: claudriel
         run: composer install --no-interaction --prefer-dist
 
       - name: Check formatting (Pint)
-        working-directory: claudriel
         run: composer lint
 
       - name: Static analysis (PHPStan)
-        working-directory: claudriel
         run: composer analyse
 
   test:
@@ -41,8 +36,6 @@ jobs:
     steps:
       - name: Checkout claudriel
         uses: actions/checkout@v4
-        with:
-          path: claudriel
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -52,11 +45,9 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        working-directory: claudriel
         run: composer install --no-interaction --prefer-dist
 
       - name: Run tests
-        working-directory: claudriel
         run: composer test
 
   agent:
@@ -64,12 +55,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: claudriel/agent
+        working-directory: agent
     steps:
       - name: Checkout claudriel
         uses: actions/checkout@v4
-        with:
-          path: claudriel
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -77,26 +66,32 @@ jobs:
           python-version: '3.11'
 
       - name: Verify syntax
-        run: python -c "import ast, pathlib; [ast.parse(f.read_text()) for f in pathlib.Path('.').rglob('*.py')]"
+        run: |
+          import ast
+          import pathlib
+
+          [
+            ast.parse(f.read_text())
+            for f in pathlib.Path('.').rglob('*.py')
+          ]
+        shell: python
 
   admin-build:
     name: Admin Bundle Build
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: claudriel/frontend/admin
+        working-directory: frontend/admin
     steps:
       - name: Checkout claudriel
         uses: actions/checkout@v4
-        with:
-          path: claudriel
 
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: '25'
           cache: npm
-          cache-dependency-path: claudriel/frontend/admin/package-lock.json
+          cache-dependency-path: frontend/admin/package-lock.json
 
       - name: Install frontend/admin dependencies
         run: npm ci
@@ -109,12 +104,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: claudriel/frontend/admin
+        working-directory: frontend/admin
     steps:
       - name: Checkout claudriel
         uses: actions/checkout@v4
-        with:
-          path: claudriel
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -124,7 +117,7 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        working-directory: claudriel
+        working-directory: .
         run: composer install --no-interaction --prefer-dist
 
       - name: Set up Node
@@ -132,7 +125,7 @@ jobs:
         with:
           node-version: '25'
           cache: npm
-          cache-dependency-path: claudriel/frontend/admin/package-lock.json
+          cache-dependency-path: frontend/admin/package-lock.json
 
       - name: Install frontend/admin dependencies
         run: npm ci
