@@ -7,16 +7,20 @@ namespace Claudriel\Controller;
 use Claudriel\Access\AuthenticatedAccount;
 use Claudriel\Domain\Chat\AgentToolInterface;
 use Claudriel\Domain\Chat\ChatSystemPromptBuilder;
+use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\Chat\IssueIntentDetector;
 use Claudriel\Domain\Chat\NativeAgentClient;
 use Claudriel\Domain\Chat\Tool\BriefGenerateTool;
 use Claudriel\Domain\Chat\Tool\CalendarCreateTool;
 use Claudriel\Domain\Chat\Tool\CalendarListTool;
+use Claudriel\Domain\Chat\Tool\CodeTaskCreateTool;
+use Claudriel\Domain\Chat\Tool\CodeTaskStatusTool;
 use Claudriel\Domain\Chat\Tool\CommitmentListTool;
 use Claudriel\Domain\Chat\Tool\CommitmentUpdateTool;
 use Claudriel\Domain\Chat\Tool\GmailListTool;
 use Claudriel\Domain\Chat\Tool\GmailReadTool;
 use Claudriel\Domain\Chat\Tool\GmailSendTool;
+use Claudriel\Domain\Chat\Tool\RepoCloneTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceCreateTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceDeleteTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceListTool;
@@ -532,6 +536,24 @@ final class ChatStreamController
             $tools[] = new BriefGenerateTool($assembler, $tenantId);
         } catch (\Throwable) {
             // Brief dependencies not available
+        }
+
+        // Code task + repo tools — require AGENT_INTERNAL_SECRET
+        $internalSecret = $_ENV['AGENT_INTERNAL_SECRET'] ?? getenv('AGENT_INTERNAL_SECRET') ?: '';
+        if ($internalSecret !== '') {
+            $tokenGen = new InternalApiTokenGenerator($internalSecret);
+            $apiBase = $_ENV['CLAUDRIEL_API_URL'] ?? getenv('CLAUDRIEL_API_URL') ?: 'http://localhost:8081';
+
+            $tools[] = new CodeTaskCreateTool($apiBase, $accountId, $tenantId, $tokenGen);
+            $tools[] = new RepoCloneTool($apiBase, $accountId, $tenantId, $tokenGen);
+
+            try {
+                $codeTaskStorage = $this->entityTypeManager->getStorage('code_task');
+                $codeTaskRepo = new StorageRepositoryAdapter($codeTaskStorage);
+                $tools[] = new CodeTaskStatusTool($codeTaskRepo);
+            } catch (\Throwable) {
+                // code_task entity type not registered
+            }
         }
 
         return $tools;
