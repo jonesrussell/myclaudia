@@ -5,6 +5,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000/admin'
 
 export default defineConfig({
   testDir: './e2e',
+  // Agent-backed chat UI stays disabled without Docker sidecar + keys; skip in CI smoke.
+  testIgnore: process.env.CI ? ['**/claudriel-chat-continue.spec.ts'] : [],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
