@@ -15,12 +15,12 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 
 final class CodeTaskRunCommandTest extends TestCase
 {
-    private function makeRunner(?EntityRepositoryInterface $repo = null, ?callable $processRunner = null, ?callable $shellRunner = null): CodeTaskRunner
+    private function makeRunner(?EntityRepositoryInterface $repo = null, ?callable $processRunner = null): CodeTaskRunner
     {
         $repo ??= $this->createMock(EntityRepositoryInterface::class);
-        $shellRunner ??= fn (string $command) => ['exit_code' => 0, 'output' => ''];
+        $noOpCommandRunner = fn (string $command) => ['exit_code' => 0, 'output' => ''];
 
-        return new CodeTaskRunner($repo, $processRunner, $shellRunner);
+        return new CodeTaskRunner($repo, $processRunner, $noOpCommandRunner);
     }
 
     public function test_requires_uuid_argument(): void
