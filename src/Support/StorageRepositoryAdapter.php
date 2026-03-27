@@ -42,14 +42,44 @@ final class StorageRepositoryAdapter implements EntityRepositoryInterface
         return array_values($entities);
     }
 
-    public function save(EntityInterface $entity): int
+    public function save(EntityInterface $entity, bool $validate = true): int
     {
+        unset($validate);
+
         return $this->storage->save($entity);
+    }
+
+    /**
+     * @param  EntityInterface[]  $entities
+     * @return int[]
+     */
+    public function saveMany(array $entities, bool $validate = true): array
+    {
+        $results = [];
+        foreach ($entities as $entity) {
+            $results[] = $this->save($entity, $validate);
+        }
+
+        return $results;
     }
 
     public function delete(EntityInterface $entity): void
     {
         $this->storage->delete([$entity]);
+    }
+
+    /**
+     * @param  EntityInterface[]  $entities
+     */
+    public function deleteMany(array $entities): int
+    {
+        if ($entities === []) {
+            return 0;
+        }
+
+        $this->storage->delete($entities);
+
+        return count($entities);
     }
 
     public function exists(string $id): bool
