@@ -20,6 +20,7 @@
         "waaseyaa/graphql": "dev-main",
         "waaseyaa/mail": "dev-main",
         "waaseyaa/mcp": "dev-main",
+        "waaseyaa/oauth-provider": "dev-main",
         "waaseyaa/path": "dev-main",
         "waaseyaa/queue": "dev-main",
         "waaseyaa/relationship": "dev-main",
@@ -90,5 +91,10 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "oauth-provider",
+        "type": "vcs",
+        "url": "https://github.com/waaseyaa/oauth-provider.git"
+    }]
 }
