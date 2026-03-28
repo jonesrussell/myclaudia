@@ -484,9 +484,9 @@ final class ChatStreamController
     {
         $tools = [];
 
-        // Google tools (Gmail + Calendar) — requires GoogleTokenManager
+        // Google tools (Gmail + Calendar) — requires OAuthTokenManager
         try {
-            $tokenManager = $this->resolveGoogleTokenManager();
+            $tokenManager = $this->resolveOAuthTokenManager();
             if ($tokenManager !== null) {
                 $tools[] = new GmailListTool($tokenManager, $accountId);
                 $tools[] = new GmailReadTool($tokenManager, $accountId);
@@ -568,7 +568,7 @@ final class ChatStreamController
         return $tools;
     }
 
-    private function resolveGoogleTokenManager(): ?OAuthTokenManagerInterface
+    private function resolveOAuthTokenManager(): ?OAuthTokenManagerInterface
     {
         $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
         $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
