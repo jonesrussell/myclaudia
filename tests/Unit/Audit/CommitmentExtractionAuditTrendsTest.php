@@ -61,15 +61,23 @@ final class CommitmentExtractionAuditTrendsTest extends TestCase
         $monthMid = date('Y-m', strtotime('-29 days'));
         $monthNow = date('Y-m');
 
-        self::assertSame(1, $series[$monthOld]['total_attempts']);
-        self::assertSame(0, $series[$monthOld]['successful_extractions']);
-        self::assertSame(1, $series[$monthOld]['low_confidence_logs']);
-        self::assertSame(0.22, $series[$monthOld]['average_confidence']);
+        // When monthOld and monthMid fall in the same calendar month,
+        // their totals merge. Verify per-month totals accordingly.
+        if ($monthOld === $monthMid) {
+            self::assertSame(2, $series[$monthOld]['total_attempts']);
+            self::assertSame(0, $series[$monthOld]['successful_extractions']);
+            self::assertSame(2, $series[$monthOld]['low_confidence_logs']);
+        } else {
+            self::assertSame(1, $series[$monthOld]['total_attempts']);
+            self::assertSame(0, $series[$monthOld]['successful_extractions']);
+            self::assertSame(1, $series[$monthOld]['low_confidence_logs']);
+            self::assertSame(0.22, $series[$monthOld]['average_confidence']);
 
-        self::assertSame(1, $series[$monthMid]['total_attempts']);
-        self::assertSame(0, $series[$monthMid]['successful_extractions']);
-        self::assertSame(1, $series[$monthMid]['low_confidence_logs']);
-        self::assertSame(0.48, $series[$monthMid]['average_confidence']);
+            self::assertSame(1, $series[$monthMid]['total_attempts']);
+            self::assertSame(0, $series[$monthMid]['successful_extractions']);
+            self::assertSame(1, $series[$monthMid]['low_confidence_logs']);
+            self::assertSame(0.48, $series[$monthMid]['average_confidence']);
+        }
 
         self::assertSame(3, $series[$monthNow]['total_attempts']);
         self::assertSame(2, $series[$monthNow]['successful_extractions']);
