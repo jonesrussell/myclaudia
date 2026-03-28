@@ -106,16 +106,28 @@ final class ChatServiceProvider extends ServiceProvider
 
             $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
             $googleClientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+
             $googleRedirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? getenv('GOOGLE_REDIRECT_URI') ?: '';
             $registry->register('google', new GoogleOAuthProvider(
                 $googleClientId, $googleClientSecret, $googleRedirectUri, $httpClient,
             ));
 
+            $googleSigninRedirectUri = $_ENV['GOOGLE_SIGNIN_REDIRECT_URI'] ?? getenv('GOOGLE_SIGNIN_REDIRECT_URI') ?: '';
+            $registry->register('google-signin', new GoogleOAuthProvider(
+                $googleClientId, $googleClientSecret, $googleSigninRedirectUri, $httpClient,
+            ));
+
             $githubClientId = $_ENV['GITHUB_CLIENT_ID'] ?? getenv('GITHUB_CLIENT_ID') ?: '';
             $githubClientSecret = $_ENV['GITHUB_CLIENT_SECRET'] ?? getenv('GITHUB_CLIENT_SECRET') ?: '';
+
             $githubRedirectUri = $_ENV['GITHUB_REDIRECT_URI'] ?? getenv('GITHUB_REDIRECT_URI') ?: '';
             $registry->register('github', new GitHubOAuthProvider(
                 $githubClientId, $githubClientSecret, $githubRedirectUri, $httpClient,
+            ));
+
+            $githubSigninRedirectUri = $_ENV['GITHUB_SIGNIN_REDIRECT_URI'] ?? getenv('GITHUB_SIGNIN_REDIRECT_URI') ?: '';
+            $registry->register('github-signin', new GitHubOAuthProvider(
+                $githubClientId, $githubClientSecret, $githubSigninRedirectUri, $httpClient,
             ));
 
             return $registry;

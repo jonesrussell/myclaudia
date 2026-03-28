@@ -158,7 +158,12 @@ final class OAuthController
         $this->session->set('oauth_flow', 'signin');
         $scopes = self::FLOW_SCOPES[$provider]['signin'];
 
-        $authUrl = $this->providerRegistry->get($provider)->getAuthorizationUrl($scopes, $state);
+        $signinKey = $provider.'-signin';
+        $oauthProvider = $this->providerRegistry->has($signinKey)
+            ? $this->providerRegistry->get($signinKey)
+            : $this->providerRegistry->get($provider);
+
+        $authUrl = $oauthProvider->getAuthorizationUrl($scopes, $state);
 
         return new RedirectResponse($authUrl, 302);
     }
@@ -198,7 +203,10 @@ final class OAuthController
             return new RedirectResponse('/login', 302);
         }
 
-        $oauthProvider = $this->providerRegistry->get($provider);
+        $signinKey = $provider.'-signin';
+        $oauthProvider = $this->providerRegistry->has($signinKey)
+            ? $this->providerRegistry->get($signinKey)
+            : $this->providerRegistry->get($provider);
 
         try {
             $token = $oauthProvider->exchangeCode($query['code'] ?? '');
@@ -209,6 +217,12 @@ final class OAuthController
         }
 
         $profile = $oauthProvider->getUserProfile($token->accessToken);
+
+        if ($profile->email === '') {
+            $_SESSION['flash_error'] = ucfirst($provider).' account email is not available or not verified.';
+
+            return new RedirectResponse('/login', 302);
+        }
 
         $accountEntity = $this->signupService->createFromOAuth($provider, $profile->email, $profile->name);
 
