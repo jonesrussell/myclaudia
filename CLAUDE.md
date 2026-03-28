@@ -63,22 +63,32 @@ Rule: higher layers import lower layers only. Never import from src/Command insi
 | `src/Entity/*` | — | `docs/specs/entity.md` |
 | `src/Ingestion/*` | `claudriel:ingestion` | `docs/specs/ingestion.md` |
 | `src/Pipeline/*` | `claudriel:ingestion` | `docs/specs/pipeline.md` |
-| `src/DayBrief/*` | `claudriel:day-brief` | `docs/specs/day-brief.md` |
+| `src/DayBrief/*`, `src/Domain/DayBrief/*` | `claudriel:day-brief` | `docs/specs/day-brief.md` |
 | `src/Support/*` | `claudriel:day-brief` | `docs/specs/infrastructure.md` |
+| `src/Domain/Memory/*` | — | `docs/specs/memory.md` |
 | `src/Domain/Chat/*` | `claudriel:chat` | `docs/specs/chat.md` |
 | `src/Entity/Chat*.php` | `claudriel:chat` | `docs/specs/chat.md` |
 | `src/Controller/Chat*.php` | `claudriel:chat` | `docs/specs/chat.md` |
 | `src/Controller/InternalGoogle*` | `claudriel:chat` | `docs/specs/agent-subprocess.md` |
 | `agent/*` | `claudriel:chat` | `docs/specs/agent-subprocess.md` |
+| `src/Domain/Agent/*` | `claudriel:chat` | `docs/specs/agent-subprocess.md` |
 | `src/Domain/CodeTask/*` | — | `docs/specs/web-cli.md` |
+| `src/Domain/Git/*` | — | `docs/specs/web-cli.md` |
 | `src/Domain/Pipeline/*` | `claudriel` | `docs/specs/pipeline.md` |
 | `src/Controller/Pipeline/*` | `claudriel` | `docs/specs/pipeline.md` |
 | `src/Entity/Prospect*.php`, `src/Entity/FilteredProspect.php`, `src/Entity/PipelineConfig.php` | `claudriel` | `docs/specs/pipeline.md` |
+| `src/Domain/Infrastructure/*` | — | `docs/specs/infrastructure.md` |
+| `src/Domain/Project/*` | — | `docs/specs/entity.md` |
+| `src/Domain/Schedule/*` | — | `docs/specs/entity.md` |
+| `src/Domain/Workspace/*` | — | `docs/specs/entity.md` |
 | `src/Controller/*, src/Command/*` | — | `docs/specs/web-cli.md` |
 | `src/Provider/*` | — | `docs/specs/infrastructure.md` |
 | `src/Entity/*`, `src/Provider/*`, `src/Access/*` | `waaseyaa-app-development` | `docs/specs/entity.md` |
 | `src/Controller/*`, `src/Routing/*` | `waaseyaa-app-development` | — |
+| `frontend/admin/**` | — | `docs/specs/admin-spa.md` |
+| `templates/**` | — | `docs/specs/web-cli.md` |
 | GitHub issues, milestones, new features, roadmap | — | `docs/specs/workflow.md` |
+| `docs/specs/**`, `.claude/**`, `**/CLAUDE.md` | `updating-codified-context` | — |
 
 ## Common Operations
 

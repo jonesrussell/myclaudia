@@ -16,6 +16,15 @@ declare -A FILE_TO_SPEC=(
   ["src/Ingestion"]="docs/specs/ingestion.md"
   ["src/Pipeline"]="docs/specs/pipeline.md"
   ["src/DayBrief"]="docs/specs/day-brief.md"
+  ["src/Domain/DayBrief"]="docs/specs/day-brief.md"
+  ["src/Domain/Memory"]="docs/specs/memory.md"
+  ["src/Domain/Pipeline"]="docs/specs/pipeline.md"
+  ["src/Domain/Agent"]="docs/specs/agent-subprocess.md"
+  ["src/Domain/Git"]="docs/specs/web-cli.md"
+  ["src/Domain/Infrastructure"]="docs/specs/infrastructure.md"
+  ["src/Domain/Project"]="docs/specs/entity.md"
+  ["src/Domain/Schedule"]="docs/specs/entity.md"
+  ["src/Domain/Workspace"]="docs/specs/entity.md"
   ["src/Support"]="docs/specs/infrastructure.md"
   ["src/Provider"]="docs/specs/infrastructure.md"
   ["agent/tools"]="docs/specs/agent-subprocess.md"
@@ -23,6 +32,8 @@ declare -A FILE_TO_SPEC=(
   ["src/Domain/CodeTask"]="docs/specs/web-cli.md"
   ["src/Controller"]="docs/specs/web-cli.md"
   ["src/Command"]="docs/specs/web-cli.md"
+  ["frontend/admin"]="docs/specs/admin-spa.md"
+  ["templates"]="docs/specs/web-cli.md"
 )
 
 declare -A FLAGGED_SPECS=()
