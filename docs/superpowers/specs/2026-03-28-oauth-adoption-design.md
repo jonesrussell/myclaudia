@@ -7,7 +7,7 @@
 
 ## Summary
 
-Build the `waaseyaa/oauth-provider` package (per its existing spec), then refactor Claudriel to use it. Replace `GoogleOAuthController` with a unified `OAuthController` that handles both Google and GitHub OAuth via `ProviderRegistry`. Replace `GoogleTokenManager` with a provider-agnostic `OAuthTokenManager`. Add GitHub OAuth as a new capability (both sign-in and connect flows).
+Build the `waaseyaa/oauth-provider` package (per its existing spec), then refactor Claudriel to use it. Replace `GoogleOAuthController` and `GitHubOAuthController` with a unified `OAuthController` that handles both providers via `ProviderRegistry`. Replace `GoogleTokenManager` and `GitHubTokenManager` with a provider-agnostic `OAuthTokenManager`. Add GitHub sign-in as a new flow (GitHub connect already exists).
 
 ## Scope
 
@@ -28,7 +28,7 @@ Build per the validated spec at `docs/superpowers/specs/2026-03-28-oauth-provide
 
 #### Unified OAuthController
 
-Replace `GoogleOAuthController` with `OAuthController`. Four route-facing methods, all provider-agnostic:
+Replace both `GoogleOAuthController` and `GitHubOAuthController` with a single `OAuthController`. Four route-facing methods, all provider-agnostic:
 
 | Route | Method | Purpose |
 |---|---|---|
@@ -43,25 +43,26 @@ Replace `GoogleOAuthController` with `OAuthController`. Four route-facing method
 |---|---|---|---|
 | google | connect | userinfo.email, gmail.readonly, gmail.send, calendar.readonly, calendar.events, calendar.calendarlist.readonly, calendar.freebusy, drive.file | `GOOGLE_REDIRECT_URI` |
 | google | signin | openid, userinfo.email, userinfo.profile | `GOOGLE_SIGNIN_REDIRECT_URI` |
-| github | connect | repo, user:email, read:user | `GITHUB_REDIRECT_URI` |
+| github | connect | repo, notifications, read:org | `GITHUB_REDIRECT_URI` |
 | github | signin | user:email, read:user | `GITHUB_SIGNIN_REDIRECT_URI` |
 
 **Constructor dependencies:**
-- `ProviderRegistry`
-- `OAuthStateManager`
-- `EntityTypeManager`
-- `PublicAccountSignupService`
+- `ProviderRegistry` (from package)
+- `OAuthStateManager` (from package)
+- `EntityTypeManager` (for integration upsert)
+- `PublicAccountSignupService` (for sign-in account creation)
 
 **Key behaviors:**
-- State validation via `OAuthStateManager` (replaces manual `$_SESSION` state handling)
-- `upsertIntegration()` generalized to accept provider name
+- State validation via `OAuthStateManager` (replaces manual `$_SESSION` state handling in both controllers)
+- `upsertIntegration()` generalized to accept provider name, handles both Google (refresh token, expiry) and GitHub (no refresh token, no expiry) patterns
 - Sign-in callback uses `PublicAccountSignupService::createFromOAuth()` (generalized from `createFromGoogle()`)
 - Session regeneration + CSRF regeneration preserved on sign-in
 - All OAuth protocol logic (URL building, token exchange, user profile fetch) delegated to package providers
+- GitHub scope separator is comma (not space like Google); the package handles this per-provider
 
 #### OAuthTokenManager
 
-Replace `GoogleTokenManager` with provider-agnostic `OAuthTokenManager`.
+Replace both `GoogleTokenManager` and `GitHubTokenManager` with a single provider-agnostic `OAuthTokenManager`.
 
 **Interface:**
 ```php
@@ -69,20 +70,27 @@ interface OAuthTokenManagerInterface
 {
     public function getValidAccessToken(string $accountId, string $provider = 'google'): string;
     public function hasActiveIntegration(string $accountId, string $provider = 'google'): bool;
+    public function markRevoked(string $accountId, string $provider): void;
 }
 ```
 
+Note: `markRevoked()` is preserved from `GitHubTokenManagerInterface`. It works for any provider.
+
 **Implementation:**
-- Constructor takes `EntityTypeManager` + `ProviderRegistry` (no more `$clientId`/`$clientSecret`)
-- `refreshAccessToken()` calls `$this->providerRegistry->get($provider)->refreshToken($refreshToken)`
-- Returns `OAuthToken` value object, maps onto integration entity fields
-- GitHub tokens don't expire (`expiresAt = null`), so refresh is skipped entirely
+- Constructor takes `EntityRepositoryInterface` (for integration entity) + `ProviderRegistry`
+- Uses `EntityRepositoryInterface::findBy()` consistently (not `EntityTypeManager::getStorage()`, resolving the current Google/GitHub inconsistency)
+- For providers with token expiry (Google): checks `token_expires_at`, calls `$this->providerRegistry->get($provider)->refreshToken($refreshToken)` when expired
+- For providers without expiry (GitHub): returns access token directly, no refresh attempt
+- Returns `OAuthToken` value object from refresh, maps onto integration entity fields
 - Integration marked `status=error` on refresh failure (preserved behavior)
+- Checks for `status=revoked` and gives specific error message (preserved from `GitHubTokenManager`)
 - `parseHttpStatusCode()` deleted (package handles HTTP errors)
 
 **Consumer impact:**
-- `ChatServiceProvider` wires `OAuthTokenManager` instead of `GoogleTokenManager`
-- `GoogleApiTrait` and agent tools call `getValidAccessToken($accountId, 'google')` (default param, backward compatible)
+- `ChatServiceProvider` wires `OAuthTokenManager` instead of both `GoogleTokenManager` and `GitHubTokenManager`
+- `GoogleApiTrait` calls `getValidAccessToken($accountId, 'google')` (default param, zero changes needed)
+- GitHub agent tools call `getValidAccessToken($accountId, 'github')`
+- `markRevoked()` callers updated to pass provider name
 
 #### NativeSessionAdapter
 
@@ -97,23 +105,36 @@ class NativeSessionAdapter implements SessionInterface
 }
 ```
 
-#### Service Wiring (ClaudrielServiceProvider)
+#### Service Wiring
 
-- Build `GoogleOAuthProvider` and `GitHubOAuthProvider` from env vars
-- Register both in `ProviderRegistry`
+**AccountServiceProvider** (where OAuth routes currently live):
+- Route registration updated to point to `OAuthController` with new URL patterns
+- Old routes removed, new `/oauth/{provider}/*` routes added
+
+**ChatServiceProvider** (where token managers are wired):
+- Replace `GoogleTokenManagerInterface` singleton with `OAuthTokenManagerInterface`
+- Replace `GitHubTokenManagerInterface` singleton with same `OAuthTokenManagerInterface` instance
+- Build `ProviderRegistry` with both providers from env vars
 - Register `OAuthStateManager` with `NativeSessionAdapter`
-- Register `OAuthController` as singleton (ambiguous constructor types)
-- Validate new env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI`, `GITHUB_SIGNIN_REDIRECT_URI`
+- Register `OAuthController` as singleton
+
+**ClaudrielServiceProvider**:
+- Add `GITHUB_SIGNIN_REDIRECT_URI` to env var validation (other GitHub env vars already validated)
+- Remove Google env var validation if moved to ChatServiceProvider (or keep, depending on where providers are built)
 
 #### PublicAccountSignupService
 
-Generalize `createFromGoogle()` to `createFromOAuth(string $provider, string $email, string $name)`. Provider-specific methods (`createFromGoogle()`, `createFromGitHub()`) delegate to it.
+Generalize `createFromGoogle()` to `createFromOAuth(string $provider, string $email, string $name)`. The existing `createFromGoogle()` method delegates to it for backward compatibility.
 
 #### Route Changes
 
 Old routes removed:
-- `/auth/google/redirect`, `/auth/google/callback`
-- `/auth/google/signin`, `/auth/google/signin/callback`
+- `/auth/google` (connect redirect)
+- `/auth/google/callback`
+- `/auth/google/signin`
+- `/auth/google/signin/callback`
+- `/github/connect`
+- `/github/callback`
 
 New routes:
 - `/oauth/google/connect`, `/oauth/google/connect/callback`
@@ -123,16 +144,16 @@ New routes:
 
 #### Integration Entity
 
-No schema changes. GitHub integrations stored with `provider = 'github'`, `token_expires_at = null`, `refresh_token = null`.
+No schema changes. GitHub integrations already stored with `provider = 'github'`, `token_expires_at = null`, `refresh_token = null`.
 
 ## New Environment Variables
 
-| Variable | Purpose |
-|---|---|
-| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret |
-| `GITHUB_REDIRECT_URI` | Callback URL for GitHub connect flow |
-| `GITHUB_SIGNIN_REDIRECT_URI` | Callback URL for GitHub sign-in flow |
+| Variable | Purpose | Status |
+|---|---|---|
+| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID | Already exists |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app client secret | Already exists |
+| `GITHUB_REDIRECT_URI` | Callback URL for GitHub connect flow | Already exists |
+| `GITHUB_SIGNIN_REDIRECT_URI` | Callback URL for GitHub sign-in flow | **New** |
 
 Existing Google env vars unchanged.
 
@@ -140,9 +161,14 @@ Existing Google env vars unchanged.
 
 ### Deleted
 - `src/Controller/GoogleOAuthController.php`
+- `src/Controller/GitHubOAuthController.php`
 - `src/Support/GoogleTokenManager.php`
 - `src/Support/GoogleTokenManagerInterface.php`
+- `src/Support/GitHubTokenManager.php`
+- `src/Support/GitHubTokenManagerInterface.php`
 - `tests/Unit/Support/GoogleTokenManagerTest.php`
+- `tests/Unit/Support/GitHubTokenManagerTest.php`
+- `tests/Unit/Controller/GitHubOAuthControllerTest.php`
 
 ### New
 - `src/Controller/OAuthController.php`
@@ -154,15 +180,16 @@ Existing Google env vars unchanged.
 
 ### Modified
 - `composer.json` (add `waaseyaa/oauth-provider`)
-- `src/Provider/ClaudrielServiceProvider.php` (provider registration, route changes, env validation)
-- `src/Provider/ChatServiceProvider.php` (wire `OAuthTokenManager`)
+- `src/Provider/AccountServiceProvider.php` (route changes)
+- `src/Provider/ChatServiceProvider.php` (wire `OAuthTokenManager`, `ProviderRegistry`, `OAuthStateManager`)
+- `src/Provider/ClaudrielServiceProvider.php` (env validation update)
 - `src/Service/PublicAccountSignupService.php` (add `createFromOAuth()`)
 - `CLAUDE.md` (update gotchas, env vars, route references)
 
 ## Testing Strategy
 
 - `OAuthControllerTest`: mock `ProviderRegistry`, `OAuthStateManager`, `EntityTypeManager` to test all four flows (connect/signin x google/github), error paths (denied auth, invalid state, failed exchange), upsert logic
-- `OAuthTokenManagerTest`: mock `ProviderRegistry` to test refresh path (Google), no-refresh path (GitHub), expired token detection, error-status marking
+- `OAuthTokenManagerTest`: mock `EntityRepositoryInterface` and `ProviderRegistry` to test refresh path (Google), no-refresh path (GitHub), expired token detection, revoked integration detection, error-status marking
 - Package tests built separately per package spec
 
 ## Error Handling
@@ -170,4 +197,5 @@ Existing Google env vars unchanged.
 - Package exceptions propagate through controller (invalid code, network failure, insufficient scopes)
 - Controller catches provider errors and sets flash messages for user-facing flows
 - `OAuthTokenManager` marks integration `status=error` on refresh failure (preserved from `GoogleTokenManager`)
+- `OAuthTokenManager` checks for `status=revoked` with specific error message (preserved from `GitHubTokenManager`)
 - GitHub `refreshToken()` throws `UnsupportedOperationException`, never called (token expiry check gates it)
