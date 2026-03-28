@@ -1,7 +1,7 @@
 # Google OAuth Scopes
 
 Scopes requested during the Google OAuth consent flow, as defined in
-`src/Controller/GoogleOAuthController.php` constant `SCOPES`.
+`src/Controller/OAuthController.php` constant `SCOPES`.
 
 ## Scope Reference
 
@@ -25,16 +25,16 @@ Scopes requested during the Google OAuth consent flow, as defined in
 
 ## Token Lifecycle
 
-1. User clicks "Connect Google" in the app shell.
-2. `GoogleOAuthController::redirect()` builds the authorization URL with all scopes.
-3. Google returns an authorization code to `GoogleOAuthController::callback()`.
+1. User clicks "Connect Google" in the app shell (routes to `/oauth/google/connect`).
+2. `OAuthController::redirect()` builds the authorization URL with all scopes.
+3. Google returns an authorization code to `OAuthController::callback()`.
 4. The controller exchanges the code for access + refresh tokens via Google's token endpoint.
 5. Tokens are upserted into an `Integration` entity linked to the authenticated account.
-6. `GoogleTokenManager` handles token refresh when the access token expires.
+6. `OAuthTokenManager` handles token refresh when the access token expires.
 
 ## Internal API Consumption
 
-The agent subprocess accesses Google APIs via internal routes that use `GoogleTokenManager`
+The agent subprocess accesses Google APIs via internal routes that use `OAuthTokenManager`
 to resolve valid tokens:
 
 | Route | Scopes Used |

@@ -16,7 +16,7 @@ Browser → ChatStreamController (PHP)
            ↓ tool calls → agent/tools/*.py
            ↓ tools call → PHP internal API (HMAC Bearer)
          InternalGoogleController (PHP)
-           ↓ GoogleTokenManager → Google APIs
+           ↓ OAuthTokenManager → Google APIs
 ```
 
 ## Contract: PHP → Python (stdin)

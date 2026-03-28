@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Claudriel\Domain\Chat\Tool;
 
 use Claudriel\Domain\Chat\AgentToolInterface;
-use Claudriel\Support\GoogleTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 
 final class GmailReadTool implements AgentToolInterface
 {
     use GoogleApiTrait;
 
     public function __construct(
-        private readonly GoogleTokenManagerInterface $tokenManager,
+        private readonly OAuthTokenManagerInterface $tokenManager,
         private readonly string $accountId,
     ) {}
 

@@ -6,7 +6,7 @@ namespace Claudriel\Tests\Unit\Controller;
 
 use Claudriel\Controller\InternalGoogleController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
-use Claudriel\Support\GoogleTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -85,7 +85,7 @@ final class InternalGoogleControllerTest extends TestCase
 
     public function test_returns_503_when_no_google_integration(): void
     {
-        $tokenManager = $this->createMock(GoogleTokenManagerInterface::class);
+        $tokenManager = $this->createMock(OAuthTokenManagerInterface::class);
         $tokenManager->method('getValidAccessToken')
             ->willThrowException(new \RuntimeException('No active Google integration for account acct-123'));
 
@@ -294,7 +294,7 @@ final class InternalGoogleControllerTest extends TestCase
 
     private function controller(?InternalApiTokenGenerator $tokenGenerator = null): InternalGoogleController
     {
-        $tokenManager = $this->createMock(GoogleTokenManagerInterface::class);
+        $tokenManager = $this->createMock(OAuthTokenManagerInterface::class);
         $tokenManager->method('getValidAccessToken')->willReturn('mock-google-access-token');
 
         return new InternalGoogleController($tokenManager, $tokenGenerator ?? $this->tokenGenerator);

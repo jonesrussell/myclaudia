@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Claudriel\Provider;
 
-use Claudriel\Controller\GitHubOAuthController;
-use Claudriel\Controller\GoogleOAuthController;
+use Claudriel\Controller\OAuthController;
 use Claudriel\Controller\PublicAccountController;
 use Claudriel\Controller\PublicPasswordResetController;
 use Claudriel\Controller\PublicSessionController;
@@ -256,58 +255,40 @@ final class AccountServiceProvider extends ServiceProvider
                 ->build(),
         );
 
-        // Google OAuth
+        // OAuth connect (link provider to existing account)
         $router->addRoute(
-            'claudriel.auth.google.redirect',
-            RouteBuilder::create('/auth/google')
-                ->controller(GoogleOAuthController::class.'::redirect')
+            'claudriel.oauth.connect',
+            RouteBuilder::create('/oauth/{provider}/connect')
+                ->controller(OAuthController::class.'::connect')
                 ->allowAll()
                 ->methods('GET')
                 ->build(),
         );
 
-        $googleCallbackRoute = RouteBuilder::create('/auth/google/callback')
-            ->controller(GoogleOAuthController::class.'::callback')
+        $connectCallbackRoute = RouteBuilder::create('/oauth/{provider}/connect/callback')
+            ->controller(OAuthController::class.'::connectCallback')
             ->allowAll()
             ->methods('GET')
             ->build();
-        $googleCallbackRoute->setOption('_csrf', false);
-        $router->addRoute('claudriel.auth.google.callback', $googleCallbackRoute);
+        $connectCallbackRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.oauth.connect.callback', $connectCallbackRoute);
 
-        // Google OAuth Sign-In (identity only, no service scopes)
+        // OAuth sign-in (authenticate/create account via provider)
         $router->addRoute(
-            'claudriel.auth.google.signin',
-            RouteBuilder::create('/auth/google/signin')
-                ->controller(GoogleOAuthController::class.'::signin')
+            'claudriel.oauth.signin',
+            RouteBuilder::create('/oauth/{provider}/signin')
+                ->controller(OAuthController::class.'::signin')
                 ->allowAll()
                 ->methods('GET')
                 ->build(),
         );
 
-        $googleSigninCallbackRoute = RouteBuilder::create('/auth/google/signin/callback')
-            ->controller(GoogleOAuthController::class.'::signinCallback')
+        $signinCallbackRoute = RouteBuilder::create('/oauth/{provider}/signin/callback')
+            ->controller(OAuthController::class.'::signinCallback')
             ->allowAll()
             ->methods('GET')
             ->build();
-        $googleSigninCallbackRoute->setOption('_csrf', false);
-        $router->addRoute('claudriel.auth.google.signin.callback', $googleSigninCallbackRoute);
-
-        // GitHub OAuth
-        $router->addRoute(
-            'claudriel.auth.github.connect',
-            RouteBuilder::create('/github/connect')
-                ->controller(GitHubOAuthController::class.'::connect')
-                ->allowAll()
-                ->methods('GET')
-                ->build(),
-        );
-
-        $githubCallbackRoute = RouteBuilder::create('/github/callback')
-            ->controller(GitHubOAuthController::class.'::callback')
-            ->allowAll()
-            ->methods('GET')
-            ->build();
-        $githubCallbackRoute->setOption('_csrf', false);
-        $router->addRoute('claudriel.auth.github.callback', $githubCallbackRoute);
+        $signinCallbackRoute->setOption('_csrf', false);
+        $router->addRoute('claudriel.oauth.signin.callback', $signinCallbackRoute);
     }
 }

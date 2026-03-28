@@ -10,20 +10,26 @@ use Claudriel\Controller\ContextController;
 use Claudriel\Controller\InternalGithubController;
 use Claudriel\Controller\InternalGoogleController;
 use Claudriel\Controller\InternalSessionController;
+use Claudriel\Controller\OAuthController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
 use Claudriel\Domain\IssueOrchestrator;
 use Claudriel\Domain\Memory\RehearsalService;
 use Claudriel\Entity\ChatMessage;
 use Claudriel\Entity\ChatSession;
 use Claudriel\Entity\ChatTokenUsage;
-use Claudriel\Support\GitHubTokenManager;
-use Claudriel\Support\GitHubTokenManagerInterface;
-use Claudriel\Support\GoogleTokenManager;
-use Claudriel\Support\GoogleTokenManagerInterface;
+use Claudriel\Service\PublicAccountSignupService;
+use Claudriel\Support\NativeSessionAdapter;
+use Claudriel\Support\OAuthTokenManager;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Claudriel\Support\StorageRepositoryAdapter;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Entity\EntityTypeManager;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
+use Waaseyaa\HttpClient\StreamHttpClient;
+use Waaseyaa\OAuthProvider\OAuthStateManager;
+use Waaseyaa\OAuthProvider\Provider\GitHubOAuthProvider;
+use Waaseyaa\OAuthProvider\Provider\GoogleOAuthProvider;
+use Waaseyaa\OAuthProvider\ProviderRegistry;
 use Waaseyaa\Routing\RouteBuilder;
 use Waaseyaa\Routing\WaaseyaaRouter;
 
@@ -94,14 +100,56 @@ final class ChatServiceProvider extends ServiceProvider
             ],
         ));
 
-        $this->singleton(GoogleTokenManagerInterface::class, function () {
-            $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
-            $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+        $this->singleton(ProviderRegistry::class, function () {
+            $httpClient = new StreamHttpClient;
+            $registry = new ProviderRegistry;
 
-            return new GoogleTokenManager(
-                $this->resolve(EntityTypeManager::class),
-                $clientId,
-                $clientSecret,
+            $googleClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
+            $googleClientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+
+            $googleRedirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? getenv('GOOGLE_REDIRECT_URI') ?: '';
+            $registry->register('google', new GoogleOAuthProvider(
+                $googleClientId, $googleClientSecret, $googleRedirectUri, $httpClient,
+            ));
+
+            $googleSigninRedirectUri = $_ENV['GOOGLE_SIGNIN_REDIRECT_URI'] ?? getenv('GOOGLE_SIGNIN_REDIRECT_URI') ?: '';
+            $registry->register('google-signin', new GoogleOAuthProvider(
+                $googleClientId, $googleClientSecret, $googleSigninRedirectUri, $httpClient,
+            ));
+
+            $githubClientId = $_ENV['GITHUB_CLIENT_ID'] ?? getenv('GITHUB_CLIENT_ID') ?: '';
+            $githubClientSecret = $_ENV['GITHUB_CLIENT_SECRET'] ?? getenv('GITHUB_CLIENT_SECRET') ?: '';
+
+            $githubRedirectUri = $_ENV['GITHUB_REDIRECT_URI'] ?? getenv('GITHUB_REDIRECT_URI') ?: '';
+            $registry->register('github', new GitHubOAuthProvider(
+                $githubClientId, $githubClientSecret, $githubRedirectUri, $httpClient,
+            ));
+
+            $githubSigninRedirectUri = $_ENV['GITHUB_SIGNIN_REDIRECT_URI'] ?? getenv('GITHUB_SIGNIN_REDIRECT_URI') ?: '';
+            $registry->register('github-signin', new GitHubOAuthProvider(
+                $githubClientId, $githubClientSecret, $githubSigninRedirectUri, $httpClient,
+            ));
+
+            return $registry;
+        });
+
+        $this->singleton(OAuthTokenManagerInterface::class, function () {
+            $integrationStorage = $this->resolve(EntityTypeManager::class)->getStorage('integration');
+            $integrationRepo = new StorageRepositoryAdapter($integrationStorage);
+
+            return new OAuthTokenManager(
+                $integrationRepo,
+                $this->resolve(ProviderRegistry::class),
+            );
+        });
+
+        $this->singleton(OAuthController::class, function () {
+            return new OAuthController(
+                providerRegistry: $this->resolve(ProviderRegistry::class),
+                stateManager: new OAuthStateManager,
+                entityTypeManager: $this->resolve(EntityTypeManager::class),
+                signupService: new PublicAccountSignupService($this->resolve(EntityTypeManager::class)),
+                session: new NativeSessionAdapter,
             );
         });
 
@@ -133,22 +181,14 @@ final class ChatServiceProvider extends ServiceProvider
 
         $this->singleton(InternalGoogleController::class, function () {
             return new InternalGoogleController(
-                $this->resolve(GoogleTokenManagerInterface::class),
+                $this->resolve(OAuthTokenManagerInterface::class),
                 $this->resolve(InternalApiTokenGenerator::class),
-            );
-        });
-
-        $this->singleton(GitHubTokenManagerInterface::class, function () {
-            $integrationStorage = $this->resolve(EntityTypeManager::class)->getStorage('integration');
-
-            return new GitHubTokenManager(
-                new StorageRepositoryAdapter($integrationStorage),
             );
         });
 
         $this->singleton(InternalGithubController::class, function () {
             return new InternalGithubController(
-                $this->resolve(GitHubTokenManagerInterface::class),
+                $this->resolve(OAuthTokenManagerInterface::class),
                 $this->resolve(InternalApiTokenGenerator::class),
             );
         });

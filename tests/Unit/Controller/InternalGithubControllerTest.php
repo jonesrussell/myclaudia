@@ -6,7 +6,7 @@ namespace Claudriel\Tests\Unit\Controller;
 
 use Claudriel\Controller\InternalGithubController;
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
-use Claudriel\Support\GitHubTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -53,7 +53,7 @@ final class InternalGithubControllerTest extends TestCase
 
     public function test_returns_503_when_no_github_integration(): void
     {
-        $tokenManager = $this->createMock(GitHubTokenManagerInterface::class);
+        $tokenManager = $this->createMock(OAuthTokenManagerInterface::class);
         $tokenManager->method('getValidAccessToken')
             ->willThrowException(new \RuntimeException('No active GitHub integration for account acct-123'));
 
@@ -311,7 +311,7 @@ final class InternalGithubControllerTest extends TestCase
 
     private function controller(?InternalApiTokenGenerator $tokenGenerator = null): InternalGithubController
     {
-        $tokenManager = $this->createMock(GitHubTokenManagerInterface::class);
+        $tokenManager = $this->createMock(OAuthTokenManagerInterface::class);
         $tokenManager->method('getValidAccessToken')->willReturn('mock-github-access-token');
 
         return new InternalGithubController($tokenManager, $tokenGenerator ?? $this->tokenGenerator);

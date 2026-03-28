@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
-use Claudriel\Support\GoogleTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\SSR\SsrResponse;
@@ -13,7 +13,7 @@ use Waaseyaa\SSR\SsrResponse;
 final class InternalGoogleController
 {
     public function __construct(
-        private readonly GoogleTokenManagerInterface $tokenManager,
+        private readonly OAuthTokenManagerInterface $tokenManager,
         private readonly InternalApiTokenGenerator $apiTokenGenerator,
     ) {}
 

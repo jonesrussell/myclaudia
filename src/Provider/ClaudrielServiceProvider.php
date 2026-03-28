@@ -71,7 +71,7 @@ use Claudriel\Ingestion\GitHubNotificationNormalizer;
 use Claudriel\Routing\AccountSessionMiddleware;
 use Claudriel\Support\AutomatedSenderDetector;
 use Claudriel\Support\DriftDetector;
-use Claudriel\Support\GitHubTokenManager;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Claudriel\Support\StorageRepositoryAdapter;
 use GraphQL\Type\Definition\Type;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -102,6 +102,7 @@ final class ClaudrielServiceProvider extends ServiceProvider
             'GOOGLE_CLIENT_ID' => 'Google OAuth client ID',
             'GOOGLE_CLIENT_SECRET' => 'Google OAuth client secret',
             'GOOGLE_REDIRECT_URI' => 'Google OAuth redirect URI',
+            'GITHUB_SIGNIN_REDIRECT_URI' => 'GitHub OAuth sign-in redirect URI',
         ];
 
         $missing = [];
@@ -742,9 +743,9 @@ final class ClaudrielServiceProvider extends ServiceProvider
         $githubClientId = $_ENV['GITHUB_CLIENT_ID'] ?? getenv('GITHUB_CLIENT_ID') ?: '';
         if ($githubClientId !== '') {
             $integrationRepo = new StorageRepositoryAdapter($entityTypeManager->getStorage('integration'));
-            $githubTokenManager = new GitHubTokenManager($integrationRepo);
+            $oauthTokenManager = $this->resolve(OAuthTokenManagerInterface::class);
             $commands[] = new GitHubSyncCommand(
-                $githubTokenManager,
+                $oauthTokenManager,
                 new EventHandler($eventRepo, $personRepo, new EventCategorizer(new AutomatedSenderDetector, $personRepo)),
                 new GitHubNotificationNormalizer,
                 $integrationRepo,

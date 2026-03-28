@@ -7,7 +7,7 @@ namespace Claudriel\Command;
 use Claudriel\Entity\Integration;
 use Claudriel\Ingestion\EventHandler;
 use Claudriel\Ingestion\GitHubNotificationNormalizer;
-use Claudriel\Support\GitHubTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,7 +18,7 @@ use Waaseyaa\Entity\Repository\EntityRepositoryInterface;
 final class GitHubSyncCommand extends Command
 {
     public function __construct(
-        private readonly GitHubTokenManagerInterface $tokenManager,
+        private readonly OAuthTokenManagerInterface $tokenManager,
         private readonly EventHandler $eventHandler,
         private readonly GitHubNotificationNormalizer $normalizer,
         private readonly EntityRepositoryInterface $integrationRepo,
@@ -39,7 +39,7 @@ final class GitHubSyncCommand extends Command
         $totalCreated = 0;
         foreach ($accounts as $accountId) {
             try {
-                $token = $this->tokenManager->getValidAccessToken($accountId);
+                $token = $this->tokenManager->getValidAccessToken($accountId, 'github');
             } catch (\RuntimeException $e) {
                 $output->writeln("<comment>Skipping account {$accountId}: {$e->getMessage()}</comment>");
 
@@ -106,7 +106,7 @@ final class GitHubSyncCommand extends Command
         /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
-            $this->tokenManager->markRevoked($accountId);
+            $this->tokenManager->markRevoked($accountId, 'github');
 
             return null;
         }

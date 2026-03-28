@@ -34,8 +34,7 @@ use Claudriel\Routing\RequestScopeViolation;
 use Claudriel\Routing\TenantWorkspaceResolver;
 use Claudriel\Support\AuthenticatedAccountSessionResolver;
 use Claudriel\Support\DriftDetector;
-use Claudriel\Support\GoogleTokenManager;
-use Claudriel\Support\GoogleTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Claudriel\Support\StorageRepositoryAdapter;
 use Claudriel\Temporal\TemporalContextFactory;
 use Claudriel\Temporal\TimeSnapshot;
@@ -62,6 +61,7 @@ final class ChatStreamController
         private readonly mixed $agentClientFactory = null,
         private readonly ?IssueOrchestrator $orchestrator = null,
         private readonly ?RehearsalService $rehearsalService = null,
+        private readonly ?OAuthTokenManagerInterface $oauthTokenManager = null,
     ) {}
 
     /**
@@ -481,9 +481,9 @@ final class ChatStreamController
     {
         $tools = [];
 
-        // Google tools (Gmail + Calendar) — requires GoogleTokenManager
+        // Google tools (Gmail + Calendar) — requires OAuthTokenManager
         try {
-            $tokenManager = $this->resolveGoogleTokenManager();
+            $tokenManager = $this->resolveOAuthTokenManager();
             if ($tokenManager !== null) {
                 $tools[] = new GmailListTool($tokenManager, $accountId);
                 $tools[] = new GmailReadTool($tokenManager, $accountId);
@@ -565,8 +565,12 @@ final class ChatStreamController
         return $tools;
     }
 
-    private function resolveGoogleTokenManager(): ?GoogleTokenManagerInterface
+    private function resolveOAuthTokenManager(): ?OAuthTokenManagerInterface
     {
+        if ($this->oauthTokenManager !== null) {
+            return $this->oauthTokenManager;
+        }
+
         $clientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?: '';
         $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
 
@@ -574,11 +578,7 @@ final class ChatStreamController
             return null;
         }
 
-        return new GoogleTokenManager(
-            $this->entityTypeManager,
-            $clientId,
-            $clientSecret,
-        );
+        return null;
     }
 
     private function generateUuid(): string

@@ -10,7 +10,7 @@ use Claudriel\Entity\McEvent;
 use Claudriel\Entity\Person;
 use Claudriel\Ingestion\EventHandler;
 use Claudriel\Ingestion\GitHubNotificationNormalizer;
-use Claudriel\Support\GitHubTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -53,7 +53,7 @@ final class GitHubSyncCommandTest extends TestCase
         $integrationRepo = $this->createMock(EntityRepositoryInterface::class);
         $integrationRepo->method('findBy')->willReturn([$integration]);
 
-        $tokenManager = $this->createMock(GitHubTokenManagerInterface::class);
+        $tokenManager = $this->createMock(OAuthTokenManagerInterface::class);
         $tokenManager->method('getValidAccessToken')
             ->willThrowException(new \RuntimeException('GitHub integration has been revoked'));
 
@@ -67,10 +67,10 @@ final class GitHubSyncCommandTest extends TestCase
     }
 
     private function buildCommand(
-        ?GitHubTokenManagerInterface $tokenManager = null,
+        ?OAuthTokenManagerInterface $tokenManager = null,
         ?EntityRepositoryInterface $integrationRepo = null,
     ): GitHubSyncCommand {
-        $tokenManager ??= $this->createMock(GitHubTokenManagerInterface::class);
+        $tokenManager ??= $this->createMock(OAuthTokenManagerInterface::class);
         $dispatcher = new EventDispatcher;
 
         $eventRepo = new EntityRepository(

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Claudriel\Controller;
 
 use Claudriel\Domain\Chat\InternalApiTokenGenerator;
-use Claudriel\Support\GitHubTokenManagerInterface;
+use Claudriel\Support\OAuthTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Waaseyaa\Access\AccountInterface;
 use Waaseyaa\SSR\SsrResponse;
@@ -13,7 +13,7 @@ use Waaseyaa\SSR\SsrResponse;
 final class InternalGithubController
 {
     public function __construct(
-        private readonly GitHubTokenManagerInterface $tokenManager,
+        private readonly OAuthTokenManagerInterface $tokenManager,
         private readonly InternalApiTokenGenerator $apiTokenGenerator,
     ) {}
 
@@ -25,7 +25,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -46,7 +46,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -78,7 +78,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -105,7 +105,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -131,7 +131,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -158,7 +158,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -202,7 +202,7 @@ final class InternalGithubController
         }
 
         try {
-            $accessToken = $this->tokenManager->getValidAccessToken($accountId);
+            $accessToken = $this->tokenManager->getValidAccessToken($accountId, 'github');
         } catch (\RuntimeException $e) {
             return $this->jsonError($e->getMessage(), 503);
         }
@@ -266,7 +266,7 @@ final class InternalGithubController
         /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
-            $this->tokenManager->markRevoked($accountId);
+            $this->tokenManager->markRevoked($accountId, 'github');
 
             return ['error' => 'GitHub token revoked', 'status' => 401];
         }
@@ -297,7 +297,7 @@ final class InternalGithubController
         /** @phpstan-ignore nullCoalesce.variable */
         $statusCode = $this->parseHttpStatusCode($http_response_header ?? []);
         if ($statusCode === 401) {
-            $this->tokenManager->markRevoked($accountId);
+            $this->tokenManager->markRevoked($accountId, 'github');
 
             return ['error' => 'GitHub token revoked', 'status' => 401];
         }

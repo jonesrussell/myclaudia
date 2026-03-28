@@ -32,7 +32,7 @@
       {% if google_connected %}
         <button id="google-disconnect-btn" onclick="confirmDisconnect('google')" style="padding: 8px 16px; background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); border-radius: 6px; cursor: pointer; font-size: 13px;">Disconnect</button>
       {% else %}
-        <a href="/auth/google" style="padding: 8px 16px; background: var(--accent-blue); color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px;">Connect</a>
+        <a href="/oauth/google/connect" style="padding: 8px 16px; background: var(--accent-blue); color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px;">Connect</a>
       {% endif %}
     </div>
 
@@ -52,7 +52,7 @@
       {% if github_connected %}
         <button id="github-disconnect-btn" onclick="confirmDisconnect('github')" style="padding: 8px 16px; background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); border-radius: 6px; cursor: pointer; font-size: 13px;">Disconnect</button>
       {% else %}
-        <a href="/github/connect" style="padding: 8px 16px; background: #24292f; color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px;">Connect</a>
+        <a href="/oauth/github/connect" style="padding: 8px 16px; background: #24292f; color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px;">Connect</a>
       {% endif %}
     </div>
   </section>

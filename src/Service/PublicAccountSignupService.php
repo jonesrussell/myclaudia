@@ -133,6 +133,11 @@ final class PublicAccountSignupService
         return $account;
     }
 
+    public function createFromOAuth(string $provider, string $email, string $name): Account
+    {
+        return $this->createFromGoogle($email, $name);
+    }
+
     public function findAccountByEmail(string $email): ?Account
     {
         $ids = $this->entityTypeManager->getStorage('account')->getQuery()

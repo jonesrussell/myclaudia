@@ -21,7 +21,7 @@ claudriel:commitments → CommitmentsCommand → CLI
 Chat → ChatStreamController → SubprocessChatClient
   → agent/main.py (Python, stdin/stdout JSON-lines)
   → tools call back to /api/internal/* (HMAC Bearer auth)
-  → InternalGoogleController → GoogleTokenManager → Google APIs
+  → InternalGoogleController → OAuthTokenManager → Google APIs
 
 Pipeline (lead management):
   NorthCloud API → NorthCloudLeadNormalizer → ProspectIngestHandler
@@ -181,9 +181,9 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - Pre-push hook blocks `curl_exec`; use `file_get_contents` with `stream_context_create` for HTTP requests
 - PHPStan treats `$http_response_header` (from `file_get_contents`) as always-defined `list<string>`; suppress with `@phpstan-ignore isset.variable, booleanAnd.alwaysTrue, function.alreadyNarrowedType`
 - Controllers that don't render templates but keep `?Environment $twig` for DI compat need `@phpstan-ignore constructor.unusedParameter`
-- `->allowAll()` routes receive `AnonymousUser` for `$account` regardless of `->render()`; controllers needing the authenticated user must fall back to `AuthenticatedAccountSessionResolver` (see `GoogleOAuthController::resolveAccount()` pattern)
+- `->allowAll()` routes receive `AnonymousUser` for `$account` regardless of `->render()`; controllers needing the authenticated user must fall back to `AuthenticatedAccountSessionResolver` (see `OAuthController::resolveAccount()` pattern)
 - `SqlSchemaHandler::ensureTable()` only creates tables, never adds columns to existing ones; fields added to `fieldDefinitions` after initial table creation require manual `ALTER TABLE` or table recreation (#353)
-- Integration entity OAuth fields (`account_id`, `provider`, `access_token`, etc.) are stored in `_data` JSON blob, not as real columns; queries work via `json_extract` but field names must match exactly what `GoogleOAuthController::upsertIntegration()` saves (e.g., `provider_email` not `google_email`)
+- Integration entity OAuth fields (`account_id`, `provider`, `access_token`, etc.) are stored in `_data` JSON blob, not as real columns; queries work via `json_extract` but field names must match exactly what `OAuthController::upsertIntegration()` saves (e.g., `provider_email` not `google_email`)
 - `file_get_contents` needs `'ignore_errors' => true` in stream context to get response body on HTTP 4xx/5xx (otherwise returns `false`)
 - Entity types without `fieldDefinitions` in their `EntityType` registration produce no GraphQL schema; add fieldDefinitions matching the entity class constructor fields
 - `raw_payload` fields return raw JSON strings via GraphQL (REST controllers did `json_decode`); frontend consumers need `JSON.parse()`
