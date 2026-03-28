@@ -505,6 +505,56 @@ final class DayBriefAssemblerTest extends TestCase
         self::assertSame(1, $brief['counts']['waiting_on']);
     }
 
+    public function test_pending_commitments_sorted_by_importance_score_descending(): void
+    {
+        $low = new Commitment(['cid' => 1, 'uuid' => 'c-low', 'title' => 'Low', 'workflow_state' => 'pending', 'status' => 'pending', 'tenant_id' => 'test-tenant', 'importance_score' => 0.3]);
+        $high = new Commitment(['cid' => 2, 'uuid' => 'c-high', 'title' => 'High', 'workflow_state' => 'pending', 'status' => 'pending', 'tenant_id' => 'test-tenant', 'importance_score' => 0.9]);
+        $mid = new Commitment(['cid' => 3, 'uuid' => 'c-mid', 'title' => 'Mid', 'workflow_state' => 'pending', 'status' => 'pending', 'tenant_id' => 'test-tenant', 'importance_score' => 0.6]);
+
+        $this->commitmentRepo->save($low);
+        $this->commitmentRepo->save($high);
+        $this->commitmentRepo->save($mid);
+
+        $result = $this->assembler->assemble('test-tenant', new \DateTimeImmutable('-7 days'));
+
+        $pending = $result['commitments']['pending'];
+        self::assertCount(3, $pending);
+        self::assertSame('c-high', $pending[0]->get('uuid'));
+        self::assertSame('c-mid', $pending[1]->get('uuid'));
+        self::assertSame('c-low', $pending[2]->get('uuid'));
+    }
+
+    public function test_people_sorted_by_importance_score_descending(): void
+    {
+        $now = new \DateTimeImmutable;
+        $lowImportance = new Person([
+            'pid' => 1, 'uuid' => 'p-low', 'name' => 'Low',
+            'email' => 'low@test.com', 'tenant_id' => 'test-tenant',
+            'last_inbox_category' => 'people',
+            'last_interaction_at' => $now->format('c'),
+            'latest_summary' => 'Test',
+            'importance_score' => 0.2,
+        ]);
+        $highImportance = new Person([
+            'pid' => 2, 'uuid' => 'p-high', 'name' => 'High',
+            'email' => 'high@test.com', 'tenant_id' => 'test-tenant',
+            'last_inbox_category' => 'people',
+            'last_interaction_at' => $now->format('c'),
+            'latest_summary' => 'Test',
+            'importance_score' => 0.9,
+        ]);
+
+        $this->personRepo->save($lowImportance);
+        $this->personRepo->save($highImportance);
+
+        $result = $this->assembler->assemble('test-tenant', new \DateTimeImmutable('-7 days'));
+
+        $people = $result['people'];
+        self::assertCount(2, $people);
+        self::assertSame('High', $people[0]['person_name']);
+        self::assertSame('Low', $people[1]['person_name']);
+    }
+
     public function test_brief_includes_unanswered_follow_ups(): void
     {
         // Seed a sent event 5 days ago with no reply

@@ -138,15 +138,15 @@ final class DayBriefAssembler
 
         /** @var ContentEntityInterface[] $allCommitments */
         $allCommitments = $this->commitmentRepo->findBy([]);
-        $pending = array_values(array_filter(
+        $pending = $this->sortByImportanceDesc(array_values(array_filter(
             $allCommitments,
             fn (ContentEntityInterface $c) => $this->entityMatchesTenant($c, $tenantId) && ($c->get('workflow_state') ?? $c->get('status')) === 'pending',
-        ));
-        $drifting = $this->driftDetector->findDrifting($tenantId);
-        $waitingOn = array_values(array_filter(
+        )));
+        $drifting = $this->sortByImportanceDesc($this->driftDetector->findDrifting($tenantId));
+        $waitingOn = $this->sortByImportanceDesc(array_values(array_filter(
             $pending,
             static fn (ContentEntityInterface $c) => $c->get('direction') === 'inbound',
-        ));
+        )));
 
         $followUps = $this->followUpMonitor !== null
             ? $this->followUpMonitor->findUnanswered($tenantId)
@@ -528,7 +528,15 @@ final class DayBriefAssembler
             },
         ));
 
-        usort($people, fn ($a, $b): int => ((string) $this->getEntityValue($b, 'last_interaction_at')) <=> ((string) $this->getEntityValue($a, 'last_interaction_at')));
+        usort($people, function ($a, $b): int {
+            $scoreA = is_numeric($this->getEntityValue($a, 'importance_score')) ? (float) $this->getEntityValue($a, 'importance_score') : 1.0;
+            $scoreB = is_numeric($this->getEntityValue($b, 'importance_score')) ? (float) $this->getEntityValue($b, 'importance_score') : 1.0;
+            if ($scoreB !== $scoreA) {
+                return $scoreB <=> $scoreA;
+            }
+
+            return ((string) $this->getEntityValue($b, 'last_interaction_at')) <=> ((string) $this->getEntityValue($a, 'last_interaction_at'));
+        });
 
         return array_map(fn ($person): array => [
             'person_name' => (string) ($this->getEntityValue($person, 'name') ?? $this->getEntityValue($person, 'email') ?? ''),
@@ -687,6 +695,22 @@ final class DayBriefAssembler
         }
 
         return $matched;
+    }
+
+    /**
+     * @param ContentEntityInterface[] $entities
+     * @return ContentEntityInterface[]
+     */
+    private function sortByImportanceDesc(array $entities): array
+    {
+        usort($entities, function (ContentEntityInterface $a, ContentEntityInterface $b): int {
+            $scoreA = is_numeric($a->get('importance_score')) ? (float) $a->get('importance_score') : 1.0;
+            $scoreB = is_numeric($b->get('importance_score')) ? (float) $b->get('importance_score') : 1.0;
+
+            return $scoreB <=> $scoreA;
+        });
+
+        return $entities;
     }
 
     private function entityMatchesTenant(mixed $entity, string $tenantId): bool
