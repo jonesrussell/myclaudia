@@ -698,7 +698,7 @@ final class DayBriefAssembler
     }
 
     /**
-     * @param ContentEntityInterface[] $entities
+     * @param  ContentEntityInterface[]  $entities
      * @return ContentEntityInterface[]
      */
     private function sortByImportanceDesc(array $entities): array
