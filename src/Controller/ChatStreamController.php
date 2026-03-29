@@ -21,6 +21,8 @@ use Claudriel\Domain\Chat\Tool\GmailListTool;
 use Claudriel\Domain\Chat\Tool\GmailReadTool;
 use Claudriel\Domain\Chat\Tool\GmailSendTool;
 use Claudriel\Domain\Chat\Tool\RepoCloneTool;
+use Claudriel\Domain\Chat\Tool\SpecialistExecuteTool;
+use Claudriel\Domain\Chat\Tool\SpecialistListTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceCreateTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceDeleteTool;
 use Claudriel\Domain\Chat\Tool\WorkspaceListTool;
@@ -560,6 +562,13 @@ final class ChatStreamController
             } catch (\Throwable) {
                 // code_task entity type not registered
             }
+        }
+
+        // Agency specialists (optional sidecar)
+        $agencyUrl = getenv('AGENCY_AGENTS_URL');
+        if ($agencyUrl !== false && $agencyUrl !== '') {
+            $tools[] = new SpecialistListTool($agencyUrl);
+            $tools[] = new SpecialistExecuteTool($agencyUrl);
         }
 
         return $tools;
