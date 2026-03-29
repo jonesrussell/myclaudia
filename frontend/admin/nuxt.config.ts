@@ -1,3 +1,5 @@
+const phpDevBase = (process.env.NUXT_PUBLIC_PHP_ORIGIN ?? 'http://localhost:8081').replace(/\/$/, '')
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   devtools: { enabled: true },
@@ -16,36 +18,36 @@ export default defineNuxtConfig({
   nitro: {
     devProxy: {
       '/api': {
-        target: 'http://localhost:8081/api',
+        target: `${phpDevBase}/api`,
         changeOrigin: true,
       },
       '/graphql': {
-        target: 'http://localhost:8081/graphql',
+        target: `${phpDevBase}/graphql`,
         changeOrigin: true,
       },
       '/brief': {
-        target: 'http://localhost:8081/brief',
+        target: `${phpDevBase}/brief`,
         changeOrigin: true,
       },
       '/stream': {
-        target: 'http://localhost:8081/stream',
+        target: `${phpDevBase}/stream`,
         changeOrigin: true,
       },
       '/admin/session': {
-        target: 'http://localhost:8081/admin/session',
+        target: `${phpDevBase}/admin/session`,
         changeOrigin: true,
       },
       '/admin/logout': {
-        target: 'http://localhost:8081/admin/logout',
+        target: `${phpDevBase}/admin/logout`,
         changeOrigin: true,
       },
     },
   },
 
   routeRules: {
-    '/api/**': { proxy: 'http://localhost:8081/api/**' },
-    '/brief': { proxy: 'http://localhost:8081/brief' },
-    '/stream/**': { proxy: 'http://localhost:8081/stream/**' },
+    '/api/**': { proxy: `${phpDevBase}/api/**` },
+    '/brief': { proxy: `${phpDevBase}/brief` },
+    '/stream/**': { proxy: `${phpDevBase}/stream/**` },
   },
 
   app: {
@@ -70,7 +72,7 @@ export default defineNuxtConfig({
       // Set NUXT_PUBLIC_ENABLE_REALTIME=1 to force-enable.
       enableRealtime: process.env.NUXT_PUBLIC_ENABLE_REALTIME ?? (process.env.NODE_ENV === 'production' ? '1' : '0'),
       appName: process.env.NUXT_PUBLIC_APP_NAME ?? 'Claudriel Admin',
-      /** Override when PHP is not on localhost:8081 (split Nuxt/PHP dev). */
+      /** Same origin as Nitro devProxy PHP backend (defaults to http://localhost:8081). */
       phpOrigin: process.env.NUXT_PUBLIC_PHP_ORIGIN ?? '',
     },
   },

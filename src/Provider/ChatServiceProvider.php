@@ -159,7 +159,8 @@ final class ChatServiceProvider extends ServiceProvider
 
             if ($secret === '' || strlen($secret) < 32 || $secret === 'change-me-to-a-random-string-at-least-32-bytes') {
                 $message = 'AGENT_INTERNAL_SECRET is missing, too short (min 32 bytes), or still set to the example default. Internal API endpoints are unprotected.';
-                if ($env === 'production') {
+                $failHard = ($env === 'production' && PHP_SAPI !== 'cli-server');
+                if ($failHard) {
                     throw new \RuntimeException($message);
                 }
                 error_log('[claudriel] WARNING: '.$message);

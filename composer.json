@@ -48,7 +48,8 @@
         "test": "phpunit",
         "lint": "pint --test",
         "format": "pint",
-        "analyse": "phpstan analyse"
+        "analyse": "phpstan analyse",
+        "serve:php": "php -S 0.0.0.0:8081 -t public public/router.php"
     },
     "config": {
         "optimize-autoloader": true,

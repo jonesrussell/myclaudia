@@ -215,7 +215,7 @@ All require HMAC Bearer token via `InternalApiTokenGenerator`. See `docs/specs/a
 - GraphQL mutations from the admin SPA require the Waaseyaa framework fix in `ControllerDispatcher` (waaseyaa/framework#602) to resolve session accounts on `allowAll()` routes; without it, mutations get `AnonymousUser` and fail with "Access denied"
 - Deploy validation uses `--insecure` TLS fallback (curl exit codes 35/60) when staging cert is broken; this masks the real issue (#474) but keeps deploys flowing
 - Workspace creation/deletion is handled by agent subprocess tools (`workspace_create`, `workspace_delete`, `repo_clone`), NOT by ChatStreamController regex (removed in #477); the agent handles intent parsing naturally
-- PHP built-in dev server (`php -S`) is single-threaded; agent callbacks hang while SSE streams hold the thread. Use `PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:8081 -t public` for local dev (#490)
+- PHP built-in dev server (`php -S`) is single-threaded; agent callbacks hang while SSE streams hold the thread. Use `PHP_CLI_SERVER_WORKERS=4 php -S 0.0.0.0:8081 -t public public/router.php` (or `composer serve:php`) so `/graphql` and `/login` route through `index.php` — `-t public` alone does not (#490)
 - `GitRepositoryManager` is NOT registered in the DI container; instantiate inline with `new GitRepositoryManager` (same pattern as `ClaudrielServiceProvider`)
 - Pipeline entity types (prospect, prospect_attachment, prospect_audit, filtered_prospect, pipeline_config) are registered in `PipelineServiceProvider`, not `ClaudrielServiceProvider`
 - Pipeline POST controllers require `CLAUDRIEL_API_KEY` bearer token; GET routes (preview, tex) are public

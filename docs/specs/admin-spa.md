@@ -103,12 +103,14 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 |----------|---------|---------|
 | `NUXT_PUBLIC_ENABLE_REALTIME` | false (dev), true (prod) | Enable SSE broadcast |
 | `NUXT_PUBLIC_APP_NAME` | "Claudriel Admin" | Page title |
-| `NUXT_PUBLIC_PHP_ORIGIN` | — | Override PHP backend origin |
+| `NUXT_PUBLIC_PHP_ORIGIN` | `http://localhost:8081` | PHP backend for login redirect + Nitro `devProxy` / `routeRules` (set when PHP is not on 8081) |
 | `PLAYWRIGHT_BASE_URL` | `http://localhost:3333/admin` | E2E test base URL |
 
 ## Build / Deploy
 
 - `npm run dev` — Nuxt dev server on **:3333** by default (`nuxt.config.ts` `devServer.port`), avoiding collisions with Mercure on :3000; override with `nuxt dev --port …` if needed
+- `composer serve:php` — `php -S 0.0.0.0:8081 -t public public/router.php` (**must** pass `public/router.php` so `/login`, `/graphql`, etc. are routed to `index.php`; `-t public` alone serves static files and breaks the API)
+- Local smoke without OAuth: set `CLAUDRIEL_DEV_CLI_SESSION=1` in the environment for the PHP process (php -S only); uses the first **verified** account in the DB for `/admin/session`. Never enable in production.
 - `npm run build` — Production static build
 - Production: static build served by Caddy (not a running Nuxt server)
 - `public/admin/` is built by CI, listed in `.gitignore`
@@ -116,7 +118,8 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 ## Local dev pitfalls
 
 - **Port 3000**: Mercure or other tools often bind :3000; hitting that URL expecting Nuxt yields empty 200s and a blank page. Default admin dev is **:3333**; `config/waaseyaa.php` allows both 3333 and 3000 origins for CORS.
-- **PHP `/login` 500**: If `CLAUDRIEL_ENV=production` and required OAuth/API env vars are unset, `ClaudrielServiceProvider::boot()` throws and `/login` can return 500 with no body — IDE browser smoke tests cannot proceed until env is development-complete or vars are set.
+- **PHP `/login` 500**: With **php-fpm/Caddy** and `CLAUDRIEL_ENV=production`, missing required env vars still fail hard at boot. Under **php -S** (`cli-server`), boot logs missing vars but continues so local `/login` works. Prefer `CLAUDRIEL_ENV=development` in copied `.env` (see `.env.example`).
+- **php -S without `router.php`**: Requests hit static files or 404; use `composer serve:php` or `php -S … -t public public/router.php`.
 
 ## Known Constraints
 

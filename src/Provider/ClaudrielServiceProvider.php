@@ -121,11 +121,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 implode("\n", $missing),
             );
 
-            if ($env === 'production') {
+            // php -S (cli-server): allow incomplete .env so /login and local admin smoke work; real
+            // production uses php-fpm/Caddy and must have all vars set.
+            $failHard = ($env === 'production' && PHP_SAPI !== 'cli-server');
+            if ($failHard) {
                 throw new \RuntimeException($message);
             }
 
-            // In development, log a warning but do not crash
             error_log($message);
         }
     }

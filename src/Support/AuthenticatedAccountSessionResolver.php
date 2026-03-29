@@ -21,10 +21,30 @@ final class AuthenticatedAccountSessionResolver
         }
 
         $accountUuid = $_SESSION['claudriel_account_uuid'] ?? null;
-        if (! is_string($accountUuid) || $accountUuid === '') {
-            return null;
+        if (is_string($accountUuid) && $accountUuid !== '') {
+            return $this->resolveVerifiedByUuid($accountUuid);
         }
 
+        if ($this->shouldUseDevCliAutoSession()) {
+            return $this->resolveFirstVerifiedAccount();
+        }
+
+        return null;
+    }
+
+    private function shouldUseDevCliAutoSession(): bool
+    {
+        if (PHP_SAPI !== 'cli-server') {
+            return false;
+        }
+
+        $flag = $_ENV['CLAUDRIEL_DEV_CLI_SESSION'] ?? getenv('CLAUDRIEL_DEV_CLI_SESSION') ?: '';
+
+        return filter_var($flag, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    private function resolveVerifiedByUuid(string $accountUuid): ?AuthenticatedAccount
+    {
         $ids = $this->entityTypeManager->getStorage('account')->getQuery()
             ->condition('uuid', $accountUuid)
             ->range(0, 1)
@@ -40,5 +60,24 @@ final class AuthenticatedAccountSessionResolver
         }
 
         return new AuthenticatedAccount($account);
+    }
+
+    /**
+     * First verified account in storage (order undefined). Only for explicit php -S dev workflows.
+     */
+    private function resolveFirstVerifiedAccount(): ?AuthenticatedAccount
+    {
+        $ids = $this->entityTypeManager->getStorage('account')->getQuery()
+            ->range(0, 100)
+            ->execute();
+
+        foreach ($ids as $id) {
+            $account = $this->entityTypeManager->getStorage('account')->load($id);
+            if ($account instanceof Account && $account->isVerified()) {
+                return new AuthenticatedAccount($account);
+            }
+        }
+
+        return null;
     }
 }
