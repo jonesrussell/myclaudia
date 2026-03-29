@@ -66,6 +66,10 @@ final class SpecialistExecuteTool implements AgentToolInterface
             return ['error' => 'Specialist slug is required'];
         }
 
+        if (! preg_match('/^[a-z0-9][a-z0-9-]*$/', $slug)) {
+            return ['error' => 'Invalid specialist slug format'];
+        }
+
         $task = trim((string) ($args['task'] ?? ''));
         if ($task === '') {
             return ['error' => 'Task description is required'];
@@ -83,6 +87,14 @@ final class SpecialistExecuteTool implements AgentToolInterface
             return ['error' => 'Specialist service unavailable'];
         }
 
+        /** @phpstan-ignore isset.variable, booleanAnd.alwaysTrue */
+        if (isset($http_response_header) && is_array($http_response_header) && $http_response_header !== []) {
+            $statusLine = $http_response_header[0];
+            if (preg_match('/\s([45]\d{2})\s/', $statusLine, $m)) {
+                return ['error' => "Specialist service returned HTTP {$m[1]}"];
+            }
+        }
+
         return $this->parseSseResponse($response, $slug);
     }
 
@@ -97,15 +109,17 @@ final class SpecialistExecuteTool implements AgentToolInterface
         for ($i = count($blocks) - 1; $i >= 0; $i--) {
             $block = $blocks[$i];
             $eventType = null;
-            $dataLine = null;
+            $dataLines = [];
 
             foreach (explode("\n", $block) as $line) {
                 if (str_starts_with($line, 'event: ')) {
                     $eventType = trim(substr($line, 7));
                 } elseif (str_starts_with($line, 'data: ')) {
-                    $dataLine = substr($line, 6);
+                    $dataLines[] = substr($line, 6);
                 }
             }
+
+            $dataLine = $dataLines !== [] ? implode("\n", $dataLines) : null;
 
             if ($eventType === 'error' && $dataLine !== null) {
                 $parsed = json_decode($dataLine, true);

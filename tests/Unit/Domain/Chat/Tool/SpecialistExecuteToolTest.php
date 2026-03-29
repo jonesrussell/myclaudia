@@ -92,4 +92,40 @@ final class SpecialistExecuteToolTest extends TestCase
 
         self::assertSame('Specialist service unavailable', $result['error']);
     }
+
+    public function test_execute_rejects_invalid_slug_format(): void
+    {
+        $tool = new SpecialistExecuteTool('http://localhost:9999');
+
+        $result = $tool->execute(['slug' => '../admin', 'task' => 'Do something']);
+        self::assertSame('Invalid specialist slug format', $result['error']);
+
+        $result = $tool->execute(['slug' => 'UPPERCASE', 'task' => 'Do something']);
+        self::assertSame('Invalid specialist slug format', $result['error']);
+
+        $result = $tool->execute(['slug' => 'has spaces', 'task' => 'Do something']);
+        self::assertSame('Invalid specialist slug format', $result['error']);
+    }
+
+    public function test_execute_accepts_valid_slug_formats(): void
+    {
+        $tool = new SpecialistExecuteTool('http://agency:3000', static fn () => "event: summary\ndata: {\"summary\":\"ok\"}");
+
+        $result = $tool->execute(['slug' => 'code-reviewer', 'task' => 'Review']);
+        self::assertArrayNotHasKey('error', $result);
+
+        $result = $tool->execute(['slug' => '0-starts-with-number', 'task' => 'Review']);
+        self::assertArrayNotHasKey('error', $result);
+    }
+
+    public function test_execute_handles_multiline_sse_data(): void
+    {
+        $sseResponse = "event: summary\ndata: {\"summary\":\ndata: \"multi-line result\"}";
+
+        $tool = new SpecialistExecuteTool('http://agency:3000', static fn () => $sseResponse);
+        $result = $tool->execute(['slug' => 'code-reviewer', 'task' => 'Review']);
+
+        self::assertSame('code-reviewer', $result['agent']);
+        self::assertSame('multi-line result', $result['result']);
+    }
 }
