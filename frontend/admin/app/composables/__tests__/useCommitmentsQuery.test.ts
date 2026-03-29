@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { fetchCommitments } from '../useCommitmentsQuery';
 
 vi.mock('~/utils/graphqlFetch', () => ({
@@ -14,6 +14,10 @@ vi.mock('~/utils/gql', () => ({
 import { graphqlFetch } from '~/utils/graphqlFetch';
 
 describe('fetchCommitments', () => {
+  beforeEach(() => {
+    vi.mocked(graphqlFetch).mockClear();
+  });
+
   it('calls graphqlFetch with commitment list query', async () => {
     const mockData = {
       commitmentList: {
@@ -40,7 +44,10 @@ describe('fetchCommitments', () => {
 
     const result = await fetchCommitments();
 
-    expect(graphqlFetch).toHaveBeenCalledWith(
+    expect(graphqlFetch).toHaveBeenCalledTimes(1);
+    const args = vi.mocked(graphqlFetch).mock.calls[0]!;
+    expect(args).toHaveLength(1);
+    expect(args[0]).toEqual(
       expect.stringMatching(/CommitmentsListAll|commitmentList/),
     );
     expect(result.items).toEqual([]);
