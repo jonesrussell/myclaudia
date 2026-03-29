@@ -9,11 +9,13 @@
 | `frontend/admin/app/host/claudrielAdapter.ts` | GraphQL transport adapter (CRUD ops, field mappings, TextValue wrapping) |
 | `frontend/admin/app/host/hostAdapter.ts` | HostAdapter interface contract |
 | `frontend/admin/app/utils/graphqlFetch.ts` | HTTP GraphQL client (15s timeout, credentials: include) |
-| `frontend/admin/app/composables/` | 14 composables (auth, schema, queries, realtime, i18n) |
-| `frontend/admin/app/pages/` | 7 dynamic routes (entity CRUD, login, telescope) |
-| `frontend/admin/app/components/` | Layout, widgets, entity detail views, telescope |
+| `frontend/admin/app/composables/` | Auth, schema, ops (`useDayBrief`, `useWorkspaceScope`, `useOpsGraphql`, `useChatRail`), realtime, i18n |
+| `frontend/admin/app/pages/` | Ops routes (`/today`, `/workspaces`, `/pipeline`, `/data`), entity CRUD, login, telescope |
+| `frontend/admin/app/components/` | Layout, `ops/*` (Today/GitHub/pipeline/chat), widgets, entity detail, telescope |
+| `frontend/admin/app/ops/viewRegistry.ts` | Custom list views (`prospect` → `/pipeline`) |
+| `frontend/admin/app/types/dayBrief.ts` | Typed subset of `GET /brief` JSON |
 | `frontend/admin/app/middleware/auth.global.ts` | Client-side auth guard (UX redirect, PHP is authoritative) |
-| `frontend/admin/app/i18n/en.json`, `fr.json` | 121 i18n keys (entity labels, field labels, UI strings) |
+| `frontend/admin/app/i18n/en.json`, `fr.json` | Entity labels + ops UI strings (`ops_*` keys) |
 
 ## Architecture
 
@@ -29,6 +31,8 @@
 
 Single `/graphql` endpoint. Dev: Nitro proxy to `http://localhost:8081/graphql`.
 
+**Day brief & chat streams**: `GET /brief` and `/stream/**` are proxied in dev (`nuxt.config.ts` `devProxy` + `routeRules`) so the browser stays same-origin with the SPA; use native `fetch` / `EventSource` with `credentials: include`.
+
 `graphqlFetch()` utility handles typed queries with 15s timeout, `credentials: include`.
 
 **claudrielAdapter.ts** (290 lines):
@@ -41,7 +45,8 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 
 ### REST (backup)
 
-- `/api/*` — General API (Nitro devProxy)
+- `/api/*` — General API (Nitro devProxy), includes `/api/chat/send`, `/api/chat/sessions/...`, `/api/internal/session/.../continue`
+- `/brief` — Day brief JSON (`useDayBrief` / Today page)
 - `/admin/session` — Session fetch
 - `/admin/logout` — Logout
 
@@ -56,11 +61,21 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 
 | Route | Purpose |
 |-------|---------|
-| `/[entityType]/` | List all entities of a type |
+| `/` | Redirects to `/today` |
+| `/today` | Day brief dashboard (`GET /brief`), GitHub panel, deep links to entities |
+| `/workspaces` | Workspace picker |
+| `/workspaces/[uuid]` | Hub: prospects for workspace; tenant-wide commitments / schedule / triage lists |
+| `/pipeline` | Kanban-style prospects (`?workspace=` optional filter) |
+| `/data` | Legacy entity-type card grid (all GraphQL types) |
+| `/[entityType]/` | List entities (`prospect` redirects to `/pipeline`) |
 | `/[entityType]/create` | Create form |
 | `/[entityType]/[id]` | Detail + edit + relationships |
 | `/login` | Auth redirect |
 | `/telescope/codified-context/[sessionId]` | Context review UI |
+
+**Shell**: [`AdminShell`](frontend/admin/app/components/layout/AdminShell.vue) adds a collapsible right **Chat** rail (`OpsChatRail` → `useChatRail`: `POST /api/chat/send` + `EventSource` `/stream/chat/{messageId}`). Brand link targets `/today`.
+
+**Tracking**: GitHub issue [#644](https://github.com/jonesrussell/claudriel/issues/644) (ops-first admin).
 
 ## Key Composables
 
@@ -77,6 +92,10 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 | `useNavGroups()` | Navigation catalog building |
 | `useEntityDetailConfig()` | Per-type field config overrides |
 | `useClock()` | Clock display |
+| `useDayBrief()` | `GET /brief` for Today dashboard |
+| `useWorkspaceScope()` | Optional `workspace_uuid` for brief/chat; syncs `/workspaces/:uuid` and `?workspace=` |
+| `useOpsGraphql()` | Workspace/prospect/commitment/schedule/triage list helpers for hub + pipeline |
+| `useChatRail()` | Agent chat send + SSE stream + continuation bar |
 
 ## Config Vars
 
