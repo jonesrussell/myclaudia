@@ -71,3 +71,9 @@ parameters:
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Controller/Platform/ObservabilityDashboardController.php
+
+		-
+			message: '#^Instantiated class Claudriel\\Domain\\Chat\\Tool\\SpecialistListTool not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Controller/ChatStreamController.php
