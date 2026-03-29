@@ -87,14 +87,6 @@ final class SpecialistExecuteTool implements AgentToolInterface
             return ['error' => 'Specialist service unavailable'];
         }
 
-        /** @phpstan-ignore isset.variable, booleanAnd.alwaysTrue */
-        if (isset($http_response_header) && is_array($http_response_header) && $http_response_header !== []) {
-            $statusLine = $http_response_header[0];
-            if (preg_match('/\s([45]\d{2})\s/', $statusLine, $m)) {
-                return ['error' => "Specialist service returned HTTP {$m[1]}"];
-            }
-        }
-
         return $this->parseSseResponse($response, $slug);
     }
 
