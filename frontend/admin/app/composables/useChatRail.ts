@@ -4,9 +4,18 @@ export interface ChatMessageRow {
   streaming?: boolean
 }
 
+export interface ChatSessionRow {
+  uuid: string
+  title: string
+  created_at?: string | null
+  workspace_id?: string | null
+}
+
 export function useChatRail() {
   const messages = ref<ChatMessageRow[]>([])
   const sessionId = ref<string | null>(null)
+  const sessions = ref<ChatSessionRow[]>([])
+  const sessionsLoading = ref(false)
   const sending = ref(false)
   const error = ref<string | null>(null)
   const continuation = ref<{ sessionUuid: string; message: string; turnsConsumed?: number } | null>(null)
@@ -23,6 +32,32 @@ export function useChatRail() {
   onUnmounted(() => {
     closeStream()
   })
+
+  async function refreshSessions() {
+    sessionsLoading.value = true
+    try {
+      const sp = new URLSearchParams()
+      if (workspaceUuid.value) {
+        sp.set('workspace_uuid', workspaceUuid.value)
+      }
+      if (currentUser.value?.tenantId) {
+        sp.set('tenant_id', currentUser.value.tenantId)
+      }
+      const qs = sp.toString()
+      const url = qs ? `/api/chat/sessions?${qs}` : '/api/chat/sessions'
+      const res = await fetch(url, { credentials: 'include' })
+      if (!res.ok) {
+        sessions.value = []
+        return
+      }
+      const data = await res.json() as { sessions?: ChatSessionRow[] }
+      sessions.value = data.sessions ?? []
+    } catch {
+      sessions.value = []
+    } finally {
+      sessionsLoading.value = false
+    }
+  }
 
   async function loadSession(uuid: string) {
     error.value = null
@@ -226,13 +261,20 @@ export function useChatRail() {
     error.value = null
   }
 
+  watch(workspaceUuid, () => {
+    refreshSessions()
+  })
+
   return {
     messages,
     sessionId,
+    sessions,
+    sessionsLoading,
     sending,
     error,
     continuation,
     loadSession,
+    refreshSessions,
     sendMessage,
     continueSession,
     clearConversation,

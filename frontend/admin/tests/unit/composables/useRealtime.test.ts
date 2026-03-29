@@ -69,7 +69,7 @@ describe('useRealtime', () => {
   })
 
   it('subscribes and parses named SSE events', () => {
-    const { messages, connected } = useRealtime(['admin'])
+    const { messages, connected } = useRealtime(['admin'], { enforceEnableRealtime: false })
     const es = MockEventSource.instances[0]
 
     es.emitOpen()
@@ -87,7 +87,7 @@ describe('useRealtime', () => {
   })
 
   it('does not force reconnect while native EventSource is CONNECTING', () => {
-    useRealtime(['admin'])
+    useRealtime(['admin'], { enforceEnableRealtime: false })
     const es = MockEventSource.instances[0]
     es.readyState = MockEventSource.CONNECTING
 
@@ -98,7 +98,7 @@ describe('useRealtime', () => {
   })
 
   it('schedules reconnect when stream is CLOSED', () => {
-    useRealtime(['admin'])
+    useRealtime(['admin'], { enforceEnableRealtime: false })
     const es = MockEventSource.instances[0]
     es.readyState = MockEventSource.CLOSED
 
@@ -109,7 +109,7 @@ describe('useRealtime', () => {
   })
 
   it('supports manual connect when autoConnect is disabled', () => {
-    const realtime = useRealtime(['admin'], { autoConnect: false })
+    const realtime = useRealtime(['admin'], { autoConnect: false, enforceEnableRealtime: false })
     expect(MockEventSource.instances).toHaveLength(0)
 
     realtime.connect()

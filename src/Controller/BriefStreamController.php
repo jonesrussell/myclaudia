@@ -218,6 +218,7 @@ final class BriefStreamController
         $briefs = $brief;
         $briefs['commitments']['pending'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['pending']);
         $briefs['commitments']['drifting'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['drifting']);
+        $briefs['commitments']['waiting_on'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['waiting_on']);
         $briefs['matched_skills'] = array_map(fn ($s) => $s->toArray(), $brief['matched_skills']);
         $briefs['proactive_guidance'] = (new TemporalGuidanceAssembler($this->entityTypeManager))
             ->build($tenantId, $workspaceUuid, $brief, $snapshot);

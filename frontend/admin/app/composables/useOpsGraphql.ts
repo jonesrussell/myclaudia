@@ -60,7 +60,6 @@ const PROSPECT_LIST_ALL = gql`
   }
 `
 
-/** Commitment entity has no workspace_uuid in GraphQL; list is tenant-scoped. */
 const COMMITMENT_LIST_TENANT = gql`
   query OpsCommitmentListTenant($tenantId: String) {
     commitmentList(
@@ -75,6 +74,28 @@ const COMMITMENT_LIST_TENANT = gql`
         status
         due_date
         person_uuid
+        workspace_uuid
+        updated_at
+      }
+    }
+  }
+`
+
+const COMMITMENT_LIST_WS = gql`
+  query OpsCommitmentListWs($workspaceUuid: String) {
+    commitmentList(
+      filter: [{ field: "workspace_uuid", value: $workspaceUuid }]
+      sort: "-updated_at"
+      limit: 40
+    ) {
+      total
+      items {
+        uuid
+        title
+        status
+        due_date
+        person_uuid
+        workspace_uuid
         updated_at
       }
     }
@@ -165,14 +186,29 @@ export async function fetchAllProspectsForTenant(tenantId: string | null): Promi
 
 export async function fetchCommitmentsForTenant(
   tenantId: string | null,
-): Promise<Array<{ uuid: string; title?: string; status?: string; due_date?: string | null }>> {
+): Promise<Array<{ uuid: string; title?: string; status?: string; due_date?: string | null; workspace_uuid?: string | null }>> {
   if (!tenantId) {
     return []
   }
-  const data = await graphqlFetch<{ commitmentList: { items: Array<{ uuid: string; title?: string; status?: string; due_date?: string | null }> } }>(
-    COMMITMENT_LIST_TENANT,
-    { tenantId },
-  )
+  const data = await graphqlFetch<{
+    commitmentList: {
+      items: Array<{ uuid: string; title?: string; status?: string; due_date?: string | null; workspace_uuid?: string | null }>
+    }
+  }>(COMMITMENT_LIST_TENANT, { tenantId })
+  return data.commitmentList.items
+}
+
+export async function fetchCommitmentsForWorkspace(
+  workspaceUuid: string | null,
+): Promise<Array<{ uuid: string; title?: string; status?: string; due_date?: string | null; workspace_uuid?: string | null }>> {
+  if (!workspaceUuid) {
+    return []
+  }
+  const data = await graphqlFetch<{
+    commitmentList: {
+      items: Array<{ uuid: string; title?: string; status?: string; due_date?: string | null; workspace_uuid?: string | null }>
+    }
+  }>(COMMITMENT_LIST_WS, { workspaceUuid })
   return data.commitmentList.items
 }
 

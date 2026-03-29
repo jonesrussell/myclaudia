@@ -161,6 +161,7 @@
   "ops_open_pipeline": "Ouvrir le pipeline",
   "ops_hub_prospects": "Prospects",
   "ops_hub_commitments_tenant": "Engagements récents (locataire)",
+  "ops_hub_commitments_workspace": "Engagements dans cet espace",
   "ops_hub_schedule_tenant": "Agenda à venir (locataire)",
   "ops_hub_triage_tenant": "Triage récent (locataire)",
   "ops_pipeline_filtered": "Filtré par espace de travail",
@@ -171,5 +172,14 @@
   "ops_chat_empty": "Envoyez un message pour commencer.",
   "ops_chat_continue": "Continuer",
   "ops_chat_placeholder": "Message…",
-  "ops_chat_send": "Envoyer"
+  "ops_chat_send": "Envoyer",
+  "ops_chat_sessions": "Sessions récentes",
+  "ops_chat_sessions_refresh": "Actualiser",
+  "ops_drawer_title": "Aperçu rapide",
+  "ops_drawer_close": "Fermer",
+  "ops_drawer_full": "Ouvrir l’éditeur",
+  "ops_drawer_not_found": "Aucun enregistrement pour cet id.",
+  "ops_brief_live": "Brief en direct",
+  "ops_brief_live_on": "Mises à jour en flux",
+  "ops_brief_live_off": "Flux arrêté"
 }

@@ -35,6 +35,9 @@ final class Commitment extends ContentEntityBase
         if (! array_key_exists('direction', $values)) {
             $values['direction'] = 'outbound';
         }
+        if (! array_key_exists('workspace_uuid', $values)) {
+            $values['workspace_uuid'] = null;
+        }
         if (! array_key_exists('importance_score', $values)) {
             $values['importance_score'] = 1.0;
         }

@@ -37,7 +37,7 @@ use Claudriel\Controller\AppShellController;
 use Claudriel\Controller\Audit\CommitmentExtractionAuditController;
 use Claudriel\Controller\BriefStreamController;
 use Claudriel\Controller\BroadcastController;
-use Claudriel\Controller\DashboardController;
+use Claudriel\Controller\ChatEntryRedirectController;
 use Claudriel\Controller\DayBriefController;
 use Claudriel\Controller\Governance\CodifiedContextIntegrityController;
 use Claudriel\Controller\NotFoundController;
@@ -287,14 +287,13 @@ final class ClaudrielServiceProvider extends ServiceProvider
                 ->build(),
         );
 
-        // Legacy: /chat redirects to dashboard
+        // Legacy: /chat → Nuxt admin with chat rail open
         $router->addRoute(
             'claudriel.chat',
             RouteBuilder::create('/chat')
-                ->controller(DashboardController::class.'::show')
+                ->controller(ChatEntryRedirectController::class.'::redirectToAdmin')
                 ->allowAll()
                 ->methods('GET')
-                ->render()
                 ->build(),
         );
 

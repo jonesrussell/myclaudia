@@ -13,7 +13,10 @@ const config = useRuntimeConfig()
 const realtimeEnabled = config.public.enableRealtime === '1'
 const { schema, loading: schemaLoading, fetch: fetchSchema, sortedProperties } = useSchema(props.entityType)
 const { list, remove } = useEntity()
-const { messages, connected, error: sseError, connect, reconnect } = useRealtime(['admin'], { autoConnect: false })
+const { messages, connected, error: sseError, connect, reconnect } = useRealtime(['admin'], {
+  autoConnect: false,
+  enforceEnableRealtime: false,
+})
 
 const entities = ref<JsonApiResource[]>([])
 const loading = ref(false)

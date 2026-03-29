@@ -4,6 +4,8 @@ import { useClock } from '~/composables/useClock'
 
 const { t, locale, locales, setLocale } = useLanguage()
 const chatOpen = useState('claudriel.ops.chatRailOpen', () => false)
+const route = useRoute()
+const router = useRouter()
 function toggleChat() {
   chatOpen.value = !chatOpen.value
 }
@@ -15,6 +17,12 @@ const sidebarOpen = ref(false)
 const { logout, loginUrl } = useAuth()
 
 onMounted(() => {
+  if (route.query.chat === 'open') {
+    chatOpen.value = true
+    const nextQuery = { ...route.query }
+    delete nextQuery.chat
+    router.replace({ path: route.path, query: nextQuery })
+  }
   const mql = window.matchMedia('(min-width: 769px)')
   isDesktop.value = mql.matches
   sidebarOpen.value = mql.matches
@@ -29,7 +37,6 @@ function toggleSidebar() {
 }
 
 // Close sidebar on route change (mobile only).
-const route = useRoute()
 watch(() => route.fullPath, () => {
   if (!isDesktop.value) {
     sidebarOpen.value = false
@@ -93,6 +100,7 @@ async function handleLogout() {
         <OpsChatRail />
       </aside>
     </div>
+    <OpsDetailDrawer />
   </div>
 </template>
 

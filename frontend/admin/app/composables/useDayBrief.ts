@@ -1,11 +1,5 @@
 import type { DayBriefPayload } from '~/types/dayBrief'
 
-export interface DayBriefResult {
-  brief: DayBriefPayload | null
-  error: string | null
-  loading: boolean
-}
-
 /**
  * Fetches JSON from GET /brief (same-origin; Nitro proxies to PHP in dev).
  */
@@ -46,8 +40,62 @@ export function useDayBrief() {
   const brief = ref<DayBriefPayload | null>(null)
   const error = ref<string | null>(null)
   const loading = ref(false)
+  const streamLive = ref(false)
   const { workspaceUuid } = useWorkspaceScope()
   const { currentUser } = useAuth()
+
+  let briefEventSource: EventSource | null = null
+
+  function stopBriefStream() {
+    briefEventSource?.close()
+    briefEventSource = null
+    streamLive.value = false
+  }
+
+  function startBriefStream() {
+    if (typeof window === 'undefined') {
+      return
+    }
+    stopBriefStream()
+    const sp = new URLSearchParams()
+    if (workspaceUuid.value) {
+      sp.set('workspace_uuid', workspaceUuid.value)
+    }
+    if (currentUser.value?.tenantId) {
+      sp.set('tenant_id', currentUser.value.tenantId)
+    }
+    const qs = sp.toString()
+    const url = qs ? `/stream/brief?${qs}` : '/stream/brief'
+    briefEventSource = new EventSource(url, { withCredentials: true })
+    streamLive.value = true
+
+    briefEventSource.addEventListener('brief-update', (ev: MessageEvent) => {
+      try {
+        brief.value = JSON.parse(ev.data) as DayBriefPayload
+        error.value = null
+      } catch {
+        /* ignore malformed SSE */
+      }
+    })
+
+    briefEventSource.addEventListener('brief-keepalive', () => {
+      /* keep connection alive; optional hook */
+    })
+
+    briefEventSource.onerror = () => {
+      stopBriefStream()
+    }
+  }
+
+  onUnmounted(() => {
+    stopBriefStream()
+  })
+
+  watch(workspaceUuid, () => {
+    if (streamLive.value) {
+      startBriefStream()
+    }
+  })
 
   async function refresh() {
     loading.value = true
@@ -65,5 +113,5 @@ export function useDayBrief() {
     }
   }
 
-  return { brief, error, loading, refresh }
+  return { brief, error, loading, refresh, streamLive, startBriefStream, stopBriefStream }
 }

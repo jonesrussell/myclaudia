@@ -81,6 +81,7 @@ final class DayBriefController
         $jsonBrief = $brief;
         $jsonBrief['commitments']['pending'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['pending']);
         $jsonBrief['commitments']['drifting'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['drifting']);
+        $jsonBrief['commitments']['waiting_on'] = array_map(fn ($c) => $c->toArray(), $brief['commitments']['waiting_on']);
         $jsonBrief['matched_skills'] = array_map(fn ($s) => $s->toArray(), $brief['matched_skills']);
 
         return new SsrResponse(

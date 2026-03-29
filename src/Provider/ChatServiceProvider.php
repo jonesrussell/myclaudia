@@ -358,6 +358,15 @@ final class ChatServiceProvider extends ServiceProvider
         );
 
         $router->addRoute(
+            'claudriel.api.chat.sessions.list',
+            RouteBuilder::create('/api/chat/sessions')
+                ->controller(ChatController::class.'::sessionsList')
+                ->allowAll()
+                ->methods('GET')
+                ->build(),
+        );
+
+        $router->addRoute(
             'claudriel.api.chat.sessions.messages',
             RouteBuilder::create('/api/chat/sessions/{uuid}/messages')
                 ->controller(ChatController::class.'::messages')

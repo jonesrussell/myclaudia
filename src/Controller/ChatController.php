@@ -84,6 +84,48 @@ final class ChatController
     }
 
     /**
+     * GET /api/chat/sessions — recent sessions for tenant (optional workspace_uuid query narrows list; JSON uses workspace_uuid per item).
+     */
+    public function sessionsList(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse
+    {
+        $resolver = new TenantWorkspaceResolver($this->entityTypeManager);
+        try {
+            $scope = $resolver->resolve($query, $account, $httpRequest);
+        } catch (RequestScopeViolation $exception) {
+            return $this->json(['error' => $exception->getMessage()], $exception->statusCode());
+        }
+
+        $sessionStorage = $this->entityTypeManager->getStorage('chat_session');
+        $sessionIds = $sessionStorage->getQuery()->execute();
+        /** @var ContentEntityInterface[] $loadedSessions */
+        $loadedSessions = $sessionStorage->loadMultiple($sessionIds);
+        $allSessions = array_values(array_filter(
+            $loadedSessions,
+            fn ($session): bool => $resolver->tenantMatches($session, $scope->tenantId)
+                && $resolver->workspaceMatches($session, $scope->workspaceId()),
+        ));
+
+        usort($allSessions, static function (ContentEntityInterface $a, ContentEntityInterface $b) {
+            return ($b->get('created_at') ?? '') <=> ($a->get('created_at') ?? '');
+        });
+
+        $limit = 25;
+        $sessions = array_slice($allSessions, 0, $limit);
+
+        $out = [];
+        foreach ($sessions as $session) {
+            $out[] = [
+                'uuid' => $session->get('uuid'),
+                'title' => $session->get('title') ?? 'New Chat',
+                'created_at' => $session->get('created_at'),
+                'workspace_uuid' => $session->get('workspace_id'),
+            ];
+        }
+
+        return $this->json(['sessions' => $out]);
+    }
+
+    /**
      * GET /api/chat/sessions/{uuid}/messages — load messages for a session.
      */
     public function messages(array $params = [], array $query = [], ?AccountInterface $account = null, ?Request $httpRequest = null): SsrResponse

@@ -32,6 +32,7 @@ final class CommitmentServiceProvider extends ServiceProvider
                 'direction' => ['type' => 'string'],
                 'due_date' => ['type' => 'datetime'],
                 'person_uuid' => ['type' => 'string'],
+                'workspace_uuid' => ['type' => 'string'],
                 'source' => ['type' => 'string'],
                 'tenant_id' => ['type' => 'string'],
                 'importance_score' => ['type' => 'float'],

@@ -2,12 +2,18 @@
 import { PROSPECT_PIPELINE_STAGES } from '~/constants/prospectPipeline'
 import type { ProspectRow } from '~/composables/useOpsGraphql'
 import { useLanguage } from '~/composables/useLanguage'
+import { useOpsDetailDrawer } from '~/composables/useOpsDetailDrawer'
 
 const props = defineProps<{
   prospects: ProspectRow[]
 }>()
 
 const { t } = useLanguage()
+const { openDrawer } = useOpsDetailDrawer()
+
+function onProspectCard(p: ProspectRow) {
+  openDrawer('prospect', p.uuid)
+}
 
 const byStage = computed(() => {
   const map = new Map<string, ProspectRow[]>()
@@ -33,11 +39,12 @@ const byStage = computed(() => {
       <h3 class="pipeline-col-title">{{ stage }}</h3>
       <span class="pipeline-col-count">{{ (byStage.get(stage) ?? []).length }}</span>
       <ul class="pipeline-cards">
-        <li v-for="p in byStage.get(stage) ?? []" :key="p.uuid">
-          <NuxtLink :to="`/prospect/${p.uuid}`" class="pipeline-card">
+        <li v-for="p in byStage.get(stage) ?? []" :key="p.uuid" class="pipeline-card-li">
+          <button type="button" class="pipeline-card" @click="onProspectCard(p)">
             <span class="pipeline-card-name">{{ p.name || t('ops_untitled') }}</span>
             <span v-if="p.contact_name" class="pipeline-card-sub">{{ p.contact_name }}</span>
-          </NuxtLink>
+          </button>
+          <NuxtLink class="pipeline-card-open" :to="`/prospect/${p.uuid}`">→</NuxtLink>
         </li>
       </ul>
     </div>
@@ -76,19 +83,38 @@ const byStage = computed(() => {
   padding: 0;
   margin: 0;
 }
+.pipeline-card-li {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-bottom: 6px;
+}
 .pipeline-card {
+  flex: 1;
   display: block;
   padding: 8px;
-  margin-bottom: 6px;
   background: var(--bg-elevated);
   border-radius: var(--radius-sm);
-  text-decoration: none;
+  text-align: left;
   color: var(--text-primary);
   border: 1px solid var(--border-subtle);
   transition: border-color 0.15s;
+  cursor: pointer;
+  font: inherit;
 }
 .pipeline-card:hover {
   border-color: var(--accent-teal);
+}
+.pipeline-card-open {
+  flex-shrink: 0;
+  padding: 8px 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  align-self: center;
+}
+.pipeline-card-open:hover {
+  color: var(--accent-teal);
 }
 .pipeline-card-name {
   font-size: 13px;

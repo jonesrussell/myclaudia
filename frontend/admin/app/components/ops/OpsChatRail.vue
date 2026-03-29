@@ -6,15 +6,23 @@ const { t } = useLanguage()
 const {
   messages,
   sessionId,
+  sessions,
+  sessionsLoading,
   sending,
   error,
   continuation,
+  loadSession,
+  refreshSessions,
   sendMessage,
   continueSession,
   clearConversation,
 } = useChatRail()
 
 const input = ref('')
+
+onMounted(() => {
+  refreshSessions()
+})
 
 async function onSubmit() {
   const text = input.value.trim()
@@ -23,6 +31,7 @@ async function onSubmit() {
   }
   input.value = ''
   await sendMessage(text)
+  await refreshSessions()
 }
 </script>
 
@@ -31,10 +40,29 @@ async function onSubmit() {
     <div class="ops-chat-head">
       <h2 class="ops-chat-title">{{ t('ops_chat_title') }}</h2>
       <div class="ops-chat-head-actions">
+        <button type="button" class="btn btn-sm" :disabled="sessionsLoading" @click="refreshSessions">
+          {{ t('ops_chat_sessions_refresh') }}
+        </button>
         <button type="button" class="btn btn-sm" @click="clearConversation">
           {{ t('ops_chat_new') }}
         </button>
       </div>
+    </div>
+
+    <div v-if="sessions.length" class="ops-chat-sessions">
+      <h3 class="ops-chat-sessions-title">{{ t('ops_chat_sessions') }}</h3>
+      <ul class="ops-chat-session-list">
+        <li v-for="s in sessions" :key="s.uuid">
+          <button
+            type="button"
+            class="ops-chat-session-pick"
+            :class="{ active: sessionId === s.uuid }"
+            @click="loadSession(s.uuid)"
+          >
+            {{ s.title || s.uuid.slice(0, 8) + '…' }}
+          </button>
+        </li>
+      </ul>
     </div>
 
     <p v-if="sessionId" class="ops-chat-meta">
@@ -98,6 +126,50 @@ async function onSubmit() {
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 600;
+}
+.ops-chat-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.ops-chat-sessions {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ops-chat-sessions-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.ops-chat-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.ops-chat-session-pick {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.ops-chat-session-pick:hover,
+.ops-chat-session-pick.active {
+  border-color: var(--accent-teal);
+  color: var(--text-primary);
 }
 .ops-chat-meta {
   font-size: 12px;

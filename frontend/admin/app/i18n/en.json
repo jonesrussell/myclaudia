@@ -161,6 +161,7 @@
   "ops_open_pipeline": "Open pipeline",
   "ops_hub_prospects": "Prospects",
   "ops_hub_commitments_tenant": "Recent commitments (tenant)",
+  "ops_hub_commitments_workspace": "Commitments in this workspace",
   "ops_hub_schedule_tenant": "Upcoming schedule (tenant)",
   "ops_hub_triage_tenant": "Recent triage (tenant)",
   "ops_pipeline_filtered": "Filtered by workspace",
@@ -171,5 +172,14 @@
   "ops_chat_empty": "Send a message to start. The agent uses your backend tools.",
   "ops_chat_continue": "Continue",
   "ops_chat_placeholder": "Message…",
-  "ops_chat_send": "Send"
+  "ops_chat_send": "Send",
+  "ops_chat_sessions": "Recent sessions",
+  "ops_chat_sessions_refresh": "Refresh",
+  "ops_drawer_title": "Quick view",
+  "ops_drawer_close": "Close",
+  "ops_drawer_full": "Open full editor",
+  "ops_drawer_not_found": "Nothing found for that id.",
+  "ops_brief_live": "Live brief",
+  "ops_brief_live_on": "Streaming updates on",
+  "ops_brief_live_off": "Streaming updates off"
 }

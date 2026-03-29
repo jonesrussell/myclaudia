@@ -11,9 +11,14 @@ const MAX_RETRIES = 10
 
 interface UseRealtimeOptions {
   autoConnect?: boolean
+  /**
+   * When true (default), `connect()` no-ops unless `NUXT_PUBLIC_ENABLE_REALTIME` is enabled (`1` / true).
+   * Set false in unit tests or when the caller already gates (e.g. SchemaList).
+   */
+  enforceEnableRealtime?: boolean
 }
 
-// Requires a server-side SSE endpoint at /api/broadcast (not yet implemented in public/index.php).
+/** Subscribes to `GET /api/broadcast` SSE when enabled via runtime config. */
 export function useRealtime(channels: string[] = ['admin'], options: UseRealtimeOptions = {}) {
   const messages: Ref<BroadcastMessage[]> = ref([])
   const connected = ref(false)
@@ -23,6 +28,21 @@ export function useRealtime(channels: string[] = ['admin'], options: UseRealtime
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null
   let retryCount = 0
   let disconnectRequested = false
+
+  const enforceEnableRealtime = options.enforceEnableRealtime !== false
+
+  function isRealtimeEnabled(): boolean {
+    if (!enforceEnableRealtime) {
+      return true
+    }
+    try {
+      const cfg = useRuntimeConfig()
+      const v = cfg.public.enableRealtime
+      return v === '1' || v === true || v === 1
+    } catch {
+      return false
+    }
+  }
 
   function appendMessage(raw: string) {
     if (!raw || raw.trim() === '') return
@@ -37,6 +57,9 @@ export function useRealtime(channels: string[] = ['admin'], options: UseRealtime
 
   function connect() {
     if (typeof window === 'undefined') return
+    if (!isRealtimeEnabled()) {
+      return
+    }
     disconnectRequested = false
 
     const channelParam = channels.join(',')

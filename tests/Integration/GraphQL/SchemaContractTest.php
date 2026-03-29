@@ -85,6 +85,7 @@ final class SchemaContractTest extends TestCase
                 'confidence' => ['type' => 'float'],
                 'due_date' => ['type' => 'datetime'],
                 'person_uuid' => ['type' => 'string'],
+                'workspace_uuid' => ['type' => 'string'],
                 'source' => ['type' => 'string'],
                 'tenant_id' => ['type' => 'string'],
                 'importance_score' => ['type' => 'float'],
@@ -358,7 +359,7 @@ final class SchemaContractTest extends TestCase
 
         self::assertInstanceOf(ObjectType::class, $commitmentType);
 
-        $expectedFields = ['id', 'uuid', 'title', 'status', 'confidence', 'due_date', 'person_uuid', 'source', 'tenant_id', 'importance_score', 'access_count', 'last_accessed_at', 'created_at', 'updated_at'];
+        $expectedFields = ['id', 'uuid', 'title', 'status', 'confidence', 'due_date', 'person_uuid', 'workspace_uuid', 'source', 'tenant_id', 'importance_score', 'access_count', 'last_accessed_at', 'created_at', 'updated_at'];
         foreach ($expectedFields as $fieldName) {
             self::assertTrue($commitmentType->hasField($fieldName), "Commitment missing field: {$fieldName}");
         }

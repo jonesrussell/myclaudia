@@ -3,13 +3,15 @@ import type { DayBriefCommitmentRow } from '~/types/dayBrief'
 import { useLanguage } from '~/composables/useLanguage'
 import { useDayBrief } from '~/composables/useDayBrief'
 import { useWorkspaceScope } from '~/composables/useWorkspaceScope'
+import { useOpsDetailDrawer } from '~/composables/useOpsDetailDrawer'
 
 const { t } = useLanguage()
 const config = useRuntimeConfig()
 useHead({ title: computed(() => `${t('ops_nav_today')} | ${config.public.appName}`) })
 
-const { brief, error, loading, refresh } = useDayBrief()
+const { brief, error, loading, refresh, streamLive, startBriefStream, stopBriefStream } = useDayBrief()
 const { workspaceUuid, setWorkspace } = useWorkspaceScope()
+const { openDrawer } = useOpsDetailDrawer()
 
 onMounted(() => {
   refresh()
@@ -38,6 +40,20 @@ function linkCommitment(c: DayBriefCommitmentRow) {
   return '/commitment'
 }
 
+function peekCommitment(c: DayBriefCommitmentRow) {
+  if (c.uuid) {
+    openDrawer('commitment', c.uuid)
+  }
+}
+
+function toggleBriefStream() {
+  if (streamLive.value) {
+    stopBriefStream()
+  } else {
+    startBriefStream()
+  }
+}
+
 watch(workspaceUuid, () => {
   refresh()
 })
@@ -48,6 +64,15 @@ watch(workspaceUuid, () => {
     <div class="page-header">
       <h1>{{ t('ops_nav_today') }}</h1>
       <div class="page-actions">
+        <button
+          type="button"
+          class="btn btn-sm"
+          :class="{ 'btn-primary': streamLive }"
+          :title="streamLive ? t('ops_brief_live_on') : t('ops_brief_live_off')"
+          @click="toggleBriefStream"
+        >
+          {{ t('ops_brief_live') }}
+        </button>
         <button type="button" class="btn btn-sm" :disabled="loading" @click="refresh">
           {{ t('ops_refresh_brief') }}
         </button>
@@ -75,9 +100,17 @@ watch(workspaceUuid, () => {
       <section class="card-surface">
         <h2 class="section-title">{{ t('ops_section_do') }}</h2>
         <ul v-if="brief.commitments?.pending?.length" class="ops-list">
-          <li v-for="(c, i) in brief.commitments.pending" :key="'p'+i">
-            <NuxtLink v-if="c.uuid" :to="linkCommitment(c)" class="ops-link">{{ c.title }}</NuxtLink>
+          <li v-for="(c, i) in brief.commitments.pending" :key="'p'+i" class="ops-li-row">
+            <button
+              v-if="c.uuid"
+              type="button"
+              class="ops-link-btn"
+              @click="peekCommitment(c)"
+            >
+              {{ c.title }}
+            </button>
             <span v-else>{{ c.title }}</span>
+            <NuxtLink v-if="c.uuid" class="ops-li-edit" :to="linkCommitment(c)">→</NuxtLink>
             <span v-if="c.due_date" class="ops-meta">{{ c.due_date }}</span>
           </li>
         </ul>
@@ -128,17 +161,33 @@ watch(workspaceUuid, () => {
         <h2 class="section-title">{{ t('ops_section_connect') }}</h2>
         <h3 class="subsection">{{ t('ops_waiting') }}</h3>
         <ul v-if="brief.commitments?.waiting_on?.length" class="ops-list">
-          <li v-for="(c, i) in brief.commitments.waiting_on" :key="'w'+i">
-            <NuxtLink v-if="c.uuid" :to="linkCommitment(c)" class="ops-link">{{ c.title }}</NuxtLink>
+          <li v-for="(c, i) in brief.commitments.waiting_on" :key="'w'+i" class="ops-li-row">
+            <button
+              v-if="c.uuid"
+              type="button"
+              class="ops-link-btn"
+              @click="peekCommitment(c)"
+            >
+              {{ c.title }}
+            </button>
             <span v-else>{{ c.title }}</span>
+            <NuxtLink v-if="c.uuid" class="ops-li-edit" :to="linkCommitment(c)">→</NuxtLink>
           </li>
         </ul>
         <p v-else class="muted">{{ t('ops_empty') }}</p>
         <h3 class="subsection">{{ t('ops_drifting') }}</h3>
         <ul v-if="brief.commitments?.drifting?.length" class="ops-list">
-          <li v-for="(c, i) in brief.commitments.drifting" :key="'d'+i">
-            <NuxtLink v-if="c.uuid" :to="linkCommitment(c)" class="ops-link">{{ c.title }}</NuxtLink>
+          <li v-for="(c, i) in brief.commitments.drifting" :key="'d'+i" class="ops-li-row">
+            <button
+              v-if="c.uuid"
+              type="button"
+              class="ops-link-btn"
+              @click="peekCommitment(c)"
+            >
+              {{ c.title }}
+            </button>
             <span v-else>{{ c.title }}</span>
+            <NuxtLink v-if="c.uuid" class="ops-li-edit" :to="linkCommitment(c)">→</NuxtLink>
           </li>
         </ul>
         <p v-else class="muted">{{ t('ops_empty') }}</p>
@@ -232,6 +281,32 @@ watch(workspaceUuid, () => {
   padding: 8px 0;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 14px;
+}
+.ops-li-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.ops-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-teal);
+  cursor: pointer;
+  text-align: left;
+}
+.ops-link-btn:hover {
+  text-decoration: underline;
+}
+.ops-li-edit {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.ops-li-edit:hover {
+  color: var(--accent-teal);
 }
 .ops-link {
   color: var(--accent-teal);
