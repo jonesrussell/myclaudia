@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace Claudriel\Provider;
 
+use Claudriel\Entity\Artifact;
 use Claudriel\Entity\Integration;
 use Claudriel\Entity\IssueRun;
 use Claudriel\Entity\Operation;
 use Waaseyaa\Entity\EntityType;
 use Waaseyaa\Foundation\ServiceProvider\ServiceProvider;
 
+/**
+ * Registers operation, issue_run, and integration entity types.
+ *
+ * The {@see Artifact} type is registered only in
+ * {@see WorkspaceServiceProvider} (workspace-scoped repo metadata). Do not
+ * register artifact here — duplicate {@see EntityType} ids break GraphQL and
+ * storage bootstrap (see issue #652).
+ */
 final class OperationsServiceProvider extends ServiceProvider
 {
     public function register(): void

@@ -11,6 +11,9 @@ use Waaseyaa\Entity\ContentEntityBase;
  *
  * Internal-only: no CRUD surfaces (admin UI, REST, or GraphQL) are needed.
  * Artifacts are managed programmatically by GitRepositoryManager and workspace commands.
+ *
+ * Entity type `artifact` is registered only in `Claudriel\Provider\WorkspaceServiceProvider`
+ * (duplicate registration breaks GraphQL and storage bootstrap; issue #652).
  */
 final class Artifact extends ContentEntityBase
 {

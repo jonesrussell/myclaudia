@@ -59,6 +59,7 @@ final class WorkspaceServiceProvider extends ServiceProvider
             ],
         ));
 
+        // Internal repo/workspace metadata — not duplicated in OperationsServiceProvider (#652).
         $this->entityType(new EntityType(
             id: 'artifact',
             label: 'Artifact',
