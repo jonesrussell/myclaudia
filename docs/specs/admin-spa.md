@@ -103,7 +103,7 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 |----------|---------|---------|
 | `NUXT_PUBLIC_ENABLE_REALTIME` | false (dev), true (prod) | Enable SSE broadcast |
 | `NUXT_PUBLIC_APP_NAME` | "Claudriel Admin" | Page title |
-| `NUXT_PUBLIC_PHP_ORIGIN` | `http://localhost:8081` | PHP backend for login redirect + Nitro `devProxy` / `routeRules` (set when PHP is not on 8081) |
+| `NUXT_PUBLIC_PHP_ORIGIN` | `http://localhost:8081` (dev; unset in prod builds) | PHP backend for Nitro `devProxy` / `routeRules` and `runtimeConfig.public.phpOrigin` (`publicPhpOrigin()` in `nuxt.config.ts`: dev matches this default, prod `''` for same-origin) |
 | `PLAYWRIGHT_BASE_URL` | `http://localhost:3333/admin` | E2E test base URL |
 
 ## Build / Deploy
