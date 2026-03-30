@@ -37,6 +37,14 @@ jobs:
         env:
           WAASEYAA_GOLDEN_SHA: ${{ vars.WAASEYAA_GOLDEN_SHA }}
         run: |
+          if [ ! -x bin/waaseyaa-version ]; then
+            echo '::notice::bin/waaseyaa-version missing; skipping provenance'
+            exit 0
+          fi
+          if ! php -r 'require "vendor/autoload.php"; exit(class_exists(\Waaseyaa\CLI\Provenance\ComposerProvenanceReporter::class) ? 0 : 1);'; then
+            echo '::notice::Installed waaseyaa/cli predates ComposerProvenanceReporter; skipping until composer update pulls a newer split.'
+            exit 0
+          fi
           if [ -n "${WAASEYAA_GOLDEN_SHA:-}" ]; then
             ./bin/waaseyaa-version
           else
@@ -70,6 +78,14 @@ jobs:
         env:
           WAASEYAA_GOLDEN_SHA: ${{ vars.WAASEYAA_GOLDEN_SHA }}
         run: |
+          if [ ! -x bin/waaseyaa-version ]; then
+            echo '::notice::bin/waaseyaa-version missing; skipping provenance'
+            exit 0
+          fi
+          if ! php -r 'require "vendor/autoload.php"; exit(class_exists(\Waaseyaa\CLI\Provenance\ComposerProvenanceReporter::class) ? 0 : 1);'; then
+            echo '::notice::Installed waaseyaa/cli predates ComposerProvenanceReporter; skipping until composer update pulls a newer split.'
+            exit 0
+          fi
           if [ -n "${WAASEYAA_GOLDEN_SHA:-}" ]; then
             ./bin/waaseyaa-version
           else
