@@ -16,6 +16,7 @@ Use Composer scripts for the PHP app:
 
 For the Python agent subprocess:
 
+- Architecture and stdin/stdout contracts: [`docs/specs/agent-subprocess.md`](docs/specs/agent-subprocess.md) (adapter-only layer; PHP is the source of truth for business rules).
 - `cd agent && python -m pytest tests/` runs agent tests (imports `claudriel_agent` from `agent/` on `sys.path`).
 - CI installs `pip install -e './agent[dev]'` from the repo root for Ruff, Black, and mypy.
 - Entrypoints: `python agent/main.py` (shim), `python -m claudriel_agent` (after `pip install -e ./agent`), Docker `python -m claudriel_agent`; eval CLIs: `python agent/eval_runner.py`, etc.

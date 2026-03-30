@@ -45,7 +45,13 @@ One JSON object per line. Event types:
 | `tool_call` | `tool`, `args` | Agent invoking a tool |
 | `tool_result` | `tool`, `result` | Tool execution result |
 | `done` | — | Stream complete |
-| `error` | `error` | Error message |
+| `error` | `message` | Error message |
+| `progress` | `phase`, `summary`, `level` | Rate-limit / model fallback status for the UI |
+| `needs_continuation` | `turns_consumed`, `task_type`, `message` | Agent hit turn budget; session may continue |
+
+Payloads must be strict JSON (no `NaN` / `Infinity`). Implementation: `claudriel_agent.emit.emit()` uses `json.dumps(..., allow_nan=False)`.
+
+**Strict event names (optional):** Set `CLAUDRIEL_EMIT_STRICT=1` in the agent environment to raise on unknown `event` strings (catches typos). If unset, unknown events still emit for backward compatibility. The canonical allowlist is `ALLOWED_EMIT_EVENTS` in `agent/claudriel_agent/emit.py`.
 
 ## Tools
 
@@ -88,6 +94,9 @@ Internal API endpoints use short-lived HMAC-SHA256 tokens:
 1. **Python is credential-free.** All Google OAuth tokens are managed by PHP. The Python agent never touches OAuth credentials, scopes, or tokens.
 2. **No HTTP server in Python.** The original sidecar design used FastAPI + Uvicorn. The subprocess approach is simpler: stdin/stdout, no port binding, no process management.
 3. **Tools call back to PHP.** Rather than giving Python direct Google API access, tools make HTTP requests to the internal API, which handles token refresh and API calls.
+4. **The Python agent is an adapter, not a second backend.** It must not own permissions, entity validation, multi-step business workflows, or durable state. Those belong in PHP and internal APIs. Each subprocess run is a clean slate: no global caches or long-lived registries beyond the request.
+5. **DRY at the protocol layer, repetition at the tool layer.** Shared behavior belongs in `emit`, `PhpApiClient`, and the Anthropic loop. Individual tools stay flat, explicit, and easy to grep (`TOOL_DEF` + `execute` per file); avoid tool frameworks or shared abstractions that hide HTTP routes.
+6. **Contract tests enforce tool shape.** CI runs tests that validate every `agent/claudriel_agent/tools/*.py` module exports a consistent `TOOL_DEF` + synchronous `execute(api, args)` and does not import sibling tool modules.
 
 ## Dependencies
 
