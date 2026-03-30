@@ -6,8 +6,11 @@ Covers the service provider (central wiring) and support utilities.
 
 | File | Purpose |
 |------|---------|
-| `src/Provider/ClaudrielServiceProvider.php` | Registers all entity types, routes, and CLI commands |
+| `src/Provider/ClaudrielServiceProvider.php` | Registers core entity types, routes, and CLI commands |
 | `src/Provider/CodeTaskServiceProvider.php` | Registers CodeTask entity type and CodeTaskRunner singleton |
+| `src/Provider/OperationsServiceProvider.php` | Registers operation, issue_run, and integration entity types |
+| `src/Provider/WorkspaceServiceProvider.php` | Registers workspace-scoped entities (artifact); sole owner of artifact EntityType |
+| `config/waaseyaa.php` | CORS origins and dev port configuration (37840 PHP, 37841 Nuxt) |
 | `src/Support/BriefSignal.php` | File-based timestamp tracking for brief generation signals |
 | `src/Support/DriftDetector.php` | Finds active commitments unchanged for 48+ hours |
 | `src/Support/StorageRepositoryAdapter.php` | Adapts SqlEntityStorage to EntityRepositoryInterface |
@@ -39,7 +42,7 @@ Central wiring point for Claudriel. Extends Waaseyaa `ServiceProvider`.
 |--------|------|---------|-------|
 | `GET` | `/` | `DashboardController::show` | Dashboard unification |
 | `GET` | `/brief` | `DayBriefController::show` | Legacy JSON API |
-| `GET` | `/chat` | `DashboardController::show` | Redirects to dashboard |
+| `GET` | `/chat` | `ChatEntryRedirectController::redirectToAdmin` | Redirects to Nuxt admin with chat rail open |
 | `GET` | `/stream/brief` | `BriefStreamController::stream` | SSE brief stream |
 | `GET` | `/stream/chat/{messageId}` | `ChatStreamController::stream` | SSE chat stream |
 | `PATCH` | `/commitments/{uuid}` | `CommitmentUpdateController::update` | Update commitment |
@@ -107,6 +110,24 @@ return new CodeTaskRunner($repo);
 ## Storage Strategy
 
 Domain service providers (e.g., `CodeTaskServiceProvider`, `PipelineServiceProvider`) create entity repositories using `SqlEntityStorage` + `StorageRepositoryAdapter`. `ClaudrielServiceProvider::commands()` creates parallel repository instances for CLI commands using the same pattern. This dual-instance approach is intentional (#377).
+
+## Multi-Provider Entity Registration
+
+Entity types are distributed across multiple service providers. Each EntityType ID must be registered in exactly one provider to avoid duplicate registrations breaking GraphQL schema generation and storage bootstrap (#652).
+
+| Provider | Entity Types |
+|----------|-------------|
+| `ClaudrielServiceProvider` | account, mc_event, person, commitment, skill, chat_session, chat_message |
+| `WorkspaceServiceProvider` | artifact (sole owner, workspace-scoped repo metadata) |
+| `OperationsServiceProvider` | operation, issue_run, integration |
+| `CodeTaskServiceProvider` | code_task |
+| `PipelineServiceProvider` | prospect, prospect_attachment, prospect_audit, filtered_prospect, pipeline_config |
+
+**Critical:** The `artifact` EntityType is registered ONLY in `WorkspaceServiceProvider`. Do not duplicate it in `ClaudrielServiceProvider` or `OperationsServiceProvider`. Duplicate EntityType IDs break GraphQL and storage bootstrap.
+
+## Configuration
+
+`config/waaseyaa.php` contains CORS allowed origins and dev port configuration. Dev ports: PHP on **:37840**, Nuxt admin on **:37841** (see `frontend/admin/devPorts.ts`). The Nuxt dev server proxies `/api/**` to PHP.
 
 ## Adding New Entity Types
 

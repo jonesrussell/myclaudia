@@ -123,6 +123,27 @@ Entity types in catalog: workspace, project, person, commitment, schedule_entry,
 - **PHP `/login` 500**: With **php-fpm/Caddy** and `CLAUDRIEL_ENV=production`, missing required env vars still fail hard at boot. Under **php -S** (`cli-server`), boot logs missing vars but continues so local `/login` works. Prefer `CLAUDRIEL_ENV=development` in copied `.env` (see `.env.example`).
 - **php -S without `router.php`**: Requests hit static files or 404; use `composer serve:php` or `php -S … -t public public/router.php`.
 
+## useHostAdapter
+
+`useHostAdapter()` wraps `claudrielHostAdapter` with dynamic PHP origin handling. It reads `runtimeConfig.public.phpOrigin` (set via `NUXT_PUBLIC_PHP_ORIGIN`) and overrides `loginUrl()`:
+
+- If the path is already an absolute URL (`http://`/`https://`), passes it through to `claudrielPhpLoginUrlWithOrigin`
+- Otherwise normalizes the path and wraps it with `claudrielAdminReturnUrl` to construct the full login redirect
+
+This allows the login URL to dynamically target the correct PHP backend in both dev (`:37840`) and production (same-origin) without hardcoding.
+
+## OpsDetailDrawer
+
+`OpsDetailDrawer` (`app/components/ops/OpsDetailDrawer.vue`) is a slide-over panel used on the Today page, Pipeline board, and workspace hub for inline entity detail/edit without full page navigation. Backed by `useOpsDetailDrawer` composable.
+
+## OpsChatRail (Enhanced)
+
+`OpsChatRail` is mounted in `AdminShell` as a collapsible right-side rail. Uses `useChatRail` composable for `POST /api/chat/send` + `EventSource /stream/chat/{messageId}`. Supports continuation bar when agent turn budget is exhausted.
+
+## Workspace Scoping
+
+Commitment, schedule, triage, and prospect queries pass `workspace_uuid` as a GraphQL filter variable when a workspace is active (via `useWorkspaceScope`). The `useOpsGraphql` composable templates include `workspace_uuid` in both query fields and filter conditions. Day brief requests also pass `workspace_uuid` as a query parameter to scope the brief to the active workspace.
+
 ## Known Constraints
 
 - Must use native `fetch()` not Nuxt `$fetch()` for backend API calls (`$fetch` resolves against `app.baseURL` `/admin/`)

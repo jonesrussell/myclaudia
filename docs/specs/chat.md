@@ -86,6 +86,42 @@ Per-turn usage from Anthropic `usage` is persisted as `chat_token_usage`:
 - `chat-done` — completion marker + full response
 - `chat-error` — error payload
 
+## SubprocessChatClient
+
+`SubprocessChatClient` runs the agent as a child process (Python venv or Docker container) and streams JSON-line events via stdout.
+
+### Constructor
+
+```php
+public function __construct(
+    private readonly array $command,    // e.g., ['docker', 'run', '--rm', '-i', 'claudriel-agent', ...] or ['{venv}/bin/python', '-m', 'claudriel_agent']
+    private readonly int $timeoutSeconds = 120,
+)
+```
+
+The `$command` parameter is a `list<string>` allowing any executable format (direct Python, Docker, etc.) rather than the previous `string $pythonBinary, string $agentPath` pair.
+
+### Stream Callbacks
+
+```php
+public function stream(
+    string $systemPrompt,
+    array $messages,
+    string $accountId,
+    string $tenantId,
+    string $apiBase,
+    string $apiToken,
+    Closure $onToken,       // (string): void — streamed text chunks
+    Closure $onDone,        // (string): void — full response on completion
+    Closure $onError,       // (string): void — error message
+    ?Closure $onProgress,   // (array): void — tool_call, tool_result, progress events
+    ?string $model,
+    ?Closure $onNeedsContinuation,  // (array): void — turn budget exhausted
+): void
+```
+
+The `onProgress` callback receives normalized progress arrays with keys: `phase`, `tool` (for tool events), `summary`, `level`. Event types mapped to progress: `tool_call`, `tool_result`, `progress` (generic agent status like rate-limit retries).
+
 ## Environment Variables
 
 - `ANTHROPIC_API_KEY` (required for live chat)

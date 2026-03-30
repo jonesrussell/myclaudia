@@ -85,10 +85,16 @@ Rule: higher layers import lower layers only. Never import from src/Command insi
 | `src/Domain/Workspace/*` | — | `docs/specs/entity.md` |
 | `src/Controller/*, src/Command/*` | — | `docs/specs/web-cli.md` |
 | `src/Provider/*` | — | `docs/specs/infrastructure.md` |
+| `src/AI/*` | — | `docs/specs/pipeline.md` |
+| `src/Admin/Host/*` | — | `docs/specs/admin-spa.md` |
+| `src/Service/*` | — | `docs/specs/infrastructure.md` |
 | `src/Entity/*`, `src/Provider/*`, `src/Access/*` | `waaseyaa-app-development` | `docs/specs/entity.md` |
 | `src/Controller/*`, `src/Routing/*` | `waaseyaa-app-development` | — |
 | `frontend/admin/**` | — | `docs/specs/admin-spa.md` |
 | `templates/**` | — | `docs/specs/web-cli.md` |
+| `.github/workflows/*` | — | `docs/specs/workflow.md` |
+| `config/*` | — | `docs/specs/infrastructure.md` |
+| `tests/**` | — | `docs/specs/infrastructure.md` |
 | GitHub issues, milestones, new features, roadmap | — | `docs/specs/workflow.md` |
 | `docs/specs/**`, `.claude/**`, `**/CLAUDE.md` | `updating-codified-context` | — |
 

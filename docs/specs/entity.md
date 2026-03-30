@@ -11,7 +11,9 @@
 | `src/Entity/Person.php` | Contact/sender extracted from ingestion |
 | `src/Entity/Workspace.php` | Named grouping context for events and commitments |
 | `src/Entity/CodeTask.php` | Delegated Claude Code task with status tracking |
-| `src/McClaudiaServiceProvider.php` | Registers all entity types + routes |
+| `src/Provider/ClaudrielServiceProvider.php` | Registers core entity types + routes |
+| `src/Provider/WorkspaceServiceProvider.php` | Registers workspace-scoped entities (artifact) |
+| `src/Provider/OperationsServiceProvider.php` | Registers operation, issue_run, integration entities |
 
 ## Internal-Only Entities
 
@@ -62,7 +64,7 @@ $repo->count(array $criteria = []): int
 ## EntityType Registration
 
 ```php
-// In McClaudiaServiceProvider::register()
+// In ClaudrielServiceProvider::register()
 $this->entityType(new EntityType(
     id: 'commitment',
     label: 'Commitment',
@@ -79,7 +81,13 @@ $this->entityType(new EntityType(
 | `uuid` | string | — | |
 | `title` | string | required | Extracted from AI |
 | `confidence` | float | `1.0` | Set by extraction step |
-| `status` | string | `'pending'` | `pending`, `active`, `done` |
+| `status` | string | `'pending'` | Synced from `workflow_state` for backward compat |
+| `direction` | string | `'outbound'` | `'outbound'` (you owe) or `'inbound'` (they owe) |
+| `workflow_state` | string | `'pending'` | Canonical state: `pending`, `active`, `completed`, `archived` |
+| `workspace_uuid` | string | `null` | Workspace scoping |
+| `importance_score` | float | `1.0` | Adaptive memory decay weight |
+| `access_count` | int | `0` | Decay tracking counter |
+| `last_accessed_at` | string | `null` | ISO 8601; decay tracking timestamp |
 | `source_event_id` | string | — | McEvent id |
 | `person_id` | string | — | Person entity id |
 | `tenant_id` | string | — | Multi-tenancy key |

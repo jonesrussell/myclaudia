@@ -105,6 +105,67 @@ The `create` endpoint resolves or creates a workspace + repo for the given GitHu
 // Exit: SUCCESS if task completed, FAILURE otherwise
 ```
 
+## OAuth System
+
+`OAuthController` provides a unified OAuth flow for both account connection (adding provider integrations to an existing account) and sign-in/sign-up (creating or logging into an account via OAuth).
+
+### Flow Scopes
+
+Each provider has separate scope sets for `connect` vs `signin`:
+
+- **Google connect**: Gmail, Calendar, Drive scopes (full API access for integrations)
+- **Google signin**: `openid`, `userinfo.email`, `userinfo.profile` (minimal identity)
+- **GitHub connect**: `repo`, `notifications`, `read:org`
+- **GitHub signin**: `user:email`, `read:user`
+
+### Routes
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/auth/{provider}/connect` | GET | Redirect to OAuth provider for integration connection (requires authenticated session) |
+| `/auth/{provider}/connect/callback` | GET | Handle connect callback, upsert Integration entity |
+| `/auth/{provider}/signin` | GET | Redirect to OAuth provider for sign-in/sign-up (public) |
+| `/auth/{provider}/signin/callback` | GET | Handle signin callback, create-or-find account, establish session |
+
+### Signin Flow (`/auth/{provider}/signin`)
+
+1. Stores `oauth_post_login_redirect` in session (sanitized via `ClaudrielAdminHost::sanitizeRedirectTarget`)
+2. Sets `oauth_flow = 'signin'` in session
+3. Uses `{provider}-signin` registry key if available (separate redirect URI), falls back to base provider
+4. On callback: validates state + flow, exchanges code, gets user profile
+5. Calls `PublicAccountSignupService::createFromOAuth()` to find-or-create account
+6. Sets `claudriel_account_uuid` session, regenerates session ID + CSRF
+7. Redirects to stored `oauth_post_login_redirect` (or `/app` default)
+
+### Integration Upsert
+
+`upsertIntegration()` creates or updates an `Integration` entity keyed by `account_id` + `provider`. On update, preserves existing `refresh_token` if the new token lacks one. Tracks `scopes_changed_at` in metadata when scopes differ.
+
+### OAuthTokenManager
+
+Token refresh uses a 60-second expiry buffer: tokens are refreshed before they actually expire to prevent mid-request failures. Uses base provider names (`google`/`github`) for refresh since redirect URI is not needed for token refresh.
+
+## PublicSessionController
+
+### Login Error Handling
+
+The `login()` method differentiates three failure modes:
+
+1. **Account not found**: `findVerifiedAccountByEmail()` returns null. Shows generic "Invalid credentials." error.
+2. **OAuth-only account** (no password hash): Account exists but `password_hash` is empty. Shows provider-specific guidance: "This account uses Google sign-in. Use the 'Sign in with Google' button below." with `show_google_signin = true` template variable.
+3. **Wrong password**: `password_verify()` fails. Shows generic "Invalid credentials." error.
+
+## PublicAccountController
+
+### Admin Notification on Verification
+
+`PublicAccountSignupService` accepts an optional `adminEmail` parameter sourced from the `CLAUDRIEL_ADMIN_EMAIL` env var. When set, an admin notification is sent on successful email verification. This is best-effort: notification failure never blocks the verification flow.
+
+### Templates
+
+- `login.twig` and `signup.twig` include Google OAuth signin/signup buttons. Both receive `public_origin` from the request for constructing OAuth redirect URLs.
+- `login.twig` conditionally shows the Google sign-in prompt when `show_google_signin` is set (OAuth-only account attempted password login).
+
 ## Adding New Routes
 
 1. Create controller in `src/Controller/`
