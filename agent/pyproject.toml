@@ -9,7 +9,7 @@ description = "Claudriel chat subprocess (Anthropic tool loop + internal API too
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=0.40.0",
-    "httpx>=0.27.0",
+    "httpx>=0.28.1",
     "pyyaml>=6.0",
 ]
 
